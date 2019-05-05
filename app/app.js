@@ -14,5 +14,7 @@ const store = createStore(
 
 // Wrap <App/> with redux Provider, exposing store to all components within.
 ReactDOM.render(<Provider store={store}>
-                    <FocusMultiContextBrushControl/>
+                    <FocusMultiContextBrushControl
+                    width={500}
+                    height={100}/>
                 </Provider>, document.getElementById('ROOT'));
