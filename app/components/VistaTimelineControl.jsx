@@ -2,7 +2,6 @@ import React from "react";
 import * as d3 from 'd3';
 import { event as d3event } from 'd3';
 import _ from "lodash"; 
-import { connect } from "react-redux"; 
 import { assert } from "chai"; 
 
 import { getEquilateralTriangleFromCentroid } from "../util/util"; 
@@ -45,9 +44,7 @@ let brushState = {
   containerScale: d3.scaleLinear() // Maps time points to a corresponding x coordinate within the container 
 };
 
-class FocusMultiContextBrushControl extends React.Component {
-
-
+class VistaTimelineControl extends React.Component {
 
   constructor(props) {
     super(props); 
@@ -634,7 +631,6 @@ class FocusMultiContextBrushControl extends React.Component {
   }
 }
 
-const mapStateToProps = ({ timeDomains, timeExtentDomain }) => 
-                        ({ timeDomains, timeExtentDomain }); 
 
-export default connect(mapStateToProps, null)(FocusMultiContextBrushControl); 
+
+export default VistaTimelineControl; 

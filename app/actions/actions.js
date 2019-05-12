@@ -1,7 +1,20 @@
-export function ACTION_updateData(data) {
+export function ACTION_CHANGE_timeExtentDomain(timeExtentDomain) {
     return {
-        type: 'ACTION',
-        data,
+        type: 'CHANGE_timeExtentDomain',
+        timeExtentDomain,
     };
 }
-  
+
+export function ACTION_CHANGE_timeDomains(timeDomains) {
+    return {
+        type: 'CHANGE_timeDomains',
+        timeDomains,
+    };
+}
+
+export function ACTION_CHANGE_numContextsPerSide(numContextsPerSide) {
+    return {
+        type: 'CHANGE_numContextsPerSide',
+        numContextsPerSide,
+    };
+}

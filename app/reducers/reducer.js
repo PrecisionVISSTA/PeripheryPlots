@@ -1,4 +1,4 @@
-const defaultState = {
+const DEFAULT_state = {
     timeExtentDomain: [new Date("06/22/1997"), new Date("06/22/2020")], 
     timeDomains: [
         [new Date("06/22/1997"), new Date("06/22/2000")],
@@ -8,13 +8,23 @@ const defaultState = {
     numContextsPerSide: 1
 };
 
-const reducer = (state = defaultState, action) => {
+const reducer = (state = DEFAULT_state, action) => {
     
     switch (action.type) {
-        case 'ACTION': 
+        case 'CHANGE_timeExtentDomain': 
             return {
                 ...state, 
-                action 
+                numContextsPerSide 
+            }
+        case 'CHANGE_timeDomains': 
+            return {
+                ...state, 
+                numContextsPerSide 
+            }
+        case 'CHANGE_numContextsPerSide': 
+            return {
+                ...state, 
+                numContextsPerSide 
             }
         default:
             return state;

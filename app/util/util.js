@@ -46,6 +46,14 @@ export function rangeeq(arr1, arr2) {
     return arr1[0] === arr2[0] && arr1[1] === arr2[1]; 
 }
 
+export function logicalAndOver(arr) {
+    return arr.reduce((acc, cur) => acc && cur, true); 
+}
+
+export function logicalOrOver(arr) {
+    return arr.reduce((acc, cur) => acc || cur, true); 
+}
+
 export function rangeIntersection(ar, br) {
     /*
     Determines if two intervals overlap. If the intervals overlap we return 
@@ -54,16 +62,10 @@ export function rangeIntersection(ar, br) {
     let [a0, a1] = ar; 
     let [b0, b1] = br; 
     let intersection = b0 <= a1 ? [b0, a1] 
-                        : a0 <= b1 ? [a0, b1] 
-                        : []; 
+                     : a0 <= b1 ? [a0, b1] 
+                     : []; 
     let didIntersect = intersection.length == 2; 
     return didIntersect, intersection; 
-}
-        
-export function range(stop) {
-    let arr = new Array(stop); 
-    for (let i = 0; i < stop; i++) { arr[i] = i; }
-    return arr; 
 }
 
 export function zip(a,b) {
