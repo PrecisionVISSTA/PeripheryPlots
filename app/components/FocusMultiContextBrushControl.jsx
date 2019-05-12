@@ -287,9 +287,9 @@ class FocusMultiContextBrushControl extends React.Component {
     // Determine the closest brush to the left of the current brush that is either left or right locked
     // this can possibly be the current brush 
     let leftLockedBrushIndex = -1; 
-    for (let i = brushIndex; i >= 0; i--) {
-      let [leftLocked, rightLocked] = this.isBrushLocked(i); 
-      if (leftLocked || rightLocked) {
+    for (let i = brushIndex - 1; i >= 0; i--) {
+      let [leftHandleLocked, rightHandleLocked] = this.isBrushLocked(i); 
+      if (leftHandleLocked || rightHandleLocked) {
         leftLockedBrushIndex = i; 
         break; 
       }
@@ -298,9 +298,9 @@ class FocusMultiContextBrushControl extends React.Component {
     // Determine the closest brush to the right of the current brush that is either left or right locked
     // this can possibly be the current brush 
     let rightLockedBrushIndex = -1; 
-    for (let i = brushIndex; i < brushState.numBrushes; i++) {
-      let [leftLocked, rightLocked] = this.isBrushLocked(i); 
-      if (leftLocked || rightLocked) {
+    for (let i = brushIndex + 1; i < brushState.numBrushes; i++) {
+      let [leftHandleLocked, rightHandleLocked] = this.isBrushLocked(i); 
+      if (leftHandleLocked || rightHandleLocked) {
         rightLockedBrushIndex = i; 
         break; 
       }
@@ -355,8 +355,8 @@ class FocusMultiContextBrushControl extends React.Component {
     let curS = brushRanges[index]; 
 
     // Get the lock state 
-    let [leftLocked, rightLocked] = this.isBrushLocked(index); 
-    let isLocked = leftLocked || rightLocked; 
+    let [leftHandleLocked, rightHandleLocked] = this.isBrushLocked(index); 
+    let isLocked = leftHandleLocked || rightHandleLocked; 
 
     let brushActions = {
 
@@ -411,246 +411,211 @@ class FocusMultiContextBrushControl extends React.Component {
     let shift = 0; 
     let proposedShift; 
     let proposedWidth; 
-    let canResizeLockedBound; 
+    let canResizeLockedBrush; 
     let shiftIndices = null; 
 
-    switch (currentAction) {
-      case brushActions.RESIZE_SHRINK_LEFT: 
-        if (leftLocked) {
-          // If the target brush has its left handle locked we prevent the current action from 
-          // occuring. We do nothing to the remaining brushes. 
-          newSelections[index] = preS;
-        } else {
-          if (tooSmall) {
-            // The action forced the target brush to become smaller than the minimum allowed width
-            // We resize the target brush so that its width is equal to the minimuim allowable width 
-            // we compute the corresponding shift to apply to brushes to the left of the target brush 
-            newSelections[index] = [preS[1] - minWidth, preS[1]];
-            shift = newSelections[index][0] - preS[0]; 
-            shiftIndices = _.range(...leftIndexRange); 
-          } 
-          else {
-            // This is a valid action
-            // we compute the corresponding shift to apply to brushes to the left of the target brush 
-            shift = curS[0] - preS[0]; 
-            shiftIndices = _.range(...leftIndexRange);
-          }
-
-          if (lockedToLeft) {
-            // All brushes to the left of and including the left locked bound are not shifted 
-            // The left locked bound is resized 
-            let dontShiftIndices = _.range(0, leftLockIndex + 1); 
-            shiftIndices = shiftIndices.filter(ind => !dontShiftIndices.includes(ind)); 
-            newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                            leftLockBoundS[1] + shift];
-          }
-        }
-        break; 
-      case brushActions.RESIZE_SHRINK_RIGHT: 
-        if (rightLocked) {
-          // If the target brush has its right handle locked we prevent the current action from 
-          // occuring. We do nothing to the remaining brushes. 
-          newSelections[index] = preS;
-        } else {
-          if (tooSmall) {
-            // The action forced the target brush to become smaller than the minimum allowed width
-            // We resize the target brush so that its width is equal to the minimuim allowable width 
-            // we compute the corresponding shift to apply to brushes to the right of the target brush
-            newSelections[index] = [preS[0], preS[0] + minWidth];
-            shift = newSelections[index][1] - preS[1];   
-            shiftIndices = _.range(...rightIndexRange);
+      switch (currentAction) {
+        case brushActions.RESIZE_SHRINK_LEFT: 
+          if (leftHandleLocked) {
+            newSelections[index] = preS;
           } else {
-            // This is a valid action
-            // we compute the corresponding shift to apply to brushes to the right of the target brush 
-            shift = curS[1] - preS[1];
-            shiftIndices = _.range(...rightIndexRange);  
-          }
-
-          if (lockedToRight) {
-            // All brushes to the right of and including the right locked bound are not shifted 
-            // The right locked bound is resized 
-            let dontShiftIndices = _.range(rightLockIndex, brushState.numBrushes); 
-            shiftIndices = shiftIndices.filter(ind => !dontShiftIndices.includes(ind)); 
-            rightLockBound = [rightLockBoundS[0] + shift, 
-                                             rightLockBoundS[1]];
-          }
-        }
-        break; 
-      case brushActions.RESIZE_GROW_LEFT: 
-        proposedShift = curS[0] - preS[0];  
-        if (leftLocked) {
-          // If the target brush has its left handle locked we prevent the current action from 
-          // occuring. We do nothing to the remaining brushes. 
-          newSelections[index] = preS; 
-        } else {
-          if (lockedToLeft) {
-            canResizeLockedBound = (leftLockBoundS[1] + proposedShift) - leftLockBoundS[0] >= minWidth; 
-            if (canResizeLockedBound) {
-              // Resize the left lock bound. Shift all brushes between the lock bound left and the target brush 
-              // 'proposedShift' units 
-              shift = proposedShift;
-              newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                              leftLockBoundS[1] + shift]
+            if (tooSmall) {
+              newSelections[index] = [preS[1] - minWidth, preS[1]];
+              shift = newSelections[index][0] - preS[0];
             } else {
-              // This resize causes the left lock bound to fall below the min width threshold 
-              newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                              leftLockBoundS[0] + minWidth]
-              shift = leftLockBoundS[1] - newSelections[leftLockIndex+1][0]; 
+              shift = curS[0] - preS[0]; 
             }
-            shiftIndices = leftLockIndex === index - 1 ? null : _.range(leftLockIndex + 1, index); 
+            if (lockedToLeft) {
+              newSelections[leftLockIndex] = [leftLockBoundS[0],
+                                              leftLockBoundS[1] + shift]; 
+              shiftIndices = _.range(leftIndexRange[0] + 1, leftIndexRange[1]); 
+            } else {
+              shiftIndices = _.range(...leftIndexRange); 
+            }
+          }
+          break; 
+        case brushActions.RESIZE_SHRINK_RIGHT: 
+          if (rightHandleLocked) {
+            newSelections[index] = preS;
           } else {
-            // No lock to left, so we are simply shifting all brushes. 
+            if (tooSmall) {
+              newSelections[index] = [preS[0], preS[0] + minWidth];
+              shift = newSelections[index][1] - preS[1];   
+            } else {
+              shift = curS[1] - preS[1];  
+            }
+            if (lockedToRight) {
+              newSelections[rightLockIndex] = [rightLockBoundS[0], 
+                                               rightLockBoundS[1] + shift];
+              shiftIndices = _.range(index + 1, rightLockIndex); 
+            } else {
+              shiftIndices = _.range(...rightIndexRange);
+            }
+          }
+          break; 
+        case brushActions.RESIZE_GROW_LEFT: 
+          proposedShift = curS[0] - preS[0];  
+          if (leftHandleLocked) {
+            newSelections[index] = preS; 
+          } else {
+            if (lockedToLeft) {
+              canResizeLockedBrush = (leftLockBoundS[1] + proposedShift) - leftLockBoundS[0] >= minWidth; 
+              if (canResizeLockedBrush) {
+                shift = proposedShift;
+                newSelections[leftLockIndex] = [leftLockBoundS[0], 
+                                                leftLockBoundS[1] + shift];
+                shiftIndices = _.range(leftLockIndex + 1, index); 
+              } else {
+                newSelections[leftLockIndex] = [leftLockBoundS[0], 
+                                                leftLockBoundS[0] + minWidth];
+                newSelections[index] = preS; 
+                shift = leftLockBoundS[1] - previousBrushSelections[leftLockIndex + 1][0]; 
+                shiftIndices = _.range(leftLockIndex + 1, index + 1); 
+              }
+            } else {
+              if (this.selectionsCanShift(leftBrushSelections, proposedShift)) {
+                shift = proposedShift; 
+                shiftIndices = _.range(...leftIndexRange);
+              } else {
+                shift = -leftBrushSelections[0][0]; 
+                shiftIndices = _.range(0, index + 1); 
+                newSelections[index] = preS; 
+              }
+            }
+          }
+          break; 
+        case brushActions.RESIZE_GROW_RIGHT: 
+          proposedShift = curS[1] - preS[1];  
+          if (rightHandleLocked) {
+            newSelections[index] = preS; 
+          } else {
+            if (lockedToRight) {
+              canResizeLockedBound = rightLockBoundS[1] - (rightLockBoundS[0] + proposedShift) >= minWidth; 
+              if (canResizeLockedBound) {
+                shift = proposedShift;
+                newSelections[rightLockIndex] = [rightLockBound[0] + shift, 
+                                                 rightLockBound[1]]; 
+                shiftIndices = _.range(index + 1, rightLockIndex); 
+              } else {
+                newSelections[rightLockIndex] = [rightLockBoundS[1] - minWidth, 
+                                                 rightLockBound[1]]; 
+                newSelections[index] = preS; 
+                shift = rightLockBoundS[0] - newSelections[rightLockIndex-1][1]; 
+                shiftIndices = _.range(index, rightLockIndex); 
+              }
+            } else {
+              if (this.selectionsCanShift(rightBrushSelections, proposedShift)) {
+                shift = proposedShift; 
+                shiftIndices = _.range(...rightIndexRange);
+              } else {
+                shift = this.props.width - newSelections[newSelections.length - 1][1]; 
+                shiftIndices = _.union([index],  _.range(...rightIndexRange));
+                newSelections[index] = preS; 
+              }
+            }
+          }
+          break; 
+        case brushActions.TRANSLATE_LEFT: 
+          proposedShift = curS[0] - preS[0]; 
+          if (isLocked) {
+            newSelections[index] = preS; 
+          } else if (lockedToLeft) {
+            proposedWidth = (leftLockBoundS[1] + proposedShift) - leftLockBoundS[0]; 
+            if (proposedWidth < minWidth) {
+              newSelections[leftLockIndex] = [leftLockBoundS[0], 
+                                              leftLockBoundS[0] + minWidth];
+              newSelections[index] = preS; 
+              shift = -(newSelections[leftLockIndex + 1][0] - newSelections[leftLockIndex][1]);
+              shiftIndices = _.range(leftLockIndex + 1, brushState.numBrushes); 
+            } else {
+              newSelections[leftLockIndex] = [leftLockBoundS[0], 
+                                              leftLockBoundS[1] + proposedShift];
+              shift = proposedShift;  
+              shiftIndices = _.range(leftLockIndex + 1, brushState.numBrushes).filter(i => i !== index); 
+            }
+          } else {
             if (this.selectionsCanShift(leftBrushSelections, proposedShift)) {
               shift = proposedShift; 
-              shiftIndices = _.range(...leftIndexRange);
+              if (lockedToRight) {
+                shiftIndices =  _.union(_.range(...leftIndexRange), 
+                                        _.range(rightIndexRange[0], rightLockIndex)); 
+                newSelections[rightLockIndex] = [rightLockBoundS[0] + shift, 
+                                                 rightLockBoundS[1]]; 
+              } else {
+                shiftIndices = _.union(_.range(...leftIndexRange), 
+                                       _.range(...rightIndexRange)); 
+              }
             } else {
-              // This shift caused an invalid state where the leftmost brush went past the left container bound 
-              shift = parseInt(-leftBrushSelections[0][0]); 
-              shiftIndices = _.union(_.range(...leftIndexRange), 
-                                     [index]);
+              shift = -previousBrushSelections[0][0];
               newSelections[index] = preS; 
+              if (lockedToRight) {
+                shiftIndices =  _.union(_.range(...leftIndexRange), 
+                                        [index], 
+                                        _.range(rightIndexRange[0], rightLockIndex)); 
+                newSelections[rightLockIndex] = [rightLockBoundS[0] + shift, 
+                                                 rightLockBoundS[1]]; 
+              } else {
+                shiftIndices = _.union(_.range(...leftIndexRange), 
+                                      [index], 
+                                       _.range(...rightIndexRange)); 
+              }
             }
           }
-        }
-        break; 
-      case brushActions.RESIZE_GROW_RIGHT: 
-        proposedShift = curS[1] - preS[1];  
-        if (rightLocked) {
-          // If the target brush has its right handle locked we prevent the current action from 
-          // occuring. We do nothing to the remaining brushes. 
-          newSelections[index] = preS; 
-        } else {
-          if (lockedToRight) {
-            canResizeLockedBound = rightLockBoundS[1] - (rightLockBoundS[0] + proposedShift) >= minWidth; 
-            if (canResizeLockedBound) {
-              // Resize the right lock bound. Shift all brushes between the lock bound right and the target brush 
-              // 'proposedShift' units 
-              shift = proposedShift;
-              rightLockBound = [rightLockBound[0] + shift, 
-                                rightLockBound[1]]; 
+          break; 
+        case brushActions.TRANSLATE_RIGHT:
+          proposedShift = curS[0] - preS[0];  
+          if (isLocked) {
+            newSelections[index] = preS; 
+          } else if (lockedToRight) {
+            proposedWidth = rightLockBoundS[1] - (rightLockBoundS[0] + proposedShift); 
+            if (proposedWidth < minWidth) {
+              newSelections[rightLockIndex] = [rightLockBoundS[1] - minWidth, 
+                                               rightLockBoundS[1]];
+              newSelections[index] = preS; 
+              shift = newSelections[rightLockIndex][0] - previousBrushSelections[rightLockIndex - 1][1]; 
+              shiftIndices = _.range(0, rightLockIndex); 
             } else {
-              // This resize causes the right lock bound to fall below the min width threshold 
-              rightLockBound = [rightLockBoundS[1] - minWidth, 
-                                rightLockBound[1]]; 
-              shift = rightLockBoundS[0] - newSelections[rightLockIndex-1][1]; 
+              newSelections[rightLockIndex] = [rightLockBoundS[0] + proposedShift, 
+                                               rightLockBoundS[1]];
+              shift = proposedShift;  
+              shiftIndices = _.range(0, rightLockIndex).filter(i => i !== index); 
             }
-            shiftIndices = rightLockIndex === index + 1 ? null : _.range(index + 1, rightLockIndex); 
           } else {
-            // No lock to right, so we are simply shifting all brushes. 
             if (this.selectionsCanShift(rightBrushSelections, proposedShift)) {
               shift = proposedShift; 
-              shiftIndices = _.range(...rightIndexRange);
+              if (lockedToLeft) {
+                shiftIndices = _.union(_.range(leftLockIndex + 1, index), 
+                                       _.range(...rightIndexRange));  
+                newSelections[leftLockIndex] = [leftLockBoundS[0], 
+                                                leftLockBoundS[1] + shift]
+              } else {
+                shiftIndices = _.union(_.range(...leftIndexRange), 
+                                       _.range(...rightIndexRange)); 
+              }
             } else {
-              // This shift caused an invalid state where the rightmost brush went past the right container bound 
-              shift = this.props.width - newSelections[newSelections.length - 1][1]; 
-              shiftIndices = _.union([index], 
-                                      _.range(...rightIndexRange));
+              shift = this.props.width - previousBrushSelections[previousBrushSelections.length - 1][1];
               newSelections[index] = preS; 
+              if (lockedToLeft) {
+                shiftIndices = _.union(_.range(leftLockIndex + 1, index), 
+                                       [index], 
+                                       _.range(...rightIndexRange));
+                newSelections[leftLockIndex] = [leftLockBoundS[0], 
+                                                leftLockBoundS[1] + shift]; 
+              } else {
+                shiftIndices = _.union(_.range(...leftIndexRange), 
+                                       [index], 
+                                       _.range(...rightIndexRange)); 
+              }
             }
           }
-        }
-        break; 
-      case brushActions.TRANSLATE_LEFT: 
-        proposedShift = curS[0] - preS[0]; 
-        if (isLocked) {
-          newSelections[index] = preS; 
-        } else if (lockedToLeft) {
-          proposedWidth = (leftLockBoundS[1] + proposedShift) - leftLockBoundS[0]; 
-          if (proposedWidth < minWidth) {
-            newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                            leftLockBoundS[0] + minWidth];
-            newSelections[index] = preS; 
-            shift = -(newSelections[leftLockIndex + 1][0] - newSelections[leftLockIndex][1]);
-            shiftIndices = _.range(leftLockIndex + 1, brushState.numBrushes); 
-          } else {
-            newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                            leftLockBoundS[1] + proposedShift];
-            shift = proposedShift;  
-            shiftIndices = _.range(leftLockIndex + 1, brushState.numBrushes).filter(i => i !== index); 
-          }
-        } else {
-          if (this.selectionsCanShift(leftBrushSelections, proposedShift)) {
-            shift = proposedShift; 
-            if (lockedToRight) {
-              shiftIndices =  _.union(_.range(...leftIndexRange), 
-                                      _.range(rightIndexRange[0], rightLockIndex)); 
-              newSelections[rightLockIndex] = [rightLockBoundS[0] + shift, 
-                                               rightLockBoundS[1]]; 
-            } else {
-              shiftIndices = _.union(_.range(...leftIndexRange), 
-                                     _.range(...rightIndexRange)); 
-            }
-          } else {
-            shift = -previousBrushSelections[0][0];
-            newSelections[index] = preS; 
-            if (lockedToRight) {
-              shiftIndices =  _.union(_.range(...leftIndexRange), 
-                                      [index], 
-                                      _.range(rightIndexRange[0], rightLockIndex)); 
-              newSelections[rightLockIndex] = [rightLockBoundS[0] + shift, 
-                                               rightLockBoundS[1]]; 
-            } else {
-              shiftIndices = _.union(_.range(...leftIndexRange), 
-                                    [index], 
-                                     _.range(...rightIndexRange)); 
-            }
-          }
-        }
-        break; 
-      case brushActions.TRANSLATE_RIGHT:
-        proposedShift = curS[0] - preS[0];  
-        if (isLocked) {
-          newSelections[index] = preS; 
-        } else if (lockedToRight) {
-          proposedWidth = rightLockBoundS[1] - (rightLockBoundS[0] + proposedShift); 
-          if (proposedWidth < minWidth) {
-            newSelections[rightLockIndex] = [rightLockBoundS[1] - minWidth, 
-                                             rightLockBoundS[1]];
-            newSelections[index] = preS; 
-            shift = newSelections[rightLockIndex][0] - previousBrushSelections[rightLockIndex - 1][1]; 
-            shiftIndices = _.range(0, rightLockIndex); 
-          } else {
-            newSelections[rightLockIndex] = [rightLockBoundS[0] + proposedShift, 
-                                             rightLockBoundS[1]];
-            shift = proposedShift;  
-            shiftIndices = _.range(0, rightLockIndex).filter(i => i !== index); 
-          }
-        } else {
-          if (this.selectionsCanShift(rightBrushSelections, proposedShift)) {
-            shift = proposedShift; 
-            if (lockedToLeft) {
-              shiftIndices = _.union(_.range(leftLockIndex + 1, index), 
-                                     _.range(...rightIndexRange));  
-              newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                              leftLockBoundS[1] + shift]
-            } else {
-              shiftIndices = _.union(_.range(...leftIndexRange), 
-                                     _.range(...rightIndexRange)); 
-            }
-          } else {
-            shift = this.props.width - previousBrushSelections[previousBrushSelections.length - 1][1];
-            newSelections[index] = preS; 
-            if (lockedToLeft) {
-              shiftIndices = _.union(_.range(leftLockIndex + 1, index), 
-                                     [index], 
-                                     _.range(...rightIndexRange));
-              newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                              leftLockBoundS[1] + shift]; 
-            } else {
-              shiftIndices = _.union(_.range(...leftIndexRange), 
-                                     [index], 
-                                     _.range(...rightIndexRange)); 
-            }
-          }
-        }
-        break; 
-    }
+          break; 
+      }
 
     // Perform shifts if necessary
     newSelections = shift !== 0 ? newSelections.map((s,i) => shiftIndices.includes(i) ? s.map(e => e + shift) : s) : 
                                   newSelections; 
 
-    // Update brush positions if a change occurred 
+    // Update brush positions if a change occurred since the previous brush event 
     for (let i = 0; i < brushState.numBrushes; i++) {
       if (!_.isEqual(newSelections[i], brushRanges[i])) {
         d3.select(`#${brushState.brushIds[i]}`)

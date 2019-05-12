@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import ReactDOM from "react-dom";
 
 import reducer from "./reducers/reducer.js"; 
-import FocusMultiContextBrushControl from "./components/FocusMultiContextBrushControl";
+import FocusMultiContextBrushControl from "./components/FocusMultiContextBrushControl.jsx";
 
 // Initiate Redux store with reducer and add redux dev-tool extension
 const store = createStore(

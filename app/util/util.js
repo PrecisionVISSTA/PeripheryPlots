@@ -66,3 +66,23 @@ export function range(stop) {
     return arr; 
 }
 
+export function zip(a,b) {
+    let zipped = []; 
+    for (let i = 0; i < a.length; i++) {
+        zipped.push([a[i], b[i]]); 
+    }
+    return zipped; 
+}
+
+export function scaleRangeToBox(xRange, yRange, xScale, yScale) {
+    /*
+    Scale a d3 scale object to (optionally) specified ranges 
+    */
+
+    if (xRange) 
+        xScale.range(xRange); 
+    if (yRange)
+        yScale.range(yRange); 
+
+    return { xScale, yScale }; 
+}
