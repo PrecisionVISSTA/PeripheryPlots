@@ -1,10 +1,14 @@
 import React from "react";
+import { connect } from "react-redux"; 
 import * as d3 from 'd3';
 import { event as d3event } from 'd3';
 import _ from "lodash"; 
 import { assert } from "chai"; 
 
 import { getEquilateralTriangleFromCentroid } from "../util/util"; 
+
+import { ACTION_CHANGE_timeDomains, ACTION_CHANGE_timeExtentDomain } from "../actions/actions"; 
+
 
 /*
 BRUSH TODOS 
@@ -91,7 +95,7 @@ class VistaTimelineControl extends React.Component {
 
   componentDidMount() {
     // Code to create the d3 element, using the root container 
-    let { width, height } = this.props; 
+    let { width, height, timeExtentDomain, timeDomains } = this.props; 
     let root = d3.select(this.ROOT); 
     
     // Create the svg container for the brushes
@@ -194,9 +198,7 @@ class VistaTimelineControl extends React.Component {
         brushG
           .select("rect.selection")
           .style("fill", CONTEXT_SELECTION_COLOR); 
-      } else {
-        // Apply styling to the focus brush region
-      }
+      } 
 
       // Append custom handles to brush
       brushG.selectAll(".handle--custom")
@@ -217,6 +219,11 @@ class VistaTimelineControl extends React.Component {
                 .attr("fill", "#009688")
                 .attr("fill-opacity", 0.8)
                 .attr("cursor", "ew-resize");
+
+      // Update the global store with the properties passed in initially 
+      this.props.ACTION_CHANGE_timeDomains(timeDomains); 
+      this.props.ACTION_CHANGE_timeExtentDomain(timeExtentDomain); 
+
     }
 
   }
@@ -622,15 +629,23 @@ class VistaTimelineControl extends React.Component {
 
     brushState.brushRanges = newSelections;
 
-    this.updateBrushExtras(newSelections); 
+    this.updateBrushExtras(brushState.brushRanges); 
+
+    this.props.ACTION_CHANGE_timeDomains(brushState.brushRanges.map(brushState.containerScale.invert));
 
   }
 
   render() {  
-    return <div id="ROOT" ref={ref => this.ROOT = ref} />
+    return <div ref={ref => this.ROOT = ref} />
   }
+
 }
 
+const mapDispatchToProps = dispatch => ({
+  ACTION_CHANGE_timeDomains: (timeDomains) => 
+    dispatch(ACTION_CHANGE_timeDomains(timeDomains)), 
+  ACTION_CHANGE_timeExtentDomain: (timeExtentDomain) => 
+    dispatch(ACTION_CHANGE_timeExtentDomain(timeExtentDomain)) 
+}); 
 
-
-export default VistaTimelineControl; 
+export default connect(null, mapDispatchToProps)(VistaTimelineControl); 

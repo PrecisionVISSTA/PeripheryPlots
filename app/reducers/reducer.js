@@ -12,16 +12,19 @@ const reducer = (state = DEFAULT_state, action) => {
     
     switch (action.type) {
         case 'CHANGE_timeExtentDomain': 
+            let { timeExtentDomain } = action; 
             return {
                 ...state, 
-                numContextsPerSide 
+                timeExtentDomain 
             }
         case 'CHANGE_timeDomains': 
+            let { timeDomains } = action; 
             return {
                 ...state, 
-                numContextsPerSide 
+                timeDomains
             }
         case 'CHANGE_numContextsPerSide': 
+            let { numContextsPerSide } = action; 
             return {
                 ...state, 
                 numContextsPerSide 

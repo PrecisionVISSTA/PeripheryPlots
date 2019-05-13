@@ -5,14 +5,46 @@ import { assert } from "chai";
 import _ from "lodash"; 
 
 
-import ACTION_CHANGE_timeDomains from "../actions/actions"; 
 import { logicalAndOver } from "../util/util"; 
 
-import VistaTimelineControl from "./VistaTimelineControl"; 
-import VistaTrack from "./VistaTrack"; 
-import VistaDataProviderWrapper from "./VistaDataProviderWrapper";
+import VistaTimelineControl from "./VistaTimelineControl.jsx"; 
+// import VistaTrack from "./VistaTrack.jsx"; 
+import VistaDataProviderWrapper from "./VistaDataProviderWrapper.jsx";
 
 class VistaViewer extends React.Component {
+
+    getDefaultParametersIfNotSpecified(props) {
+
+        let {
+            numContextsPerSide, 
+            controlTimelineWidth, 
+            controlTimelineHeight, 
+            trackWidth, 
+            trackHeight, 
+            contextWidth
+        } = props; 
+
+        if (!numContextsPerSide) numContextsPerSide = 1; 
+        if (!controlTimelineHeight) controlTimelineHeight = 50;
+        if (!controlTimelineWidth) controlTimelineWidth = 500; 
+        if (!trackHeight) trackHeight = 50; 
+        if (!trackWidth) trackWidth = 500; 
+        if (!contextWidth) contextWidth = 100; 
+
+        return {
+            numContextsPerSide, 
+            controlTimelineWidth, 
+            controlTimelineHeight, 
+            trackWidth, 
+            trackHeight, 
+            contextWidth
+        };
+    }
+
+    componentDidMount() {
+        // After component mounts, we link the passed timeDomains with the global store 
+        
+    }
 
     render() {
 
@@ -27,10 +59,17 @@ class VistaViewer extends React.Component {
             timeExtentDomain, 
             timeDomains, 
 
-            // Optional parameters (with defaults)
-            numContextsPerSide
-            
         } = this.props; 
+
+        let {
+            numContextsPerSide, 
+            controlTimelineWidth, 
+            controlTimelineHeight, 
+            trackWidth, 
+            trackHeight, 
+            contextWidth 
+
+        } = this.getDefaultParametersIfNotSpecified(this.props); 
 
         assert(
             _.uniq([trackwiseObservations,
@@ -60,13 +99,14 @@ class VistaViewer extends React.Component {
                 view changes for all linked tracks 
                 */}
                 <VistaTimelineControl
+                width={trackWidth}
+                height={trackHeight}
                 timeExtentDomain={timeExtentDomain}
-                timeDomains={timeDomains}
-                updateTimeDomains={ACTION_CHANGE_timeDomains}/>
+                timeDomains={timeDomains}/>
                 {/* 
                 Time series tracks 
                 */}
-                {_.range(0, numTracks).map(i => {
+                {/* {_.range(0, numTracks).map(i => {
                     let observations = trackwiseObservations[i]; 
                     let timeKey = trackwiseTimeKeys[i]; 
                     let valueKey = trackwiseValueKeys[i]; 
@@ -78,7 +118,7 @@ class VistaViewer extends React.Component {
                             timeDomains={timeDomains} 
                             numContextsPerSide={numContextsPerSide}
                             encodings={encodings}/>; 
-                })}
+                })} */}
             </VistaDataProviderWrapper>
         );
     }

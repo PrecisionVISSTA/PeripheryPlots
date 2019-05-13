@@ -2,7 +2,7 @@ import React from "react";
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 
-import reducer from "./reducers/reducer.js"; 
+import reducer from "../reducers/reducer.js"; 
 
 class VistaDataProviderWrapper extends React.Component {
 
@@ -14,9 +14,11 @@ class VistaDataProviderWrapper extends React.Component {
     }
 
     render() {
-        <Provider store={this.state.store}>
-            {this.props.children}
-        </Provider>
+        return (
+            <Provider store={this.state.store}>
+                {this.props.children}
+            </Provider>
+        ); 
     }   
 
 }

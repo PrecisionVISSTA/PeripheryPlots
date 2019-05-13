@@ -1,20 +1,49 @@
 import React from "react"; 
-import { createStore } from 'redux';
-import { Provider } from 'react-redux';
+import * as d3 from "d3"; 
 import ReactDOM from "react-dom";
+import _ from "lodash"; 
 
-import reducer from "./reducers/reducer.js"; 
-import FocusMultiContextBrushControl from "./components/FocusMultiContextBrushControl.jsx";
+import LineGroup from "./encodings/TVPE/LineGroup.jsx"; 
+import VistaViewer from "./components/VistaViewer.jsx";
 
-// Initiate Redux store with reducer and add redux dev-tool extension
-const store = createStore(
-    reducer,
-    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-);
+let data = []; 
+function processRow(row) {
+    if (row && row.date) {
+        row.date = new Date(row.date); 
+        let floatKeys = ['precipitation', 'temp_max', 'temp_min', 'wind']; 
+        for (let key of floatKeys) row[key] = parseFloat(row[key]); 
+        data.push(row); 
+    }
+}
+d3.csv('../data/seattle-weather.csv', processRow)
+  .then(() => {
 
-// Wrap <App/> with redux Provider, exposing store to all components within.
-ReactDOM.render(<Provider store={store}>
-                    <FocusMultiContextBrushControl
-                    width={500}
-                    height={100}/>
-                </Provider>, document.getElementById('ROOT'));
+    let dateExtent = d3.extent(data.map(d => d.date)); 
+
+    // Testing with 3 tracks 
+    let config = {
+
+        // Parameters to construct tracks
+        trackwiseObservations: [data, data, data],
+        trackwiseTimeKeys: ['date', 'date', 'date'], 
+        trackwiseValueKeys: ['precipitation', 'temp_max', 'temp_min'], 
+        trackwiseEncodings: [LineGroup, LineGroup, LineGroup], 
+
+        // Parameters to construct control 
+        timeExtentDomain: dateExtent,  
+        timeDomains: [
+            ['02/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
+            ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
+            ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr))
+        ],
+    }; 
+    
+    ReactDOM.render(
+        <VistaViewer {...config}/>, 
+        document.getElementById('ROOT')
+    );
+
+  });
+
+
+
