@@ -80,7 +80,6 @@ export function scaleRangeToBox(xRange, yRange, xScale, yScale) {
     /*
     Scale a d3 scale object to (optionally) specified ranges 
     */
-
     if (xRange) 
         xScale.range(xRange); 
     if (yRange)

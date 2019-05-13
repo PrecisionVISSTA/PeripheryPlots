@@ -12,7 +12,7 @@ class LineGroup extends React.Component {
 
     render() {
 
-        let { timeKey, valueKey, timeDomain, valueDomain, observations, scaleRangeToBox } = props; 
+        let { timeKey, valueKey, timeDomain, valueDomain, observations, scaleRangeToBox } = this.props; 
         let { line, timeScale, valueScale } = this.state
 
         let scales = scaleRangeToBox(timeScale, valueScale); 
@@ -23,22 +23,23 @@ class LineGroup extends React.Component {
         valueScale.domain(valueDomain); 
     
         line.x(d => timeScale(d[timeKey]))
-            .y(d => valueScale(d[valueKey])); 
-        
+            .y(d => valueScale(d[valueKey]));
+
         return (
             <g>
                 {/* Line */}
-                <path d={line(observations)} fill="black"/>
+                <path d={line(observations)} fill="none" stroke="black"/>
                 {/* Data Points */}
                 {observations.map(o => <circle 
+                                        key={`${o[timeKey]}-${o[valueKey]}`}
                                         cx={timeScale(o[timeKey])}
-                                        cy={valueScale(o[valueScale])}
-                                        r={3}
+                                        cy={valueScale(o[valueKey])}
+                                        r={1}
                                         stroke="black" 
-                                        strokeWidth={1} 
+                                        strokeWidth={.5} 
                                         fill="white"/>)}
             </g>
-        );
+        );  
     
     }
 

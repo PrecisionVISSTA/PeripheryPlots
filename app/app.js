@@ -27,7 +27,11 @@ d3.csv('../data/seattle-weather.csv', processRow)
         trackwiseObservations: [data, data, data],
         trackwiseTimeKeys: ['date', 'date', 'date'], 
         trackwiseValueKeys: ['precipitation', 'temp_max', 'temp_min'], 
-        trackwiseEncodings: [LineGroup, LineGroup, LineGroup], 
+        trackwiseEncodings: [
+            [LineGroup, LineGroup, LineGroup], 
+            [LineGroup, LineGroup, LineGroup], 
+            [LineGroup, LineGroup, LineGroup]
+        ], 
 
         // Parameters to construct control 
         timeExtentDomain: dateExtent,  
@@ -39,7 +43,7 @@ d3.csv('../data/seattle-weather.csv', processRow)
     }; 
     
     ReactDOM.render(
-        <VistaViewer {...config}/>, 
+        <VistaViewer config={config}/>, 
         document.getElementById('ROOT')
     );
 

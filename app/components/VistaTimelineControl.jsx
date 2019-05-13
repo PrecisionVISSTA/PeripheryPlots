@@ -220,10 +220,6 @@ class VistaTimelineControl extends React.Component {
                 .attr("fill-opacity", 0.8)
                 .attr("cursor", "ew-resize");
 
-      // Update the global store with the properties passed in initially 
-      this.props.ACTION_CHANGE_timeDomains(timeDomains); 
-      this.props.ACTION_CHANGE_timeExtentDomain(timeExtentDomain); 
-
     }
 
   }
@@ -631,7 +627,7 @@ class VistaTimelineControl extends React.Component {
 
     this.updateBrushExtras(brushState.brushRanges); 
 
-    this.props.ACTION_CHANGE_timeDomains(brushState.brushRanges.map(brushState.containerScale.invert));
+    this.props.ACTION_CHANGE_timeDomains(brushState.brushRanges.map(s => s.map(brushState.containerScale.invert).map(t => new Date(t))));
 
   }
 
@@ -641,6 +637,8 @@ class VistaTimelineControl extends React.Component {
 
 }
 
+const mapStateToProps = ({ timeDomains, timeExtentDomain }) => ({ timeDomains, timeExtentDomain });
+
 const mapDispatchToProps = dispatch => ({
   ACTION_CHANGE_timeDomains: (timeDomains) => 
     dispatch(ACTION_CHANGE_timeDomains(timeDomains)), 
@@ -648,4 +646,4 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ACTION_CHANGE_timeExtentDomain(timeExtentDomain)) 
 }); 
 
-export default connect(null, mapDispatchToProps)(VistaTimelineControl); 
+export default connect(mapStateToProps, mapDispatchToProps)(VistaTimelineControl); 
