@@ -16,10 +16,10 @@ class MovingAverageEnvelopeGroup extends React.Component {
 
     computeEnvelope(observations, timeKey, valueKey) {
 
-        let dates = observations.map(d => d[timeKey]); 
+        let dates = observations.map(d => d[timeKey]).map(d => d.valueOf()); 
         let values = observations.map(d => d[valueKey]); 
         
-        let [min_ms, max_ms] = extent(dates); 
+        let [min_ms, max_ms] = d3.extent(dates).map(d => d.valueOf()); 
         let envelope = []; 
         let wsstart = min_ms; 
         let wsend = min_ms + WINDOW_SIZE_MS; 
@@ -34,8 +34,8 @@ class MovingAverageEnvelopeGroup extends React.Component {
                 while (dates[di] <= we) wvalues.push(values[di++]); 
                 let date = ws + WINDOW_SIZE_MS / 2;
                 if (wvalues.length > 0) {
-                    let [lower, upper] = extent(wvalues);
-                    envelope.push({ date, 
+                    let [lower, upper] = d3.extent(wvalues);
+                    envelope.push({ date: new Date(date), 
                                     lower: lower * (1 - ENVELOPE_PADDING), 
                                     upper: upper * (1 + ENVELOPE_PADDING) }); 
                 }
@@ -53,7 +53,7 @@ class MovingAverageEnvelopeGroup extends React.Component {
     }
 
     render() {
-        let { timeKey, valueKey, timeDomain, valueDomain, observations, scaleRangeToBox } = props; 
+        let { timeKey, valueKey, timeDomain, valueDomain, observations, scaleRangeToBox } = this.props; 
         let { timeScale, valueScale, area } = this.state; 
 
         let scales = scaleRangeToBox(timeScale, valueScale); 

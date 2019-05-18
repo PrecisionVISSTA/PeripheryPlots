@@ -4,6 +4,11 @@ import ReactDOM from "react-dom";
 import _ from "lodash"; 
 
 import LineGroup from "./encodings/TVPE/LineGroup.jsx"; 
+import BarGroup from "./encodings/TVPE/BarGroup.jsx"; 
+import ScatterGroup from "./encodings/TVPE/ScatterGroup.jsx"; 
+import EventGroup from "./encodings/TVPE/EventGroup.jsx"; 
+import MovingAverageEnvelopeGroup from "./encodings/TVPE/MovingAverageEnvelopeGroup.jsx"; 
+
 import VistaViewer from "./components/VistaViewer.jsx";
 
 let data = []; 
@@ -24,13 +29,32 @@ d3.csv('../data/seattle-weather.csv', processRow)
     let config = {
 
         // Parameters to construct tracks
-        trackwiseObservations: [data, data, data],
-        trackwiseTimeKeys: ['date', 'date', 'date'], 
-        trackwiseValueKeys: ['precipitation', 'temp_max', 'temp_min'], 
+        trackwiseObservations: [data, data, data, data],
+        trackwiseTimeKeys: ['date', 'date', 'date', 'date'], 
+        trackwiseValueKeys: ['precipitation', 'temp_max', 'temp_min', 'weather'], 
         trackwiseEncodings: [
-            [LineGroup, LineGroup, LineGroup], 
-            [LineGroup, LineGroup, LineGroup], 
-            [LineGroup, LineGroup, LineGroup]
+            [LineGroup, MovingAverageEnvelopeGroup, ScatterGroup], 
+            [LineGroup, BarGroup, ScatterGroup], 
+            [LineGroup, MovingAverageEnvelopeGroup, ScatterGroup], 
+            [EventGroup, EventGroup, EventGroup]
+        ], 
+        trackwiseAxes: [
+            { 
+                time: { type: 'quantitative' }, 
+                value: { type: 'quantitative' }
+            },
+            { 
+                time: { type: 'quantitative' }, 
+                value: { type: 'quantitative' }
+            },
+            { 
+                time: { type: 'quantitative' }, 
+                value: { type: 'quantitative' }
+            },
+            { 
+                time: { type: 'quantitative' }, 
+                value: { type: 'nominal' }
+            }
         ], 
 
         // Parameters to construct control 
@@ -38,7 +62,7 @@ d3.csv('../data/seattle-weather.csv', processRow)
         timeDomains: [
             ['02/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
             ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
-            ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr))
+            ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)) 
         ],
     }; 
     

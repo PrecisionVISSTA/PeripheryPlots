@@ -1,15 +1,10 @@
 import React from "react"; 
 import * as d3 from "d3"; 
+import _ from "lodash"; 
 import { connect } from "react-redux";
 import { scaleRangeToBox } from "../util/util";  
 
 class VistaTrack extends React.Component {
-
-    state = {
-        height: 50, 
-        width: 750, 
-        contextWidth: 100
-    }
 
     render() {
 
@@ -19,9 +14,11 @@ class VistaTrack extends React.Component {
             valueKey, 
             timeDomains, 
             numContextsPerSide, 
-            encodings 
+            encodings, 
+            trackWidth, 
+            trackHeight, 
+            contextWidth
         } = this.props; 
-        let { width, height, contextWidth } = this.state; 
 
         // utility functions 
         let valueInDomain = (value, domain) => value >= domain[0] && value <= domain[1]; 
@@ -43,14 +40,15 @@ class VistaTrack extends React.Component {
         let rightContextObservations = rightContextTimeDomains.map(observationsInDomain); 
 
         // Derived properties 
-        let focusWidth = width - contextWidth * 2 * numContextsPerSide;
-        let valueDomain = d3.extent(observations.map(o => o[valueKey])); 
+        let focusWidth = trackWidth - contextWidth * 2 * numContextsPerSide;
+        let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
+                                                             d3.extent(observations.map(o => o[valueKey]));
 
-        let contextScaleRangeToBox = _.partial(scaleRangeToBox, [0, contextWidth], [height, 0]); 
-        let focusScaleRangeToBox = _.partial(scaleRangeToBox, [0, focusWidth], [height, 0]); 
+        let contextScaleRangeToBox = _.partial(scaleRangeToBox, [0, contextWidth], [trackHeight, 0]); 
+        let focusScaleRangeToBox = _.partial(scaleRangeToBox, [0, focusWidth], [trackHeight, 0]); 
 
         return (
-        <div style={{ width: width, height: height }}>
+        <div style={{ width: trackWidth, height: trackHeight }}>
 
             {/* Left Contexts */}
             {leftContextTimeDomains.map((timeDomain, i) => {
@@ -58,7 +56,7 @@ class VistaTrack extends React.Component {
                 return (
                     <svg 
                     key={`left-${i}`}
-                    style={{ width: contextWidth, height: height }}>
+                    style={{ width: contextWidth, height: trackHeight }}>
                         <LeftContextEncoding
                         key={`left-${i}-inner`}
                         timeKey={timeKey}
@@ -72,7 +70,7 @@ class VistaTrack extends React.Component {
             })}
 
             {/* Focus */}
-            <svg style={{ width: focusWidth, height: height }}>
+            <svg style={{ width: focusWidth, height: trackHeight }}>
                 <FocusEncoding
                 timeKey={timeKey}
                 valueKey={valueKey}
@@ -88,7 +86,7 @@ class VistaTrack extends React.Component {
                 return (
                     <svg 
                     key={`right-${i}`}
-                    style={{ width: contextWidth, height: height }}>
+                    style={{ width: contextWidth, height: trackHeight }}>
                         <RightContextEncoding
                         key={`right-${i}-inner`}
                         timeKey={timeKey}

@@ -27,10 +27,10 @@ export default function VistaViewerContentHOC(config) {
             } = props; 
     
             if (!numContextsPerSide) numContextsPerSide = 1; 
-            if (!controlTimelineHeight) controlTimelineHeight = 50;
-            if (!controlTimelineWidth) controlTimelineWidth = 500; 
+            if (!controlTimelineHeight) controlTimelineHeight = 75;
+            if (!controlTimelineWidth) controlTimelineWidth = 700; 
             if (!trackHeight) trackHeight = 50; 
-            if (!trackWidth) trackWidth = 500; 
+            if (!trackWidth) trackWidth = 700; 
             if (!contextWidth) contextWidth = 100; 
     
             return {
@@ -79,8 +79,8 @@ export default function VistaViewerContentHOC(config) {
                     view changes for all linked tracks 
                     */}
                     <VistaTimelineControl
-                    width={trackWidth}
-                    height={trackHeight}/>
+                    width={controlTimelineWidth}
+                    height={controlTimelineHeight}/>
                     {/* 
                     Time series tracks 
                     */}
@@ -96,7 +96,10 @@ export default function VistaViewerContentHOC(config) {
                                 valueKey={valueKey}
                                 timeDomains={timeDomains} 
                                 numContextsPerSide={numContextsPerSide}
-                                encodings={encodings}/>; 
+                                encodings={encodings}
+                                trackWidth={trackWidth}
+                                trackHeight={trackHeight}
+                                contextWidth={contextWidth}/>; 
                     })}
                 </React.Fragment>
             );

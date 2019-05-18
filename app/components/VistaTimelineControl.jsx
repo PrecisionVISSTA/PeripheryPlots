@@ -25,6 +25,12 @@ left or right side, compute a shift and apply it
 * Update canMove function to consider lock state of brushes 
 */
 
+const PADDING = {
+  left: 12, 
+  right: 12, 
+  top: 5, 
+  bottom: 5
+}; 
 const LOCK_WIDTH = 10; 
 const LOCK_HEIGHT = 10; 
 const LOCK_ACTIVE_COLOR = "grey"; 
@@ -55,7 +61,7 @@ class VistaTimelineControl extends React.Component {
 
     let { width, height, timeDomains, timeExtentDomain } = this.props; 
 
-    brushState.containerScale.domain(timeExtentDomain).range([0, width]); 
+    brushState.containerScale.domain(timeExtentDomain).range([0 + PADDING.left, width - PADDING.right]); 
 
     // 1 focus + equal number of contexts on both sides 
     assert(timeDomains.length % 2 === 1);
@@ -83,8 +89,8 @@ class VistaTimelineControl extends React.Component {
     // Set the initial locked state for all locks to false 
     brushState.brushLocks = brushState.brushLockIds.map(i => false); 
 
-    // Brush height - takes up 80% of vertical space in the container 
-    brushState.brushHeight = height * .8; 
+    // Brush height - takes up 75% of vertical space in the container (not including padding)
+    brushState.brushHeight = (height - (PADDING.top + PADDING.bottom)) * .75; 
     
   }
 
@@ -95,13 +101,14 @@ class VistaTimelineControl extends React.Component {
 
   componentDidMount() {
     // Code to create the d3 element, using the root container 
-    let { width, height, timeExtentDomain, timeDomains } = this.props; 
+    let { width, height } = this.props; 
     let root = d3.select(this.ROOT); 
     
     // Create the svg container for the brushes
     let svg = root.append('svg')
                   .attr('width', width) 
-                  .attr('height', height);
+                  .attr('height', height)
+                  .style('border', '1px solid grey');
 
     // Create a clipping path for each brush  
     for (let i = 0; i < brushState.numBrushes; i++) {
@@ -113,7 +120,7 @@ class VistaTimelineControl extends React.Component {
           .attr('id', clipId)
             .append('rect')
             .attr('x', 0)
-            .attr('y', 0)
+            .attr('y', PADDING.top)
             .attr('width', tupdif(brushSelection))
             .attr('height', brushState.brushHeight)
             .attr('transform', `translate(${brushSelection[0]}, 0)`);
@@ -175,7 +182,8 @@ class VistaTimelineControl extends React.Component {
       let isFocus = i === parseInt(brushState.numBrushes / 2); 
 
       // Set the width ; height of the brush, height is retained when future transforms (resize / translate) are applied 
-      brushFn.extent([[0, 0], [width, brushState.brushHeight]]); 
+      brushFn.extent([[PADDING.left, PADDING.top], 
+                      [width - PADDING.right, brushState.brushHeight]]); 
 
       // Add a brush to the svg 
       let brushed = _.partial(this.brushed, isFocus, i)
@@ -209,7 +217,7 @@ class VistaTimelineControl extends React.Component {
                 .append("rect")
                 .attr('clipPath', `url(#${clipId})`)
                 .attr('x', 0)
-                .attr('y', brushState.brushHeight/2 - HANDLE_HEIGHT / 2)
+                .attr('y', PADDING.top + brushState.brushHeight / 2 - HANDLE_HEIGHT / 2)
                 .attr('width', HANDLE_WIDTH)
                 .attr('height', HANDLE_HEIGHT)
                 .attr('transform', (d) => (d.type === 'w') ? `translate(${brushSelection[0]},0)` : 
@@ -221,6 +229,28 @@ class VistaTimelineControl extends React.Component {
                 .attr("cursor", "ew-resize");
 
     }
+
+    let timeAxisScale = d3.scaleTime().domain(brushState.containerScale.domain().map(d => new Date(d)))
+                                      .range(brushState.containerScale.range()); 
+    
+    // Create a timeline 
+    let yearAxis = d3.axisTop()
+                    .scale(timeAxisScale)
+                    .ticks(d3.timeYear.every(1));
+
+    let monthAxis = d3.axisTop()
+                      .scale(timeAxisScale)
+                      .ticks(d3.timeMonth.every(3)); 
+    
+    svg.append("g")
+       .attr('transform', `translate(0,${height + 2})`)
+       .call(yearAxis)
+        .selectAll('text')
+        .attr('font-weight', 'bold'); 
+
+    svg.append("g")
+       .attr('transform', `translate(0,${height + 2})`)
+       .call(monthAxis); 
 
   }
 
@@ -632,7 +662,7 @@ class VistaTimelineControl extends React.Component {
   }
 
   render() {  
-    return <div ref={ref => this.ROOT = ref} />
+    return <div ref={ref => this.ROOT = ref}/>
   }
 
 }

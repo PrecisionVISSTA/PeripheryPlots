@@ -1,11 +1,11 @@
 import React from "react";
 import * as d3 from "d3"; 
 
-class LineGroup extends React.Component {
+const BAR_WIDTH = 3; 
+
+class BarGroup extends React.Component {
 
     state = {
-        line: d3.line()
-                .curve(d3.curveMonotoneX), 
         timeScale: d3.scaleTime(), 
         valueScale: d3.scaleLinear()
     }
@@ -21,14 +21,18 @@ class LineGroup extends React.Component {
 
         timeScale.domain(timeDomain); 
         valueScale.domain(valueDomain); 
-    
-        line.x(d => timeScale(d[timeKey]))
-            .y(d => valueScale(d[valueKey]));
+
+        let height = valueScale.range()[0]; 
 
         return (
             <g>
-                {/* Line */}
-                <path d={line(observations)} fill="none" stroke="black"/>
+                {/* Bars */}
+                {observations.map(o => <rect
+                                        x={timeScale(o[timeKey]) - BAR_WIDTH / 2} 
+                                        y={valueScale(o[valueKey])}
+                                        width={BAR_WIDTH}
+                                        height={height - valueScale(o[valueKey])}
+                                        fill="black"/>)}
             </g>
         );  
     
@@ -36,5 +40,5 @@ class LineGroup extends React.Component {
 
 }
 
-export default LineGroup; 
+export default BarGroup; 
 
