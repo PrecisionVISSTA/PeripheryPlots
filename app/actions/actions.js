@@ -18,3 +18,10 @@ export function ACTION_CHANGE_numContextsPerSide(numContextsPerSide) {
         numContextsPerSide,
     };
 }
+
+export function ACTION_CHANGE_focusMouseX(focusMouseX) {
+    return {
+        type: 'CHANGE_focusMouseX', 
+        focusMouseX
+    }
+}

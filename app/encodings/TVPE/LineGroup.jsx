@@ -28,7 +28,7 @@ class LineGroup extends React.Component {
         return (
             <g>
                 {/* Line */}
-                <path d={line(observations)} fill="none" stroke="black"/>
+                <path d={line(observations)} fill="none" stroke="steelblue"/>
             </g>
         );  
     

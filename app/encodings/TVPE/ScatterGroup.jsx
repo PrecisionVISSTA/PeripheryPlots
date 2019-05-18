@@ -28,7 +28,7 @@ class ScatterGroup extends React.Component {
                                         cx={timeScale(o[timeKey])}
                                         cy={valueScale(o[valueKey])}
                                         r={1}
-                                        stroke="black" 
+                                        stroke="steelblue" 
                                         strokeWidth={.5} 
                                         fill="white"/>)}
             </g>

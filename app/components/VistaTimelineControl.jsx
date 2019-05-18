@@ -28,7 +28,7 @@ left or right side, compute a shift and apply it
 const PADDING = {
   left: 12, 
   right: 12, 
-  top: 5, 
+  top: 0, 
   bottom: 5
 }; 
 const LOCK_WIDTH = 10; 
@@ -37,7 +37,6 @@ const LOCK_ACTIVE_COLOR = "grey";
 const LOCK_INACTIVE_COLOR = "black"; 
 const HANDLE_WIDTH = 12; 
 const HANDLE_HEIGHT = 12; 
-const CONTEXT_SELECTION_COLOR = "#bfbfbf"; 
 const MIN_CONTEXT_WIDTH = HANDLE_WIDTH * 2; 
 const MIN_FOCUS_WIDTH = HANDLE_WIDTH * 2; 
 
@@ -101,14 +100,15 @@ class VistaTimelineControl extends React.Component {
 
   componentDidMount() {
     // Code to create the d3 element, using the root container 
-    let { width, height } = this.props; 
+    let { width, height, focusColor, contextColor } = this.props; 
     let root = d3.select(this.ROOT); 
     
     // Create the svg container for the brushes
     let svg = root.append('svg')
                   .attr('width', width) 
                   .attr('height', height)
-                  .style('border', '1px solid grey');
+                  .style('border', '1px solid grey')
+                  .style('padding', 3)
 
     // Create a clipping path for each brush  
     for (let i = 0; i < brushState.numBrushes; i++) {
@@ -201,12 +201,17 @@ class VistaTimelineControl extends React.Component {
         .select("rect.overlay")
         .style("pointer-events", "none"); 
 
-      if (!isFocus) {
+      if (isFocus) {
+        // Apply styling to the focus brush region
+        brushG
+          .select("rect.selection")
+          .style("fill", focusColor); 
+      } else {
         // Apply styling to the context brush region
         brushG
           .select("rect.selection")
-          .style("fill", CONTEXT_SELECTION_COLOR); 
-      } 
+          .style("fill", contextColor); 
+      }
 
       // Append custom handles to brush
       brushG.selectAll(".handle--custom")
@@ -234,22 +239,22 @@ class VistaTimelineControl extends React.Component {
                                       .range(brushState.containerScale.range()); 
     
     // Create a timeline 
-    let yearAxis = d3.axisTop()
+    let yearAxis = d3.axisBottom()
                     .scale(timeAxisScale)
                     .ticks(d3.timeYear.every(1));
 
-    let monthAxis = d3.axisTop()
+    let monthAxis = d3.axisBottom()
                       .scale(timeAxisScale)
                       .ticks(d3.timeMonth.every(3)); 
     
     svg.append("g")
-       .attr('transform', `translate(0,${height + 2})`)
+      //  .attr('transform', `translate(0,${height-3})`)
        .call(yearAxis)
         .selectAll('text')
         .attr('font-weight', 'bold'); 
 
     svg.append("g")
-       .attr('transform', `translate(0,${height + 2})`)
+      //  .attr('transform', `translate(0,${height-3})`)
        .call(monthAxis); 
 
   }
@@ -662,12 +667,13 @@ class VistaTimelineControl extends React.Component {
   }
 
   render() {  
-    return <div ref={ref => this.ROOT = ref}/>
+    return <div style={{ display: 'block' }} ref={ref => this.ROOT = ref}/>
   }
 
 }
 
-const mapStateToProps = ({ timeDomains, timeExtentDomain }) => ({ timeDomains, timeExtentDomain });
+const mapStateToProps = ({ timeDomains, timeExtentDomain, focusColor, contextColor }) => 
+                        ({ timeDomains, timeExtentDomain, focusColor, contextColor });
 
 const mapDispatchToProps = dispatch => ({
   ACTION_CHANGE_timeDomains: (timeDomains) => 

@@ -32,7 +32,7 @@ class BarGroup extends React.Component {
                                         y={valueScale(o[valueKey])}
                                         width={BAR_WIDTH}
                                         height={height - valueScale(o[valueKey])}
-                                        fill="black"/>)}
+                                        fill="steelblue"/>)}
             </g>
         );  
     

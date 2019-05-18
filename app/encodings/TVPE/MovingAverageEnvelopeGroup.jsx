@@ -71,7 +71,7 @@ class MovingAverageEnvelopeGroup extends React.Component {
 
         return (
             <g>
-                <path d={area(envelope)}/>
+                <path d={area(envelope)} fill="steelblue"/>
             </g>
         )
     }

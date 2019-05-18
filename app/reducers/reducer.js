@@ -5,7 +5,9 @@ const DEFAULT_state = {
         [new Date("06/23/2000"), new Date("06/22/2010")],
         [new Date("06/23/2010"), new Date("06/22/2013")]
     ], 
-    numContextsPerSide: 1
+    numContextsPerSide: 1, 
+    focusColor: '#515151', 
+    contextColor: '#aaaaaa'
 };
 
 const reducer = (state = DEFAULT_state, action) => {
@@ -16,19 +18,19 @@ const reducer = (state = DEFAULT_state, action) => {
             return {
                 ...state, 
                 timeExtentDomain 
-            }
+            };
         case 'CHANGE_timeDomains': 
             let { timeDomains } = action; 
             return {
                 ...state, 
                 timeDomains
-            }
+            };
         case 'CHANGE_numContextsPerSide': 
             let { numContextsPerSide } = action; 
             return {
                 ...state, 
                 numContextsPerSide 
-            }
+            };
         default:
             return state;
     }

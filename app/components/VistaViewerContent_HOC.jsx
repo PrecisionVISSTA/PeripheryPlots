@@ -23,15 +23,21 @@ export default function VistaViewerContentHOC(config) {
                 controlTimelineHeight, 
                 trackWidth, 
                 trackHeight, 
-                contextWidth
+                trackPaddingTop, 
+                trackPaddingBottom, 
+                contextWidth, 
+                axesWidth, 
             } = props; 
     
             if (!numContextsPerSide) numContextsPerSide = 1; 
             if (!controlTimelineHeight) controlTimelineHeight = 75;
             if (!controlTimelineWidth) controlTimelineWidth = 700; 
-            if (!trackHeight) trackHeight = 50; 
+            if (!trackHeight) trackHeight = 60; 
             if (!trackWidth) trackWidth = 700; 
+            if (!trackPaddingTop) trackPaddingTop = 5; 
+            if (!trackPaddingBottom) trackPaddingBottom = 5; 
             if (!contextWidth) contextWidth = 100; 
+            if (!axesWidth) axesWidth = 40; 
     
             return {
                 numContextsPerSide, 
@@ -39,7 +45,10 @@ export default function VistaViewerContentHOC(config) {
                 controlTimelineHeight, 
                 trackWidth, 
                 trackHeight, 
-                contextWidth
+                trackPaddingTop, 
+                trackPaddingBottom, 
+                contextWidth, 
+                axesWidth
             };
         }
     
@@ -66,7 +75,10 @@ export default function VistaViewerContentHOC(config) {
                 controlTimelineHeight, 
                 trackWidth, 
                 trackHeight, 
-                contextWidth 
+                trackPaddingTop, 
+                trackPaddingBottom, 
+                contextWidth, 
+                axesWidth
             } = this.getDefaultParametersIfNotSpecified({}); 
     
             let numTracks = trackwiseObservations.length; 
@@ -89,7 +101,15 @@ export default function VistaViewerContentHOC(config) {
                         let timeKey = trackwiseTimeKeys[i]; 
                         let valueKey = trackwiseValueKeys[i]; 
                         let encodings = trackwiseEncodings[i]; 
-                        return <VistaTrack
+                        return (
+                            <div 
+                            style={{ 
+                                border: '1px solid grey',
+                                width: trackWidth, 
+                                marginBottom: 8, 
+                                padding: 3
+                            }}>
+                                <VistaTrack
                                 key={`track-${i}`}
                                 observations={observations} 
                                 timeKey={timeKey} 
@@ -99,7 +119,12 @@ export default function VistaViewerContentHOC(config) {
                                 encodings={encodings}
                                 trackWidth={trackWidth}
                                 trackHeight={trackHeight}
-                                contextWidth={contextWidth}/>; 
+                                trackPaddingTop={trackPaddingTop}
+                                trackPaddingBottom={trackPaddingBottom}
+                                contextWidth={contextWidth}
+                                axesWidth={axesWidth}/>
+                            </div>
+                        ); 
                     })}
                 </React.Fragment>
             );

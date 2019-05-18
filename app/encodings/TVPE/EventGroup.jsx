@@ -30,7 +30,7 @@ class LineGroup extends React.Component {
                 {observations.map(o => <rect 
                                         key={`${o[timeKey]}-${o[valueKey]}`}
                                         x={timeScale(o[timeKey])}
-                                        y={valueScale(o[valueKey]) - RECT_WIDTH / 2}
+                                        y={valueScale(o[valueKey]) + RECT_HEIGHT / 2}
                                         width={RECT_WIDTH}
                                         height={RECT_HEIGHT}
                                         fill={colors[valueDomain.indexOf(o[valueKey])]}/>)}
