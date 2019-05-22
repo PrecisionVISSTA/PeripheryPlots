@@ -7,6 +7,7 @@ import { ACTION_CHANGE_timeDomains, ACTION_CHANGE_timeExtentDomain } from "../ac
 
 import VistaTimelineControl from "./VistaTimelineControl.jsx"; 
 import VistaTrack from "./VistaTrack.jsx"; 
+import VistaVerticalAligner from "./VistaVerticalAligner.jsx"; 
 
 export default function VistaViewerContentHOC(config) {
 
@@ -102,6 +103,12 @@ export default function VistaViewerContentHOC(config) {
                     <VistaTimelineControl
                     width={controlTimelineWidth}
                     height={controlTimelineHeight}/>
+
+                    <VistaVerticalAligner
+                    width={708}
+                    height={30}/>
+
+
                     {/* 
                     Time series tracks 
                     */}

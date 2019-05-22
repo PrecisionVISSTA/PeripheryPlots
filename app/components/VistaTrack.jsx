@@ -18,15 +18,18 @@ class VistaTrack extends React.Component {
     }
 
     zoomed = () => {
+        // ignore zoom-by-brush
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") {
+            return;
+        }
         let zoomTransform = d3.zoomTransform(d3.select('.zoom').node()); 
-        this.props.ACTION_CHANGE_zoomTransform(zoomTransform); 
+
+        this.props.ACTION_CHANGE_zoomTransform(zoomTransform);             
     }
 
     initZooms() {
         this.state.zoom
             .scaleExtent([1, Infinity])
-            .translateExtent([[0, 0], [this.props.focusWidth, this.props.trackHeight]])
-            .extent([[0, 0], [this.props.focusWidth, this.props.trackHeight]])
             .on("zoom", this.zoomed)
 
         d3.selectAll('.zoom')
@@ -50,6 +53,7 @@ class VistaTrack extends React.Component {
                                 .translate(-s[0], 0)); 
 
         let zoomTransform = d3.zoomTransform(d3.select('.zoom').node()); 
+
         this.props.ACTION_CHANGE_zoomTransform(zoomTransform); 
     }
 

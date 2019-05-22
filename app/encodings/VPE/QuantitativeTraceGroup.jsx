@@ -24,7 +24,7 @@ class QuantitativeTraceGroup extends React.Component {
         valueScale.domain(valueDomain); 
 
         let bins = histogram
-                    .domain(valueScale.domain())
+                    .domain(valueScale.nice().domain())
                     .thresholds(valueScale.ticks(NUM_BINS))
                     (observations.map(o => o[valueKey])); 
 
@@ -36,12 +36,15 @@ class QuantitativeTraceGroup extends React.Component {
 
         let binHeight = bins[0].y1 - bins[0].y0; 
 
+        console.log(bins); 
+        console.log(binHeight);
+
         return (
             <g>
                 {/* Bars */}
                 {bins.map(bin => <rect
                                  x={0}
-                                 y={bin.y1}
+                                 y={55 - bin.y1}
                                  width={freqScale(bin.p)}
                                  height={binHeight}
                                  fill={'steelblue'}/>)}
