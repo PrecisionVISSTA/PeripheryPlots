@@ -1,6 +1,7 @@
 import React from "react";
 import { connect } from "react-redux"; 
 import _ from "lodash"; 
+import * as d3 from "d3"; 
 
 import { ACTION_CHANGE_timeDomains, ACTION_CHANGE_timeExtentDomain } from "../actions/actions"; 
 
@@ -12,7 +13,8 @@ export default function VistaViewerContentHOC(config) {
     class VistaViewerContent extends React.Component {
 
         state = {
-            firstRender: true 
+            firstRender: true, 
+            zooms: []
         }
 
         getDefaultParametersIfNotSpecified(props) {
@@ -56,13 +58,19 @@ export default function VistaViewerContentHOC(config) {
             // Update the global store with the properties passed in initially 
             this.props.ACTION_CHANGE_timeDomains(config.timeDomains); 
             this.props.ACTION_CHANGE_timeExtentDomain(config.timeExtentDomain); 
-            this.setState({ firstRender: false }); 
+
+            let nZooms = this.props.numContextsPerSide * 2 + 1; 
+            this.setState({ 
+                firstRender: false, 
+                zooms: _.range(0, nZooms).map(i => d3.zoom()) 
+            }); 
         }
     
         render() {
 
             if (this.state.firstRender) return null; 
 
+            let { zooms } = this.state; 
             let { timeDomains } = this.props;
             let {   trackwiseObservations,
                     trackwiseTimeKeys, 
@@ -82,6 +90,7 @@ export default function VistaViewerContentHOC(config) {
             } = this.getDefaultParametersIfNotSpecified({}); 
     
             let numTracks = trackwiseObservations.length; 
+            let focusWidth = trackWidth - contextWidth * 2 * numContextsPerSide - axesWidth;
     
             return (
                 <React.Fragment>
@@ -121,8 +130,10 @@ export default function VistaViewerContentHOC(config) {
                                 trackHeight={trackHeight}
                                 trackPaddingTop={trackPaddingTop}
                                 trackPaddingBottom={trackPaddingBottom}
+                                focusWidth={focusWidth}
                                 contextWidth={contextWidth}
-                                axesWidth={axesWidth}/>
+                                axesWidth={axesWidth}
+                                zooms={zooms}/>
                             </div>
                         ); 
                     })}

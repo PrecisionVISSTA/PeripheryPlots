@@ -51,7 +51,7 @@ export function logicalAndOver(arr) {
 }
 
 export function logicalOrOver(arr) {
-    return arr.reduce((acc, cur) => acc || cur, true); 
+    return arr.reduce((acc, cur) => acc || cur, false); 
 }
 
 export function rangeIntersection(ar, br) {
@@ -80,10 +80,10 @@ export function scaleRangeToBox(xRange, yRange, xScale, yScale) {
     /*
     Scale a d3 scale object to (optionally) specified ranges 
     */
-    if (xRange) 
+    if (xScale) 
         xScale.range(xRange); 
-    if (yRange)
+    if (yScale)
         yScale.range(yRange); 
 
-    return { xScale, yScale }; 
+    return { xScale: xScale, yScale: yScale }; 
 }

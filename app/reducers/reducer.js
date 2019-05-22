@@ -1,3 +1,4 @@
+
 const DEFAULT_state = {
     timeExtentDomain: [new Date("06/22/1997"), new Date("06/22/2020")], 
     timeDomains: [
@@ -7,7 +8,8 @@ const DEFAULT_state = {
     ], 
     numContextsPerSide: 1, 
     focusColor: '#515151', 
-    contextColor: '#aaaaaa'
+    contextColor: '#aaaaaa', 
+    zoomTransform: null
 };
 
 const reducer = (state = DEFAULT_state, action) => {
@@ -30,6 +32,12 @@ const reducer = (state = DEFAULT_state, action) => {
             return {
                 ...state, 
                 numContextsPerSide 
+            };
+        case 'CHANGE_zoomTransform': 
+            let { zoomTransform } = action; 
+            return {
+                ...state, 
+                zoomTransform
             };
         default:
             return state;

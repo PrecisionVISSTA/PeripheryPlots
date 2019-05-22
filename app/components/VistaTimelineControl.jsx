@@ -5,7 +5,7 @@ import { event as d3event } from 'd3';
 import _ from "lodash"; 
 import { assert } from "chai"; 
 
-import { getEquilateralTriangleFromCentroid } from "../util/util"; 
+import { getEquilateralTriangleFromCentroid, logicalOrOver } from "../util/util"; 
 
 import { ACTION_CHANGE_timeDomains, ACTION_CHANGE_timeExtentDomain } from "../actions/actions"; 
 
@@ -23,9 +23,10 @@ left or right side, compute a shift and apply it
 * Add locks to the bottom of all brush handles 
 * Make brush resize handles rectangular with border radius 
 * Update canMove function to consider lock state of brushes 
+
 */
 
-const PADDING = {
+const MARGIN = {
   left: 12, 
   right: 12, 
   top: 0, 
@@ -56,11 +57,12 @@ let brushState = {
 class VistaTimelineControl extends React.Component {
 
   constructor(props) {
+
     super(props); 
 
     let { width, height, timeDomains, timeExtentDomain } = this.props; 
 
-    brushState.containerScale.domain(timeExtentDomain).range([0 + PADDING.left, width - PADDING.right]); 
+    brushState.containerScale.domain(timeExtentDomain).range([0 + MARGIN.left, width - MARGIN.right]); 
 
     // 1 focus + equal number of contexts on both sides 
     assert(timeDomains.length % 2 === 1);
@@ -88,8 +90,8 @@ class VistaTimelineControl extends React.Component {
     // Set the initial locked state for all locks to false 
     brushState.brushLocks = brushState.brushLockIds.map(i => false); 
 
-    // Brush height - takes up 75% of vertical space in the container (not including padding)
-    brushState.brushHeight = (height - (PADDING.top + PADDING.bottom)) * .75; 
+    // Brush height - takes up 75% of vertical space in the container (not including MARGIN)
+    brushState.brushHeight = (height - (MARGIN.top + MARGIN.bottom)) * .75; 
     
   }
 
@@ -108,7 +110,6 @@ class VistaTimelineControl extends React.Component {
                   .attr('width', width) 
                   .attr('height', height)
                   .style('border', '1px solid grey')
-                  .style('padding', 3)
 
     // Create a clipping path for each brush  
     for (let i = 0; i < brushState.numBrushes; i++) {
@@ -120,7 +121,7 @@ class VistaTimelineControl extends React.Component {
           .attr('id', clipId)
             .append('rect')
             .attr('x', 0)
-            .attr('y', PADDING.top)
+            .attr('y', MARGIN.top)
             .attr('width', tupdif(brushSelection))
             .attr('height', brushState.brushHeight)
             .attr('transform', `translate(${brushSelection[0]}, 0)`);
@@ -182,8 +183,8 @@ class VistaTimelineControl extends React.Component {
       let isFocus = i === parseInt(brushState.numBrushes / 2); 
 
       // Set the width ; height of the brush, height is retained when future transforms (resize / translate) are applied 
-      brushFn.extent([[PADDING.left, PADDING.top], 
-                      [width - PADDING.right, brushState.brushHeight]]); 
+      brushFn.extent([[-Infinity, MARGIN.top], 
+                      [Infinity, brushState.brushHeight]]); 
 
       // Add a brush to the svg 
       let brushed = _.partial(this.brushed, isFocus, i)
@@ -222,7 +223,7 @@ class VistaTimelineControl extends React.Component {
                 .append("rect")
                 .attr('clipPath', `url(#${clipId})`)
                 .attr('x', 0)
-                .attr('y', PADDING.top + brushState.brushHeight / 2 - HANDLE_HEIGHT / 2)
+                .attr('y', MARGIN.top + brushState.brushHeight / 2 - HANDLE_HEIGHT / 2)
                 .attr('width', HANDLE_WIDTH)
                 .attr('height', HANDLE_HEIGHT)
                 .attr('transform', (d) => (d.type === 'w') ? `translate(${brushSelection[0]},0)` : 
@@ -310,11 +311,22 @@ class VistaTimelineControl extends React.Component {
     return brushState.brushLocks[brushIndex+1]; 
   }
 
-  isBrushLocked(brushIndex) {
+  isBrushLocked = (brushIndex) => {
     // Returns an array of the form [boolean, boolean] which indicates 
     // whether or not the left and right handles of the current brush are locked 
-    return [this.isBrushLeftLocked(brushIndex), 
-            this.isBrushRightLocked(brushIndex)]; 
+    return [this.isBrushLeftLocked(brushIndex), this.isBrushRightLocked(brushIndex)]; 
+  }
+
+  areAnyBrushesLocked(start, end) {
+    /*
+    Returns true if any brushes in the index range [start, end) are locked on either handle 
+    */ 
+    for ( ; start < end; start++) {
+      if (this.isBrushLeftLocked(start) || this.isBrushRightLocked(end)) {
+        return true; 
+      }
+    }
+    return false;  
   }
 
   getLockBounds(brushIndex) {
@@ -358,11 +370,11 @@ class VistaTimelineControl extends React.Component {
     Test if a collection of selections can be shifted 'shift' units and remain within the 
     bounds of the container. Returns true if selections is empty 
     */
-    let [smin, smax] = [0, this.props.width]; 
+    let [smin, smax] = [0 + MARGIN.left, this.props.width - MARGIN.right]; 
     for (let i = 0; i < selections.length; i++) {
       let [s0,s1] = selections[i]; 
-      let canMove = s0 + shift >= smin && s1 + shift < smax;  
-      if (!canMove) {
+      let canShift = s0 + shift >= smin && s1 + shift < smax;  
+      if (!canShift) {
         return false; 
       }
     }
@@ -370,9 +382,6 @@ class VistaTimelineControl extends React.Component {
   }
 
   brushed = (isFocus, index) => {
-    /*
-    Brush behavior: Grow / Shrink to right / left
-    */ 
 
     // Ensure the node exists in the DOM and that the event was triggered by user 
     // interaction (not programatically via a call to brush.move)
@@ -427,7 +436,7 @@ class VistaTimelineControl extends React.Component {
                         (preS[0] < curS[0] && preS[1] < curS[1]) ? brushActions.TRANSLATE_RIGHT : 
                         null; 
 
-    assert(currentAction !== null, 'invalid action'); 
+    assert(currentAction !== null, 'invalid brush action'); 
 
     let newSelections = brushRanges.slice(); 
     let leftIndexRange = [0, index];
@@ -435,7 +444,7 @@ class VistaTimelineControl extends React.Component {
     let leftBrushSelections = brushRanges.slice(...leftIndexRange); 
     let rightBrushSelections = brushRanges.slice(...rightIndexRange); 
     let minWidth = isFocus ? MIN_FOCUS_WIDTH : MIN_CONTEXT_WIDTH; 
-    let curWidth = tupdif(curS); 
+    let curWidth = curS[1] - curS[0]; 
     let tooSmall = curWidth < minWidth;
     let brushLockBounds = this.getLockBounds(index);
     let [leftLockIndex, rightLockIndex] = brushLockBounds; 
@@ -443,12 +452,17 @@ class VistaTimelineControl extends React.Component {
     let lockedToRight = brushLockBounds[1] !== -1; 
     let leftLockBoundS = lockedToLeft ? newSelections[leftLockIndex] : null; 
     let rightLockBoundS = lockedToRight ? newSelections[rightLockIndex] : null; 
+    let leftOverlappedRight = preS[1] === curS[0]; 
+    let rightOverlappedLeft = preS[0] === curS[1]; 
     let shift = 0; 
+    let focusIndex = parseInt(brushState.brushIds.length / 2); 
     let proposedShift; 
-    let proposedWidth; 
     let canResizeLockedBrush; 
     let shiftIndices = null; 
 
+    if (leftOverlappedRight || rightOverlappedLeft) {
+      newSelections[index] = preS; 
+    } else {
       switch (currentAction) {
         case brushActions.RESIZE_SHRINK_LEFT: 
           if (leftHandleLocked) {
@@ -481,7 +495,7 @@ class VistaTimelineControl extends React.Component {
             }
             if (lockedToRight) {
               newSelections[rightLockIndex] = [rightLockBoundS[0], 
-                                               rightLockBoundS[1] + shift];
+                                                rightLockBoundS[1] + shift];
               shiftIndices = _.range(index + 1, rightLockIndex); 
             } else {
               shiftIndices = _.range(...rightIndexRange);
@@ -508,7 +522,7 @@ class VistaTimelineControl extends React.Component {
                 shiftIndices = _.range(leftLockIndex + 1, index + 1); 
               }
             } else {
-              if (this.selectionsCanShift(leftBrushSelections, proposedShift)) {
+              if (!this.areAnyBrushesLocked(...leftIndexRange)) {
                 shift = proposedShift; 
                 shiftIndices = _.range(...leftIndexRange);
               } else {
@@ -533,13 +547,13 @@ class VistaTimelineControl extends React.Component {
                 shiftIndices = _.range(index + 1, rightLockIndex); 
               } else {
                 newSelections[rightLockIndex] = [rightLockBoundS[1] - minWidth, 
-                                                 rightLockBound[1]]; 
+                                                  rightLockBound[1]]; 
                 newSelections[index] = preS; 
                 shift = rightLockBoundS[0] - newSelections[rightLockIndex-1][1]; 
                 shiftIndices = _.range(index, rightLockIndex); 
               }
             } else {
-              if (this.selectionsCanShift(rightBrushSelections, proposedShift)) {
+              if (!this.areAnyBrushesLocked(...rightIndexRange)) {
                 shift = proposedShift; 
                 shiftIndices = _.range(...rightIndexRange);
               } else {
@@ -552,99 +566,62 @@ class VistaTimelineControl extends React.Component {
           break; 
         case brushActions.TRANSLATE_LEFT: 
           proposedShift = curS[0] - preS[0]; 
-          if (isLocked) {
+          if (isLocked || lockedToLeft) {
             newSelections[index] = preS; 
-          } else if (lockedToLeft) {
-            proposedWidth = (leftLockBoundS[1] + proposedShift) - leftLockBoundS[0]; 
-            if (proposedWidth < minWidth) {
-              newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                              leftLockBoundS[0] + minWidth];
-              newSelections[index] = preS; 
-              shift = -(newSelections[leftLockIndex + 1][0] - newSelections[leftLockIndex][1]);
-              shiftIndices = _.range(leftLockIndex + 1, brushState.numBrushes); 
-            } else {
-              newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                              leftLockBoundS[1] + proposedShift];
-              shift = proposedShift;  
-              shiftIndices = _.range(leftLockIndex + 1, brushState.numBrushes).filter(i => i !== index); 
-            }
           } else {
-            if (this.selectionsCanShift(leftBrushSelections, proposedShift)) {
-              shift = proposedShift; 
-              if (lockedToRight) {
-                shiftIndices =  _.union(_.range(...leftIndexRange), 
-                                        _.range(rightIndexRange[0], rightLockIndex)); 
-                newSelections[rightLockIndex] = [rightLockBoundS[0] + shift, 
-                                                 rightLockBoundS[1]]; 
+            if (isFocus) {
+              if (curS[0] < MARGIN.left) {
+                newSelections[index] = [MARGIN.left, 
+                                        MARGIN.left + tupdif(previousBrushSelections[focusIndex])]; 
+                shift = newSelections[index][0] - preS[0]; 
               } else {
-                shiftIndices = _.union(_.range(...leftIndexRange), 
-                                       _.range(...rightIndexRange)); 
+                shift = proposedShift; 
               }
+              shiftIndices = _.range(0, brushState.numBrushes).filter(i => i !== index); 
             } else {
-              shift = -previousBrushSelections[0][0];
-              newSelections[index] = preS; 
-              if (lockedToRight) {
-                shiftIndices =  _.union(_.range(...leftIndexRange), 
-                                        [index], 
-                                        _.range(rightIndexRange[0], rightLockIndex)); 
-                newSelections[rightLockIndex] = [rightLockBoundS[0] + shift, 
-                                                 rightLockBoundS[1]]; 
+              if (newSelections[focusIndex][0] + proposedShift < MARGIN.left) {
+                newSelections[index] = preS; 
+                newSelections[focusIndex] = [MARGIN.left, 
+                                             MARGIN.left + tupdif(previousBrushSelections[focusIndex])]; 
+                shift = newSelections[focusIndex][0] - previousBrushSelections[focusIndex][0]; 
+                shiftIndices = _.range(0, brushState.numBrushes).filter(i => i !== focusIndex);  
               } else {
-                shiftIndices = _.union(_.range(...leftIndexRange), 
-                                      [index], 
-                                       _.range(...rightIndexRange)); 
+                shift = proposedShift; 
+                shiftIndices = _.range(0, brushState.numBrushes).filter(i => i !== index); 
               }
-            }
+            }            
           }
           break; 
         case brushActions.TRANSLATE_RIGHT:
           proposedShift = curS[0] - preS[0];  
-          if (isLocked) {
+          if (isLocked || lockedToRight) {
             newSelections[index] = preS; 
-          } else if (lockedToRight) {
-            proposedWidth = rightLockBoundS[1] - (rightLockBoundS[0] + proposedShift); 
-            if (proposedWidth < minWidth) {
-              newSelections[rightLockIndex] = [rightLockBoundS[1] - minWidth, 
-                                               rightLockBoundS[1]];
-              newSelections[index] = preS; 
-              shift = newSelections[rightLockIndex][0] - previousBrushSelections[rightLockIndex - 1][1]; 
-              shiftIndices = _.range(0, rightLockIndex); 
-            } else {
-              newSelections[rightLockIndex] = [rightLockBoundS[0] + proposedShift, 
-                                               rightLockBoundS[1]];
-              shift = proposedShift;  
-              shiftIndices = _.range(0, rightLockIndex).filter(i => i !== index); 
-            }
           } else {
-            if (this.selectionsCanShift(rightBrushSelections, proposedShift)) {
-              shift = proposedShift; 
-              if (lockedToLeft) {
-                shiftIndices = _.union(_.range(leftLockIndex + 1, index), 
-                                       _.range(...rightIndexRange));  
-                newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                                leftLockBoundS[1] + shift]
+            if (isFocus) {
+              if (curS[1] > this.props.width - MARGIN.right) {
+                newSelections[index] = [this.props.width - MARGIN.right - tupdif(previousBrushSelections[focusIndex]), 
+                                        this.props.width - MARGIN.right]; 
+                shift = newSelections[index][0] - preS[0]; 
               } else {
-                shiftIndices = _.union(_.range(...leftIndexRange), 
-                                       _.range(...rightIndexRange)); 
+                shift = proposedShift; 
               }
+              shiftIndices = _.range(0, brushState.numBrushes).filter(i => i !== index); 
             } else {
-              shift = this.props.width - previousBrushSelections[previousBrushSelections.length - 1][1];
-              newSelections[index] = preS; 
-              if (lockedToLeft) {
-                shiftIndices = _.union(_.range(leftLockIndex + 1, index), 
-                                       [index], 
-                                       _.range(...rightIndexRange));
-                newSelections[leftLockIndex] = [leftLockBoundS[0], 
-                                                leftLockBoundS[1] + shift]; 
+              if (newSelections[focusIndex][1] + proposedShift > this.props.width - MARGIN.right) {
+                newSelections[index] = preS; 
+                newSelections[focusIndex] = [this.props.width - MARGIN.right - tupdif(previousBrushSelections[focusIndex]), 
+                                             this.props.width - MARGIN.right];
+                shift = newSelections[focusIndex][0] - previousBrushSelections[focusIndex][0]; 
+                shiftIndices = _.range(0, brushState.numBrushes).filter(i => i !== focusIndex);  
               } else {
-                shiftIndices = _.union(_.range(...leftIndexRange), 
-                                       [index], 
-                                       _.range(...rightIndexRange)); 
+                shift = proposedShift; 
+                shiftIndices = _.range(0, brushState.numBrushes).filter(i => i !== index); 
               }
             }
           }
           break; 
       }
+    }
 
     // Perform shifts if necessary
     newSelections = shift !== 0 ? newSelections.map((s,i) => shiftIndices.includes(i) ? s.map(e => e + shift) : s) : 
@@ -664,6 +641,12 @@ class VistaTimelineControl extends React.Component {
 
     this.props.ACTION_CHANGE_timeDomains(brushState.brushRanges.map(s => s.map(brushState.containerScale.invert).map(t => new Date(t))));
 
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    return {
+      zoomTransform: props.zoomTransform 
+    }; 
   }
 
   render() {  

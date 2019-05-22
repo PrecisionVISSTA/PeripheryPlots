@@ -2,7 +2,9 @@ import React from "react";
 import * as d3 from "d3"; 
 import _ from "lodash"; 
 import { connect } from "react-redux";
-import { scaleRangeToBox } from "../util/util";  
+import { scaleRangeToBox } from "../util/util"; 
+
+import { ACTION_CHANGE_zoomTransform } from "../actions/actions"; 
 
 class VistaTrack extends React.Component {
 
@@ -10,7 +12,45 @@ class VistaTrack extends React.Component {
         axis: d3.axisRight(), 
         quantitativeScale: d3.scaleLinear(), 
         categoricalScale: d3.scaleBand(), 
-        timeScale: d3.scaleTime()
+        timeScale: d3.scaleTime(), 
+        aScale: d3.scaleLinear(), 
+        zoom: d3.zoom()
+    }
+
+    zoomed = () => {
+        let zoomTransform = d3.zoomTransform(d3.select('.zoom').node()); 
+        this.props.ACTION_CHANGE_zoomTransform(zoomTransform); 
+    }
+
+    initZooms() {
+        this.state.zoom
+            .scaleExtent([1, Infinity])
+            .translateExtent([[0, 0], [this.props.focusWidth, this.props.trackHeight]])
+            .extent([[0, 0], [this.props.focusWidth, this.props.trackHeight]])
+            .on("zoom", this.zoomed)
+
+        d3.selectAll('.zoom')
+            .call(this.state.zoom); 
+    }
+
+    updateZooms() {
+        let { timeDomains, numContextsPerSide, timeExtentDomain } = this.props; 
+        let { aScale, zoom } = this.state; 
+
+        let timelineWidth = 676; 
+
+        aScale.domain(timeExtentDomain).range([0, timelineWidth]);
+        
+        let tDomain = timeDomains[numContextsPerSide]; 
+        let s = tDomain.map(aScale); 
+
+        d3.selectAll('.zoom')
+          .call(zoom.transform, d3.zoomIdentity
+                                .scale(timelineWidth / (s[1] - s[0]))
+                                .translate(-s[0], 0)); 
+
+        let zoomTransform = d3.zoomTransform(d3.select('.zoom').node()); 
+        this.props.ACTION_CHANGE_zoomTransform(zoomTransform); 
     }
 
     updateAxes() {
@@ -34,9 +74,11 @@ class VistaTrack extends React.Component {
         }
     }
 
+
     componentDidMount() {
 
         this.updateAxes(); 
+        this.initZooms(); 
 
         d3.select(this.FOCUS_REF).on('mousemove', () => {
 
@@ -49,8 +91,8 @@ class VistaTrack extends React.Component {
 
             let currentDate = this.state.timeScale
                         .domain(this.props.timeDomains[this.props.numContextsPerSide])
-                        .range([0, this.props.trackWidth - this.props.contextWidth * 2 * this.props.numContextsPerSide - this.props.axesWidth])
-                        .invert(x)
+                        .range([0, this.props.focusWidth])
+                        .invert(x);
             let dateString = d3.timeFormat('%B %d, %Y')(currentDate); 
 
             d3.selectAll('.focus-time-text')
@@ -71,6 +113,7 @@ class VistaTrack extends React.Component {
 
     componentDidUpdate() {
         this.updateAxes(); 
+        this.updateZooms(); 
     }
 
     render() {
@@ -87,6 +130,7 @@ class VistaTrack extends React.Component {
             trackPaddingTop, 
             trackPaddingBottom, 
             contextWidth, 
+            focusWidth, 
             axesWidth, 
             focusColor, 
             contextColor
@@ -111,15 +155,12 @@ class VistaTrack extends React.Component {
         let focusObservations = observationsInDomain(focusTimeDomain); 
         let rightContextObservations = rightContextTimeDomains.map(observationsInDomain); 
 
-        // Derived properties 
-        let focusWidth = trackWidth - contextWidth * 2 * numContextsPerSide - axesWidth;
-        let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
-                                                             d3.extent(observations.map(o => o[valueKey]));
-
         let contextScaleRangeToBox = _.partial(scaleRangeToBox, [0, contextWidth], [trackHeight - trackPaddingBottom, trackPaddingTop]); 
         let focusScaleRangeToBox = _.partial(scaleRangeToBox, [0, focusWidth], [trackHeight - trackPaddingBottom, trackPaddingTop]); 
 
         let tHeight = trackHeight - trackPaddingBottom * 2; 
+        let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
+                                                             d3.extent(observations.map(o => o[valueKey]));
 
         return (
         <div style={{ width: trackWidth, height: trackHeight }}>
@@ -165,6 +206,7 @@ class VistaTrack extends React.Component {
                         valueDomain={valueDomain}
                         observations={leftContextObservations[i]}
                         scaleRangeToBox={contextScaleRangeToBox}/>
+
                     </svg>
                 ); 
             })}
@@ -218,6 +260,16 @@ class VistaTrack extends React.Component {
                 fontFamily={'Helvetica'}
                 fontSize={10}/>
 
+                {/* Focus zoom panel */}
+                <rect 
+                className={`zoom`}
+                pointerEvents="all"
+                x={0} 
+                y={trackPaddingTop} 
+                width={focusWidth} 
+                height={tHeight} 
+                fill='none'/>
+
             </svg>
 
             {/* Right Contexts */}
@@ -253,6 +305,7 @@ class VistaTrack extends React.Component {
                         valueDomain={valueDomain}
                         observations={rightContextObservations[i]}
                         scaleRangeToBox={contextScaleRangeToBox}/>
+
                     </svg>
                 );
             })}
@@ -262,7 +315,12 @@ class VistaTrack extends React.Component {
 
 }
 
-const mapStateToProps = ({ timeDomains, numContextsPerSide, focusColor, contextColor }) => 
-                        ({ timeDomains, numContextsPerSide, focusColor, contextColor }); 
+const mapStateToProps = ({ timeDomains, timeExtentDomain, numContextsPerSide, focusColor, contextColor }) => 
+                        ({ timeDomains, timeExtentDomain, numContextsPerSide, focusColor, contextColor }); 
 
-export default connect(mapStateToProps, null)(VistaTrack); 
+const mapDispatchToProps = dispatch => ({
+    ACTION_CHANGE_zoomTransform: (zoomTransform) => 
+        dispatch(ACTION_CHANGE_zoomTransform(zoomTransform))
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(VistaTrack); 

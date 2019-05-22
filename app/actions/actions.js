@@ -25,3 +25,11 @@ export function ACTION_CHANGE_focusMouseX(focusMouseX) {
         focusMouseX
     }
 }
+
+
+export function ACTION_CHANGE_zoomTransform(zoomTransform) {
+    return {
+        type: 'CHANGE_zoomTransform', 
+        zoomTransform
+    }
+}
