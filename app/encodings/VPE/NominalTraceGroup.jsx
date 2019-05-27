@@ -25,11 +25,7 @@ class NominalTraceGroup extends React.Component {
 
         let observationCounts = observations.reduce((acc, cur) => {
             let value = cur[valueKey]; 
-            if (!Object.keys(acc).includes(value)) {
-                acc[value] = 1; 
-            } else {
-                acc[value] += 1; 
-            }
+            acc[value] = acc[value] === undefined ? 1 : acc[value] + 1; 
             return acc; 
         }, {}); 
 

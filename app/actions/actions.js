@@ -33,3 +33,17 @@ export function ACTION_CHANGE_zoomTransform(zoomTransform) {
         zoomTransform
     }
 }
+
+export function ACTION_CHANGE_focusBrushWidth(focusBrushWidth) {
+    return {
+        type: 'CHANGE_focusBrushWidth', 
+        focusBrushWidth
+    }
+}
+
+export function ACTION_CHANGE_controlTimelineScaleRange(controlTimelineScaleRange) {
+    return {
+        type: 'CHANGE_controlTimelineScaleRange', 
+        controlTimelineScaleRange
+    }
+}

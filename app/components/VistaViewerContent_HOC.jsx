@@ -1,7 +1,6 @@
 import React from "react";
 import { connect } from "react-redux"; 
 import _ from "lodash"; 
-import * as d3 from "d3"; 
 
 import { ACTION_CHANGE_timeDomains, ACTION_CHANGE_timeExtentDomain } from "../actions/actions"; 
 
@@ -14,84 +13,47 @@ export default function VistaViewerContentHOC(config) {
     class VistaViewerContent extends React.Component {
 
         state = {
-            firstRender: true, 
-            zooms: []
-        }
-
-        getDefaultParametersIfNotSpecified(props) {
-    
-            let {
-                numContextsPerSide, 
-                controlTimelineWidth, 
-                controlTimelineHeight, 
-                trackWidth, 
-                trackHeight, 
-                trackPaddingTop, 
-                trackPaddingBottom, 
-                contextWidth, 
-                axesWidth, 
-            } = props; 
-    
-            if (!numContextsPerSide) numContextsPerSide = 1; 
-            if (!controlTimelineHeight) controlTimelineHeight = 75;
-            if (!controlTimelineWidth) controlTimelineWidth = 700; 
-            if (!trackHeight) trackHeight = 60; 
-            if (!trackWidth) trackWidth = 700; 
-            if (!trackPaddingTop) trackPaddingTop = 5; 
-            if (!trackPaddingBottom) trackPaddingBottom = 5; 
-            if (!contextWidth) contextWidth = 100; 
-            if (!axesWidth) axesWidth = 40; 
-    
-            return {
-                numContextsPerSide, 
-                controlTimelineWidth, 
-                controlTimelineHeight, 
-                trackWidth, 
-                trackHeight, 
-                trackPaddingTop, 
-                trackPaddingBottom, 
-                contextWidth, 
-                axesWidth
-            };
+            firstRender: true
         }
     
         componentDidMount() {
-            // Update the global store with the properties passed in initially 
+            // Initial state determined at runtime 
             this.props.ACTION_CHANGE_timeDomains(config.timeDomains); 
-            this.props.ACTION_CHANGE_timeExtentDomain(config.timeExtentDomain); 
+            this.props.ACTION_CHANGE_timeExtentDomain(config.timeExtentDomain);  
 
-            let nZooms = this.props.numContextsPerSide * 2 + 1; 
-            this.setState({ 
-                firstRender: false, 
-                zooms: _.range(0, nZooms).map(i => d3.zoom()) 
-            }); 
+            // After mounting, we allow the component to render 
+            this.setState({ firstRender: false });
         }
     
         render() {
 
-            if (this.state.firstRender) return null; 
+            // Do not render anything initially, we must first update global store with configuration properties 
+            // as specified by the user. Once we can access these properties in the store, we render the component
+            if (this.state.firstRender) {
+                return null; 
+            }
 
-            let { zooms } = this.state; 
-            let { timeDomains } = this.props;
+            let {   numContextsPerSide, 
+                    axesWidth, 
+                    contextWidth, 
+                    trackWidth, 
+                    controlTimelineHeight, 
+                    controlTimelineWidth, 
+                    trackHeight, 
+                    trackPaddingTop, 
+                    trackPaddingBottom, 
+                    focusWidth, 
+                    verticalAlignerHeight
+                } = this.props;
+
             let {   trackwiseObservations,
                     trackwiseTimeKeys, 
                     trackwiseValueKeys, 
                     trackwiseEncodings } = config; 
 
-            let {
-                numContextsPerSide, 
-                controlTimelineWidth, 
-                controlTimelineHeight, 
-                trackWidth, 
-                trackHeight, 
-                trackPaddingTop, 
-                trackPaddingBottom, 
-                contextWidth, 
-                axesWidth
-            } = this.getDefaultParametersIfNotSpecified({}); 
-    
             let numTracks = trackwiseObservations.length; 
-            let focusWidth = trackWidth - contextWidth * 2 * numContextsPerSide - axesWidth;
+
+            let ids = _.range(0, numTracks).map(i => `track-${i}`); 
     
             return (
                 <React.Fragment>
@@ -106,8 +68,7 @@ export default function VistaViewerContentHOC(config) {
 
                     <VistaVerticalAligner
                     width={708}
-                    height={30}/>
-
+                    height={verticalAlignerHeight}/>
 
                     {/* 
                     Time series tracks 
@@ -118,19 +79,13 @@ export default function VistaViewerContentHOC(config) {
                         let valueKey = trackwiseValueKeys[i]; 
                         let encodings = trackwiseEncodings[i]; 
                         return (
-                            <div 
-                            style={{ 
-                                border: '1px solid grey',
-                                width: trackWidth, 
-                                marginBottom: 8, 
-                                padding: 3
-                            }}>
+                            <div style={{ border: '1px solid grey', width: trackWidth, }}>
                                 <VistaTrack
+                                id={ids[i]}
                                 key={`track-${i}`}
                                 observations={observations} 
                                 timeKey={timeKey} 
                                 valueKey={valueKey}
-                                timeDomains={timeDomains} 
                                 numContextsPerSide={numContextsPerSide}
                                 encodings={encodings}
                                 trackWidth={trackWidth}
@@ -139,8 +94,7 @@ export default function VistaViewerContentHOC(config) {
                                 trackPaddingBottom={trackPaddingBottom}
                                 focusWidth={focusWidth}
                                 contextWidth={contextWidth}
-                                axesWidth={axesWidth}
-                                zooms={zooms}/>
+                                axesWidth={axesWidth}/>
                             </div>
                         ); 
                     })}
@@ -149,15 +103,33 @@ export default function VistaViewerContentHOC(config) {
         }
     
     }
-    
-    const mapStateToProps = ({ 
-                                timeExtentDomain, 
-                                timeDomains
+
+    const mapStateToProps = ({
+                                numContextsPerSide, 
+                                axesWidth, 
+                                contextWidth, 
+                                trackWidth, 
+                                controlTimelineHeight, 
+                                controlTimelineWidth, 
+                                trackHeight, 
+                                trackPaddingTop, 
+                                trackPaddingBottom, 
+                                focusWidth, 
+                                verticalAlignerHeight
                             }) => 
-                            ({ 
-                                timeExtentDomain, 
-                                timeDomains
-                            });
+                            ({
+                                numContextsPerSide, 
+                                axesWidth, 
+                                contextWidth, 
+                                trackWidth, 
+                                controlTimelineHeight, 
+                                controlTimelineWidth, 
+                                trackHeight, 
+                                trackPaddingTop, 
+                                trackPaddingBottom, 
+                                focusWidth, 
+                                verticalAlignerHeight
+                            }); 
     
     const mapDispatchToProps = dispatch => ({
     

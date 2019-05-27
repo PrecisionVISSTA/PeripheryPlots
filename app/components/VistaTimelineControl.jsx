@@ -7,7 +7,11 @@ import { assert } from "chai";
 
 import { getEquilateralTriangleFromCentroid, logicalOrOver } from "../util/util"; 
 
-import { ACTION_CHANGE_timeDomains, ACTION_CHANGE_timeExtentDomain } from "../actions/actions"; 
+import { ACTION_CHANGE_timeDomains, 
+         ACTION_CHANGE_timeExtentDomain, 
+         ACTION_CHANGE_focusBrushWidth, 
+         ACTION_CHANGE_controlTimelineScaleRange
+       } from "../actions/actions"; 
 
 
 /*
@@ -27,8 +31,8 @@ left or right side, compute a shift and apply it
 */
 
 const MARGIN = {
-  left: 12, 
-  right: 12, 
+  left: 0, 
+  right: 0, 
   top: 0, 
   bottom: 5
 }; 
@@ -51,8 +55,7 @@ let brushState = {
   brushLockIds: [], // Collection of ids to reference brush lock ids 
   numBrushes: 0, // The total number of brushes 
   brushHeight: 0, // The vertical height of the brush 
-  containerScale: d3.scaleLinear(), // Maps time points to a corresponding x coordinate within the container 
-  zoomTransform: { x: 0, y: 0, k: 1 }
+  containerScale: d3.scaleLinear() // Maps time points to a corresponding x coordinate within the container 
 };
 
 class VistaTimelineControl extends React.Component {
@@ -96,29 +99,59 @@ class VistaTimelineControl extends React.Component {
     
   }
 
+  handleZoomTransform(props) {
+
+    let { zoomTransform } = props; 
+    let focusIndex = parseInt(brushState.brushIds.length / 2);
+    let focusBrushId = brushState.brushIds[focusIndex]; 
+
+    // Get the current and previous selections for all brushes 
+    let previousSelections = this.getBrushRanges(); 
+    let newSelections = previousSelections.slice(); 
+
+    // Update the focus region based on the current zoom transform 
+    newSelections[focusIndex] = brushState.containerScale.range().map(zoomTransform.applyX, zoomTransform); 
+
+    // Get the current and previous selections for the focus brush 
+    let preS = previousSelections[focusIndex]; 
+    let curS = newSelections[focusIndex]; 
+
+    let leftShift = curS[0] - preS[0]; 
+    let rightShift = curS[1] - preS[1]; 
+
+    // Shift all brushes to the left 
+    for (let i = 0; i < focusIndex; i++) {
+      newSelections[i] = newSelections[i].map(v => v + leftShift);
+    }
+
+    // Shift all brushes to the right
+    for (let i = focusIndex + 1; i < brushState.numBrushes; i++) {
+      newSelections[i] = newSelections[i].map(v => v + rightShift);
+    }
+
+    // Update brush positions if a change occurred since the previous brush event 
+    for (let i = 0; i < brushState.numBrushes; i++) {
+      if (!_.isEqual(newSelections[i], previousSelections[i])) {
+        d3.select(`#${brushState.brushIds[i]}`)
+          .call(brushState.brushes[i].move, newSelections[i]); 
+      }
+    }
+
+    brushState.brushRanges = newSelections;
+
+    this.updateBrushExtras(brushState.brushRanges); 
+
+    this.props.ACTION_CHANGE_timeDomains(brushState.brushRanges.map(s => s.map(brushState.containerScale.invert).map(t => new Date(t))));
+
+    this.props.ACTION_CHANGE_focusBrushWidth(brushState.brushRanges[focusIndex][1] - brushState.brushRanges[focusIndex][0]); 
+
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
-    // If the current transform does not equal the global transform, update zoom
-    // if (nextProps.zoomTransform.k !== brushState.zoomTransform.k ||
-    //     nextProps.zoomTransform.x !== brushState.zoomTransform.x  || 
-    //     nextProps.zoomTransform.y !== brushState.zoomTransform.y) {
 
-    //     let { zoomTransform } = nextProps; 
-    //     let focusIndex = parseInt(brushState.brushIds.length/2);
-    //     let focusBrushId = brushState.brushIds[focusIndex];
-    //     let focusS = brushState.containerScale.range().map(zoomTransform.invertX, zoomTransform); 
-
-    //     // Update the brushState brush ranges 
-    //     let newSelections = brushState.brushRanges.slice(); 
-    //     newSelections[focusIndex] = focusS; 
-    //     brushState.brushRanges = newSelections;
-        
-    //     // Update the brushState zoom transform 
-    //     brushState.zoomTransform = zoomTransform; 
-
-    //     d3.select(`#${focusBrushId}`) 
-    //       .call(brushState.brushes[focusIndex].move, focusS); 
-    // }
-
+    if (!_.isEqual(nextProps.zoomTransform, this.props.zoomTransform)) {
+      this.handleZoomTransform(nextProps); 
+    }
 
     // Let d3 perform updates 
     return false; 
@@ -134,7 +167,6 @@ class VistaTimelineControl extends React.Component {
                   .attr('width', width) 
                   .attr('height', height)
                   .style('border', '1px solid grey')
-                  .style('padding', 3)
 
     // Create a clipping path for each brush  
     for (let i = 0; i < brushState.numBrushes; i++) {
@@ -208,8 +240,8 @@ class VistaTimelineControl extends React.Component {
       let isFocus = i === parseInt(brushState.numBrushes / 2); 
 
       // Set the width ; height of the brush, height is retained when future transforms (resize / translate) are applied 
-      brushFn.extent([[-1000000, MARGIN.top], 
-                      [1000000, brushState.brushHeight]]); 
+      brushFn.extent([[-10000, MARGIN.top], 
+                      [10000, brushState.brushHeight]]); 
 
       // Add a brush to the svg 
       let brushed = _.partial(this.brushed, isFocus, i)
@@ -274,14 +306,18 @@ class VistaTimelineControl extends React.Component {
                       .ticks(d3.timeMonth.every(3)); 
     
     svg.append("g")
-      //  .attr('transform', `translate(0,${height-3})`)
        .call(yearAxis)
         .selectAll('text')
         .attr('font-weight', 'bold'); 
 
     svg.append("g")
-      //  .attr('transform', `translate(0,${height-3})`)
        .call(monthAxis); 
+
+
+    let focusIndex = parseInt(brushState.brushIds.length / 2);
+
+    this.props.ACTION_CHANGE_controlTimelineScaleRange(brushState.containerScale.range()); 
+    this.props.ACTION_CHANGE_focusBrushWidth(brushState.brushRanges[focusIndex][1] - brushState.brushRanges[focusIndex][0]); 
 
   }
 
@@ -576,10 +612,12 @@ class VistaTimelineControl extends React.Component {
 
     this.props.ACTION_CHANGE_timeDomains(brushState.brushRanges.map(s => s.map(brushState.containerScale.invert).map(t => new Date(t))));
 
+    this.props.ACTION_CHANGE_focusBrushWidth(brushState.brushRanges[focusIndex][1] - brushState.brushRanges[focusIndex][0]); 
+
   }
 
   render() {  
-    return <div style={{ display: 'block' }} ref={ref => this.ROOT = ref}/>
+    return <div ref={ref => this.ROOT = ref}/>
   }
 
 }
@@ -588,10 +626,19 @@ const mapStateToProps = ({ timeDomains, timeExtentDomain, focusColor, contextCol
                         ({ timeDomains, timeExtentDomain, focusColor, contextColor, zoomTransform });
 
 const mapDispatchToProps = dispatch => ({
+
   ACTION_CHANGE_timeDomains: (timeDomains) => 
     dispatch(ACTION_CHANGE_timeDomains(timeDomains)), 
+
   ACTION_CHANGE_timeExtentDomain: (timeExtentDomain) => 
-    dispatch(ACTION_CHANGE_timeExtentDomain(timeExtentDomain)) 
+    dispatch(ACTION_CHANGE_timeExtentDomain(timeExtentDomain)), 
+
+  ACTION_CHANGE_focusBrushWidth: (focusBrushWidth) => 
+    dispatch(ACTION_CHANGE_focusBrushWidth(focusBrushWidth)), 
+
+  ACTION_CHANGE_controlTimelineScaleRange: (controlTimelineScaleRange) => 
+    dispatch(ACTION_CHANGE_controlTimelineScaleRange(controlTimelineScaleRange))
+
 }); 
 
 export default connect(mapStateToProps, mapDispatchToProps)(VistaTimelineControl); 

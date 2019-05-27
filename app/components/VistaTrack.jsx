@@ -13,8 +13,9 @@ class VistaTrack extends React.Component {
         quantitativeScale: d3.scaleLinear(), 
         categoricalScale: d3.scaleBand(), 
         timeScale: d3.scaleTime(), 
-        aScale: d3.scaleLinear(), 
-        zoom: d3.zoom()
+        zoom: d3.zoom(), 
+        zoomsInitialized: false, 
+        controlTimelineScale: d3.scaleTime()
     }
 
     zoomed = () => {
@@ -22,39 +23,57 @@ class VistaTrack extends React.Component {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") {
             return;
         }
-        let zoomTransform = d3.zoomTransform(d3.select('.zoom').node()); 
+        
+        let zoomTransform = d3.zoomTransform(d3.select(this.ZOOM_REF).node());
 
+        // Update the global store with this stacked zoom transformation 
         this.props.ACTION_CHANGE_zoomTransform(zoomTransform);             
     }
 
     initZooms() {
-        this.state.zoom
-            .scaleExtent([1, Infinity])
-            .on("zoom", this.zoomed)
+        let { controlTimelineScaleRange, timeExtentDomain, timeDomains, id } = this.props; 
+        let { controlTimelineScale, zoom } = this.state; 
 
-        d3.selectAll('.zoom')
-            .call(this.state.zoom); 
-    }
+        // Control the mimics the control timeline scale. We use this to derive the 
+        // position of the focus brush 
+        controlTimelineScale.domain(timeExtentDomain)
+                            .range(controlTimelineScaleRange); 
 
-    updateZooms() {
-        let { timeDomains, numContextsPerSide, timeExtentDomain } = this.props; 
-        let { aScale, zoom } = this.state; 
+        // Time domain corrresponding to the current focus region 
+        let focusDomain = timeDomains[parseInt(timeDomains.length / 2)]; 
+        let focusS = focusDomain.map(controlTimelineScale); 
+        let focusW = focusS[1] - focusS[0]; 
 
-        let timelineWidth = 676; 
+        // Ensure that the zoom extent is equivalent to the dimensions of the control timeline container 
+        let [extentX0, extentX1] = controlTimelineScaleRange; 
+        let totalW = extentX1 - extentX0; 
 
-        aScale.domain(timeExtentDomain).range([0, timelineWidth]);
-        
-        let tDomain = timeDomains[numContextsPerSide]; 
-        let s = tDomain.map(aScale); 
+        // Determine scale / translation factor that maps container range to focus brush initial state
+        let scale = focusW / totalW; 
+        let translateX = focusS[0]; 
+        let translateY = 0; 
 
-        d3.selectAll('.zoom')
-          .call(zoom.transform, d3.zoomIdentity
-                                .scale(timelineWidth / (s[1] - s[0]))
-                                .translate(-s[0], 0)); 
+        zoom.on("zoom", this.zoomed)
+            .extent([[controlTimelineScaleRange[0], 0], 
+                     [controlTimelineScaleRange[1], 50]]); 
+                                                
+        // There is a discrepancy between the control focus brush state 
+        // and the inital state of the zoom object maintained in the current
+        // component. We apply a transformation to reconcile this. 
+        let zoomTransform = d3.zoomIdentity
+                                .translate(translateX, translateY)
+                                .scale(scale);
 
-        let zoomTransform = d3.zoomTransform(d3.select('.zoom').node()); 
+        console.log('initial: ', zoomTransform);
+                                
+        d3.select(this.ZOOM_REF).call(zoom).call(zoom.transform, zoomTransform); 
 
-        this.props.ACTION_CHANGE_zoomTransform(zoomTransform); 
+        // Update the global store with this stacked zoom transformation 
+        this.props.ACTION_CHANGE_zoomTransform(zoomTransform);       
+
+        // Is this necessary? 
+        this.setState({ zoom }); 
+
     }
 
     updateAxes() {
@@ -82,7 +101,6 @@ class VistaTrack extends React.Component {
     componentDidMount() {
 
         this.updateAxes(); 
-        this.initZooms(); 
 
         d3.select(this.FOCUS_REF).on('mousemove', () => {
 
@@ -113,16 +131,26 @@ class VistaTrack extends React.Component {
             d3.selectAll('.focus-time-text')
                 .attr('display', 'none') 
         }); 
+
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
+        let { zoom, zoomsInitialized } = this.state; 
+        let { focusBrushWidth } = this.props;
+
         this.updateAxes(); 
-        this.updateZooms(); 
+
+        if (focusBrushWidth > 0 && !zoomsInitialized) {
+            this.initZooms(); 
+            this.setState({ zoomsInitialized: true }); 
+        }
+
     }
 
     render() {
 
         let { 
+            id, 
             observations, 
             timeKey, 
             valueKey, 
@@ -266,6 +294,7 @@ class VistaTrack extends React.Component {
 
                 {/* Focus zoom panel */}
                 <rect 
+                ref={ref => this.ZOOM_REF = ref}
                 className={`zoom`}
                 pointerEvents="all"
                 x={0} 
@@ -319,9 +348,24 @@ class VistaTrack extends React.Component {
 
 }
 
-const mapStateToProps = ({ timeDomains, timeExtentDomain, numContextsPerSide, focusColor, contextColor }) => 
-                        ({ timeDomains, timeExtentDomain, numContextsPerSide, focusColor, contextColor }); 
-
+const mapStateToProps = ({ 
+    timeDomains, 
+    timeExtentDomain, 
+    numContextsPerSide, 
+    focusColor, 
+    contextColor, 
+    controlTimelineScaleRange, 
+    focusBrushWidth 
+}) => ({ 
+    timeDomains, 
+    timeExtentDomain, 
+    numContextsPerSide, 
+    focusColor, 
+    contextColor, 
+    controlTimelineScaleRange, 
+    focusBrushWidth 
+}); 
+                        
 const mapDispatchToProps = dispatch => ({
     ACTION_CHANGE_zoomTransform: (zoomTransform) => 
         dispatch(ACTION_CHANGE_zoomTransform(zoomTransform))
