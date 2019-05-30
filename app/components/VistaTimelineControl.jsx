@@ -10,7 +10,10 @@ import { getEquilateralTriangleFromCentroid, logicalOrOver } from "../util/util"
 import { ACTION_CHANGE_timeDomains, 
          ACTION_CHANGE_timeExtentDomain, 
          ACTION_CHANGE_focusBrushWidth, 
-         ACTION_CHANGE_controlTimelineScaleRange
+         ACTION_CHANGE_controlTimelineScaleRange,
+         ACTION_CHANGE_focusMiddleX,
+         ACTION_CHANGE_focusDX, 
+         ACTION_CHANGE_zoomTransform
        } from "../actions/actions"; 
 
 
@@ -49,13 +52,11 @@ const tupdif = tup => tup[1] - tup[0];
 
 let brushState = {
   brushes: [], //collection of d3 brush objects 
-  brushRanges: [], // The collection of most recent brush selections
   brushIds: [], // Collection of brush ids for selection 
   brushLocks: [], // Collection of booleans to indicate whether or not a brush is locked 
   brushLockIds: [], // Collection of ids to reference brush lock ids 
   numBrushes: 0, // The total number of brushes 
-  brushHeight: 0, // The vertical height of the brush 
-  containerScale: d3.scaleLinear() // Maps time points to a corresponding x coordinate within the container 
+  brushHeight: 0 // The vertical height of the brush 
 };
 
 class VistaTimelineControl extends React.Component {
@@ -64,20 +65,18 @@ class VistaTimelineControl extends React.Component {
 
     super(props); 
 
-    let { width, height, timeDomains, timeExtentDomain } = this.props; 
-
-    brushState.containerScale.domain(timeExtentDomain).range([0 + MARGIN.left, width - MARGIN.right]); 
-
+    let { height, timeDomains } = this.props; 
+    
     // 1 focus + equal number of contexts on both sides 
     assert(timeDomains.length % 2 === 1);
 
     // Infer the number of brushes 
     brushState.numBrushes = timeDomains.length; 
+
+    // Infer focus index
+    brushState.focusIndex = parseInt(brushState.numBrushes / 2); 
     
     let brushIndexList = _.range(0, brushState.numBrushes); 
-
-    // Initialize brush selection states 
-    brushState.brushRanges = timeDomains.map(domain => domain.map(brushState.containerScale)); 
 
     // Initialize the brushes 
     brushState.brushes = brushIndexList.map(i => d3.brushX()); 
@@ -95,22 +94,21 @@ class VistaTimelineControl extends React.Component {
     brushState.brushLocks = brushState.brushLockIds.map(i => false); 
 
     // Brush height - takes up 75% of vertical space in the container (not including MARGIN)
-    brushState.brushHeight = (height - (MARGIN.top + MARGIN.bottom)) * .75; 
+    brushState.brushHeight = (height - (MARGIN.top + MARGIN.bottom)) * .85; 
     
   }
 
   handleZoomTransform(props) {
 
     let { zoomTransform } = props; 
-    let focusIndex = parseInt(brushState.brushIds.length / 2);
-    let focusBrushId = brushState.brushIds[focusIndex]; 
+    let { focusIndex } = brushState; 
 
     // Get the current and previous selections for all brushes 
     let previousSelections = this.getBrushRanges(); 
     let newSelections = previousSelections.slice(); 
 
     // Update the focus region based on the current zoom transform 
-    newSelections[focusIndex] = brushState.containerScale.range().map(zoomTransform.applyX, zoomTransform); 
+    newSelections[focusIndex] = this.props.controlScale.range().map(zoomTransform.applyX, zoomTransform); 
 
     // Get the current and previous selections for the focus brush 
     let preS = previousSelections[focusIndex]; 
@@ -137,13 +135,7 @@ class VistaTimelineControl extends React.Component {
       }
     }
 
-    brushState.brushRanges = newSelections;
-
-    this.updateBrushExtras(brushState.brushRanges); 
-
-    this.props.ACTION_CHANGE_timeDomains(brushState.brushRanges.map(s => s.map(brushState.containerScale.invert).map(t => new Date(t))));
-
-    this.props.ACTION_CHANGE_focusBrushWidth(brushState.brushRanges[focusIndex][1] - brushState.brushRanges[focusIndex][0]); 
+    this.update(newSelections, false); 
 
   }
 
@@ -159,7 +151,8 @@ class VistaTimelineControl extends React.Component {
 
   componentDidMount() {
     // Code to create the d3 element, using the root container 
-    let { width, height, focusColor, contextColor } = this.props; 
+    let { width, height, focusColor, contextColor, padding } = this.props; 
+    let { focusIndex } = brushState; 
     let root = d3.select(this.ROOT); 
     
     // Create the svg container for the brushes
@@ -167,12 +160,18 @@ class VistaTimelineControl extends React.Component {
                   .attr('width', width) 
                   .attr('height', height)
                   .style('border', '1px solid grey')
+                  .style('padding-left', padding)
+                  .style('padding-right', padding)
+                  .style('padding-top', padding)
+
+    // Pixel ranges for each brush 
+    let brushRanges = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 
 
     // Create a clipping path for each brush  
     for (let i = 0; i < brushState.numBrushes; i++) {
 
       let clipId = brushState.clipIds[i]; 
-      let brushSelection = brushState.brushRanges[i]; 
+      let brushSelection = brushRanges[i]; 
 
       svg.append('clipPath')
           .attr('id', clipId)
@@ -185,8 +184,21 @@ class VistaTimelineControl extends React.Component {
 
     }
 
-    let addLock = (x, y, lockId) => {
+    let lockClick = (lockId) => {
+        // Determine the lock index of the clicked lock 
+        let lockIndex = brushState.brushLockIds.indexOf(lockId); 
+        assert(lockIndex >= 0, 'lock doesnt exist'); 
 
+        // Toggle the lock state
+        brushState.brushLocks[lockIndex] = !brushState.brushLocks[lockIndex];
+        
+        // Apply an animation to the lock to indicate the change 
+        d3.select(`#${lockId}`)
+          .transition(d3.transition().duration(300).ease(d3.easeLinear))
+          .attr('fill', brushState.brushLocks[lockIndex] ? LOCK_ACTIVE_COLOR : LOCK_INACTIVE_COLOR); 
+    }
+
+    let addLock = (x, y, lockId) => {
       // Add a lock object at the given x,y position extending downwards
       svg.append('g')
             .append('rect')
@@ -198,26 +210,14 @@ class VistaTimelineControl extends React.Component {
             .attr('transform', `translate(${x - LOCK_WIDTH / 2},0)`)
             .attr('fill', LOCK_INACTIVE_COLOR)
             .attr('rx', LOCK_HEIGHT / 4)
-            .on('click', () => {
-              // Determine the lock index of the clicked lock 
-              let lockIndex = brushState.brushLockIds.indexOf(lockId); 
-              assert(lockIndex >= 0, 'lock doesnt exist'); 
-
-              // Toggle the lock state
-              brushState.brushLocks[lockIndex] = !brushState.brushLocks[lockIndex];
-              
-              // Apply an animation to the lock to indicate the change 
-              d3.select(`#${lockId}`)
-                .transition(d3.transition().duration(300).ease(d3.easeLinear))
-                .attr('fill', brushState.brushLocks[lockIndex] ? LOCK_ACTIVE_COLOR : LOCK_INACTIVE_COLOR); 
-            }); 
+            .on('click', _.partial(lockClick, lockId)); 
     }
 
     // Creating a locking mechanism for every bi-directional handle 
     let dy = 1; 
     let lockTopY = brushState.brushHeight + dy; // locks are placed right below bottom of brush 
     for (let i = 0, li = 0; i < brushState.numBrushes; i++) {
-      let brushSelection = brushState.brushRanges[i]; 
+      let brushSelection = brushRanges[i]; 
       let isFirst = i === 0; 
       if (isFirst) {
         // Add a lock to the beginning and end of the current brush 
@@ -236,7 +236,7 @@ class VistaTimelineControl extends React.Component {
       let brushFn = brushState.brushes[i]; 
       let brushId = brushState.brushIds[i]; 
       let clipId = brushState.clipIds[i]; 
-      let brushSelection = brushState.brushRanges[i]; 
+      let brushSelection = brushRanges[i]; 
       let isFocus = i === parseInt(brushState.numBrushes / 2); 
 
       // Set the width ; height of the brush, height is retained when future transforms (resize / translate) are applied 
@@ -293,8 +293,8 @@ class VistaTimelineControl extends React.Component {
 
     }
 
-    let timeAxisScale = d3.scaleTime().domain(brushState.containerScale.domain().map(d => new Date(d)))
-                                      .range(brushState.containerScale.range()); 
+    let timeAxisScale = d3.scaleTime().domain(this.props.controlScale.domain().map(d => new Date(d)))
+                                      .range(this.props.controlScale.range()); 
     
     // Create a timeline 
     let yearAxis = d3.axisBottom()
@@ -313,11 +313,13 @@ class VistaTimelineControl extends React.Component {
     svg.append("g")
        .call(monthAxis); 
 
+    let focusDX = (brushRanges[focusIndex][1] - brushRanges[focusIndex][0]) / 2; 
+    let focusMiddleX = brushRanges[focusIndex][0] + focusDX; 
 
-    let focusIndex = parseInt(brushState.brushIds.length / 2);
-
-    this.props.ACTION_CHANGE_controlTimelineScaleRange(brushState.containerScale.range()); 
-    this.props.ACTION_CHANGE_focusBrushWidth(brushState.brushRanges[focusIndex][1] - brushState.brushRanges[focusIndex][0]); 
+    this.props.ACTION_CHANGE_controlTimelineScaleRange(this.props.controlScale.range()); 
+    this.props.ACTION_CHANGE_focusDX(focusDX); 
+    this.props.ACTION_CHANGE_focusMiddleX(focusMiddleX); 
+    this.props.ACTION_CHANGE_focusBrushWidth(focusDX * 2); 
 
   }
 
@@ -350,13 +352,15 @@ class VistaTimelineControl extends React.Component {
         .attr('width', tupdif(brushSelections[i]))
     )
 
+    let brushRanges = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 
+
     // Update lock positions
     for (let i = 0; i < brushState.numBrushes; i++) {
       if (i === 0) {
-        d3.select(`#${brushState.brushLockIds[i]}`).attr('transform', `translate(${brushState.brushRanges[i][0] - LOCK_WIDTH / 2},0)`);  
-        d3.select(`#${brushState.brushLockIds[i+1]}`).attr('transform', `translate(${brushState.brushRanges[i][1] - LOCK_WIDTH / 2},0)`);
+        d3.select(`#${brushState.brushLockIds[i]}`).attr('transform', `translate(${brushRanges[i][0] - LOCK_WIDTH / 2},0)`);  
+        d3.select(`#${brushState.brushLockIds[i+1]}`).attr('transform', `translate(${brushRanges[i][1] - LOCK_WIDTH / 2},0)`);
       } else {
-        d3.select(`#${brushState.brushLockIds[i+1]}`).attr('transform', `translate(${brushState.brushRanges[i][1] - LOCK_WIDTH / 2},0)`);
+        d3.select(`#${brushState.brushLockIds[i+1]}`).attr('transform', `translate(${brushRanges[i][1] - LOCK_WIDTH / 2},0)`);
       }
     }
     
@@ -442,6 +446,15 @@ class VistaTimelineControl extends React.Component {
     return true; 
   }
 
+  zoomTransformFromFocusSelection = (focusS) => {
+    let focusDX = (focusS[1] - focusS[0]) / 2; 
+    let controlRange = this.props.controlScale.range(); 
+    let tx = focusS[0]; 
+    let sx = (2 * focusDX) / (controlRange[1] - controlRange[0]);
+    let zoomTransform = d3.zoomIdentity.translate(tx, 0).scale(sx);
+    return zoomTransform; 
+  }
+
   brushed = (isFocus, index) => {
 
     // Ensure the node exists in the DOM and that the event was triggered by user 
@@ -454,7 +467,8 @@ class VistaTimelineControl extends React.Component {
 
     // Get the current and previous selections for all brushes 
     let brushRanges = this.getBrushRanges(); 
-    let previousBrushSelections = brushState.brushRanges; 
+    let previousBrushSelections = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 
+
 
     // Get the current and previous selections for the event target brush 
     let preS = previousBrushSelections[index]; 
@@ -606,14 +620,28 @@ class VistaTimelineControl extends React.Component {
       }
     }
 
-    brushState.brushRanges = newSelections;
+    this.update(newSelections, true); 
 
-    this.updateBrushExtras(brushState.brushRanges); 
+  }
 
-    this.props.ACTION_CHANGE_timeDomains(brushState.brushRanges.map(s => s.map(brushState.containerScale.invert).map(t => new Date(t))));
+  update = (newSelections, updateZoomTransform) => {
+    
+    let { focusIndex } = brushState; 
+    let focusDX = (newSelections[focusIndex][1] - newSelections[focusIndex][0]) / 2;
+    let focusMiddleX = newSelections[focusIndex][0] + focusDX; 
+    let zoomTransform = this.zoomTransformFromFocusSelection(newSelections[focusIndex]); 
 
-    this.props.ACTION_CHANGE_focusBrushWidth(brushState.brushRanges[focusIndex][1] - brushState.brushRanges[focusIndex][0]); 
+    this.updateBrushExtras(newSelections); 
 
+    this.props.ACTION_CHANGE_focusMiddleX(focusMiddleX); 
+    this.props.ACTION_CHANGE_focusDX(focusDX); 
+    this.props.ACTION_CHANGE_timeDomains(newSelections.map(s => s.map(this.props.controlScale.invert).map(t => new Date(t))));
+    this.props.ACTION_CHANGE_focusBrushWidth(focusDX * 2); 
+
+    if (updateZoomTransform) {
+      this.props.ACTION_CHANGE_zoomTransform(zoomTransform); 
+    }
+    
   }
 
   render() {  
@@ -622,8 +650,8 @@ class VistaTimelineControl extends React.Component {
 
 }
 
-const mapStateToProps = ({ timeDomains, timeExtentDomain, focusColor, contextColor, zoomTransform }) => 
-                        ({ timeDomains, timeExtentDomain, focusColor, contextColor, zoomTransform });
+const mapStateToProps = ({ timeDomains, timeExtentDomain, focusColor, contextColor, zoomTransform, padding }) => 
+                        ({ timeDomains, timeExtentDomain, focusColor, contextColor, zoomTransform, padding });
 
 const mapDispatchToProps = dispatch => ({
 
@@ -637,8 +665,17 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ACTION_CHANGE_focusBrushWidth(focusBrushWidth)), 
 
   ACTION_CHANGE_controlTimelineScaleRange: (controlTimelineScaleRange) => 
-    dispatch(ACTION_CHANGE_controlTimelineScaleRange(controlTimelineScaleRange))
+    dispatch(ACTION_CHANGE_controlTimelineScaleRange(controlTimelineScaleRange)),
 
+  ACTION_CHANGE_focusMiddleX: (focusMiddleX) => 
+    dispatch(ACTION_CHANGE_focusMiddleX(focusMiddleX)),
+
+  ACTION_CHANGE_focusDX: (focusDX) => 
+    dispatch(ACTION_CHANGE_focusDX(focusDX)),
+
+  ACTION_CHANGE_zoomTransform: (zoomTransform) => 
+    dispatch(ACTION_CHANGE_zoomTransform(zoomTransform))
+    
 }); 
 
 export default connect(mapStateToProps, mapDispatchToProps)(VistaTimelineControl); 

@@ -32,6 +32,7 @@ class NominalTraceGroup extends React.Component {
         return (
             <g>
                 {valueDomain.map((value,i) =>   <rect
+                                                key={`${value}`}
                                                 x={0}
                                                 y={valueScale(value) + 2.5}
                                                 width={freqScale(observationCounts[value] / observations.length)}

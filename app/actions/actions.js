@@ -47,3 +47,17 @@ export function ACTION_CHANGE_controlTimelineScaleRange(controlTimelineScaleRang
         controlTimelineScaleRange
     }
 }
+
+export function ACTION_CHANGE_focusMiddleX(focusMiddleX) {
+    return {
+        type: 'CHANGE_focusMiddleX', 
+        focusMiddleX
+    }
+}
+
+export function ACTION_CHANGE_focusDX(focusDX) {
+    return {
+        type: 'CHANGE_focusDX', 
+        focusDX
+    }
+}

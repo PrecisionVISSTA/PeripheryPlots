@@ -1,4 +1,5 @@
 import React from "react";
+import * as d3 from "d3"; 
 import { connect } from "react-redux"; 
 import _ from "lodash"; 
 
@@ -13,13 +14,17 @@ export default function VistaViewerContentHOC(config) {
     class VistaViewerContent extends React.Component {
 
         state = {
-            firstRender: true
+            firstRender: true, 
+            controlScale: d3.scaleTime()
         }
     
         componentDidMount() {
             // Initial state determined at runtime 
             this.props.ACTION_CHANGE_timeDomains(config.timeDomains); 
             this.props.ACTION_CHANGE_timeExtentDomain(config.timeExtentDomain);  
+
+            this.state.controlScale.domain(config.timeExtentDomain)
+                                   .range([0, this.props.controlTimelineWidth]); 
 
             // After mounting, we allow the component to render 
             this.setState({ firstRender: false });
@@ -47,9 +52,12 @@ export default function VistaViewerContentHOC(config) {
                 } = this.props;
 
             let {   trackwiseObservations,
+                    trackwiseUnits, 
                     trackwiseTimeKeys, 
                     trackwiseValueKeys, 
                     trackwiseEncodings } = config; 
+
+            let { controlScale } = this.state; 
 
             let numTracks = trackwiseObservations.length; 
 
@@ -63,6 +71,7 @@ export default function VistaViewerContentHOC(config) {
                     view changes for all linked tracks 
                     */}
                     <VistaTimelineControl
+                    controlScale={controlScale}
                     width={controlTimelineWidth}
                     height={controlTimelineHeight}/>
 
@@ -78,11 +87,17 @@ export default function VistaViewerContentHOC(config) {
                         let timeKey = trackwiseTimeKeys[i]; 
                         let valueKey = trackwiseValueKeys[i]; 
                         let encodings = trackwiseEncodings[i]; 
+                        let unit = trackwiseUnits[i]; 
                         return (
-                            <div style={{ border: '1px solid grey', width: trackWidth, }}>
+                            <div 
+                            key={`div-track-${i}`}
+                            style={{ border: '1px solid grey' }}>
                                 <VistaTrack
+                                controlScale={controlScale}
                                 id={ids[i]}
                                 key={`track-${i}`}
+                                title={valueKey}
+                                unit={unit}
                                 observations={observations} 
                                 timeKey={timeKey} 
                                 valueKey={valueKey}

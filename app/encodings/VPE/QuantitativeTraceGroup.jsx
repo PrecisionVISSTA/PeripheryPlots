@@ -39,7 +39,8 @@ class QuantitativeTraceGroup extends React.Component {
         return (
             <g>
                 {/* Bars */}
-                {bins.map(bin => <rect
+                {bins.map((bin,i) => <rect
+                                 key={`${i}`}
                                  x={0}
                                  y={bin.y1}
                                  width={freqScale(bin.p)}

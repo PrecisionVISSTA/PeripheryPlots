@@ -27,7 +27,8 @@ class BarGroup extends React.Component {
         return (
             <g>
                 {/* Bars */}
-                {observations.map(o => <rect
+                {observations.map((o,i) => <rect
+                                        key={i}
                                         x={timeScale(o[timeKey]) - BAR_WIDTH / 2} 
                                         y={valueScale(o[valueKey])}
                                         width={BAR_WIDTH}

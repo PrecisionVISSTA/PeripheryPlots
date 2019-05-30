@@ -4,7 +4,10 @@ import _ from "lodash";
 import { connect } from "react-redux";
 import { scaleRangeToBox } from "../util/util"; 
 
-import { ACTION_CHANGE_zoomTransform } from "../actions/actions"; 
+import {    ACTION_CHANGE_zoomTransform, 
+            ACTION_CHANGE_focusMiddleX, 
+            ACTION_CHANGE_focusDX 
+        } from "../actions/actions"; 
 
 class VistaTrack extends React.Component {
 
@@ -14,8 +17,13 @@ class VistaTrack extends React.Component {
         categoricalScale: d3.scaleBand(), 
         timeScale: d3.scaleTime(), 
         zoom: d3.zoom(), 
-        zoomsInitialized: false, 
-        controlTimelineScale: d3.scaleTime()
+        zoomsInitialized: false
+    }
+
+    getAnchorBase(s) {
+        let focusDX = (s[1] - s[0]) / 2;
+        let focusMiddleX = s[0] + focusDX; 
+        return { focusDX, focusMiddleX };  
     }
 
     zoomed = () => {
@@ -26,75 +34,73 @@ class VistaTrack extends React.Component {
         
         let zoomTransform = d3.zoomTransform(d3.select(this.ZOOM_REF).node());
 
-        // Update the global store with this stacked zoom transformation 
-        this.props.ACTION_CHANGE_zoomTransform(zoomTransform);             
+        let { controlScale, focusMiddleX, focusDX } = this.props;
+        let { k } = zoomTransform; 
+        let controlRange = controlScale.range(); 
+        let isPan = k === this.props.zoomTransform.k; 
+
+        if (isPan) {
+            let zoomDX = this.props.zoomTransform.x - zoomTransform.x; 
+            focusMiddleX += zoomDX; 
+            this.props.ACTION_CHANGE_focusMiddleX(focusMiddleX); 
+        } 
+
+        // Construct the new brush dimensions and find the corresponding zoom transformation 
+        let kx = k * focusDX; 
+        let x0 = focusMiddleX - kx; 
+        let x1 = focusMiddleX + kx; 
+        let sx = (x1 - x0) / (controlRange[1] - controlRange[0]); 
+        let newTransform = d3.zoomIdentity.translate(x0, 0).scale(sx); 
+
+        // Update the global zoom transform with the newly constructed zoom transform 
+        this.props.ACTION_CHANGE_zoomTransform(newTransform); 
     }
 
     initZooms() {
-        let { controlTimelineScaleRange, timeExtentDomain, timeDomains, id } = this.props; 
-        let { controlTimelineScale, zoom } = this.state; 
-
-        // Control the mimics the control timeline scale. We use this to derive the 
-        // position of the focus brush 
-        controlTimelineScale.domain(timeExtentDomain)
-                            .range(controlTimelineScaleRange); 
+        
+        let { timeExtentDomain, timeDomains, trackHeight, trackPaddingBottom, controlScale } = this.props; 
+        let { zoom } = this.state; 
 
         // Time domain corrresponding to the current focus region 
+        let controlRange = controlScale.range(); 
         let focusDomain = timeDomains[parseInt(timeDomains.length / 2)]; 
-        let focusS = focusDomain.map(controlTimelineScale); 
+        let focusS = focusDomain.map(controlScale); 
         let focusW = focusS[1] - focusS[0]; 
 
         // Ensure that the zoom extent is equivalent to the dimensions of the control timeline container 
-        let [extentX0, extentX1] = controlTimelineScaleRange; 
-        let totalW = extentX1 - extentX0; 
+        let totalW = controlRange[1] - controlRange[0]; 
 
         // Determine scale / translation factor that maps container range to focus brush initial state
         let scale = focusW / totalW; 
         let translateX = focusS[0]; 
-        let translateY = 0; 
 
         zoom.on("zoom", this.zoomed)
-            .extent([[controlTimelineScaleRange[0], 0], 
-                     [controlTimelineScaleRange[1], 50]]); 
                                                 
-        // There is a discrepancy between the control focus brush state 
-        // and the inital state of the zoom object maintained in the current
-        // component. We apply a transformation to reconcile this. 
-        let zoomTransform = d3.zoomIdentity
-                                .translate(translateX, translateY)
-                                .scale(scale);
+        let zoomTransform = d3.zoomIdentity.translate(translateX, 0).scale(scale); 
+                                                           
+        d3.select(this.ZOOM_REF).call(zoom); 
 
-        console.log('initial: ', zoomTransform);
-                                
-        d3.select(this.ZOOM_REF).call(zoom).call(zoom.transform, zoomTransform); 
-
-        // Update the global store with this stacked zoom transformation 
-        this.props.ACTION_CHANGE_zoomTransform(zoomTransform);       
-
-        // Is this necessary? 
-        this.setState({ zoom }); 
-
+        let { focusDX, focusMiddleX } = this.getAnchorBase(focusS); 
+        
+        this.props.ACTION_CHANGE_focusMiddleX(focusMiddleX); 
+        this.props.ACTION_CHANGE_focusDX(focusDX);
+        this.props.ACTION_CHANGE_zoomTransform(zoomTransform); 
+               
     }
 
     updateAxes() {
         let { axis, quantitativeScale, categoricalScale } = this.state; 
         let { observations, valueKey, trackHeight, trackPaddingTop, trackPaddingBottom } = this.props; 
-
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                             d3.extent(observations.map(o => o[valueKey]));
+        let isQuantitative = valueDomain.length === 2 && !isNaN(valueDomain[0]) && !isNaN(valueDomain[1]);
+        let scale = isQuantitative ? quantitativeScale : categoricalScale; 
+        let range = [trackHeight - trackPaddingBottom, trackPaddingTop]; 
 
-        let isQuantitative = valueDomain.length === 2 && !isNaN(valueDomain[0]) && !isNaN(valueDomain[1]); 
-        if (isQuantitative) {
-            quantitativeScale.domain(valueDomain)
-                             .range([trackHeight - trackPaddingBottom, trackPaddingTop]); 
-            d3.select(this.AXES_REF)
-              .call(axis.scale(quantitativeScale.nice()).ticks(4)); 
-        } else {
-            categoricalScale.domain(valueDomain)
-                            .range([trackHeight - trackPaddingBottom, trackPaddingTop]);
-            d3.select(this.AXES_REF)
-              .call(axis.scale(categoricalScale));
-        }
+        scale.domain(valueDomain).range(range); 
+        d3.select(this.AXES_REF).call(isQuantitative ?  axis.scale(scale.nice()).ticks(4) : 
+                                                        axis.scale(scale)); 
+
     }
 
 
@@ -108,13 +114,13 @@ class VistaTrack extends React.Component {
             d3.selectAll('.focus-time-bar')
               .attr('transform', `translate(${x},0)`); 
 
-            let toLeft = x < (this.props.trackWidth - 2*this.props.contextWidth) / 2;
+            let toLeft = x < (this.props.trackWidth - 2 * this.props.contextWidth) / 2;
             let dText = 3;  
 
             let currentDate = this.state.timeScale
-                        .domain(this.props.timeDomains[this.props.numContextsPerSide])
-                        .range([0, this.props.focusWidth])
-                        .invert(x);
+                                        .domain(this.props.timeDomains[this.props.numContextsPerSide])
+                                        .range([0, this.props.focusWidth])
+                                        .invert(x);
             let dateString = d3.timeFormat('%B %d, %Y')(currentDate); 
 
             d3.selectAll('.focus-time-text')
@@ -134,9 +140,9 @@ class VistaTrack extends React.Component {
 
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         let { zoom, zoomsInitialized } = this.state; 
-        let { focusBrushWidth } = this.props;
+        let { focusBrushWidth, timeDomains, controlScale } = this.props;
 
         this.updateAxes(); 
 
@@ -150,7 +156,8 @@ class VistaTrack extends React.Component {
     render() {
 
         let { 
-            id, 
+            title, 
+            unit, 
             observations, 
             timeKey, 
             valueKey, 
@@ -165,8 +172,11 @@ class VistaTrack extends React.Component {
             focusWidth, 
             axesWidth, 
             focusColor, 
-            contextColor
+            contextColor, 
+            padding
         } = this.props; 
+
+        console.log('updating track');
 
         // utility functions 
         let valueInDomain = (value, domain) => value >= domain[0] && value <= domain[1]; 
@@ -195,12 +205,18 @@ class VistaTrack extends React.Component {
                                                              d3.extent(observations.map(o => o[valueKey]));
 
         return (
-        <div style={{ width: trackWidth, height: trackHeight }}>
+        <div style={{ width: '100%', padding }}>
+
+            <div style={{ width: "100%", display: "block" }}>
+                <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', margin: 3 }}>
+                    {title.replace("_", ' ') + (unit ? ` (${unit})` : '')}
+                </p>
+            </div>
 
             {/* Value Axis */}
             <svg 
             ref={ref => this.AXES_REF = ref} 
-            style={{ width: axesWidth, height: trackHeight }}/>
+            style={{ width: axesWidth, height: trackHeight, marginLeft: 3 }}/>
 
             {/* Left Contexts */}
             {leftContextTimeDomains.map((timeDomain, i) => {
@@ -210,7 +226,7 @@ class VistaTrack extends React.Component {
                     <svg 
                     key={`left-${i}`}
                     clipPath={`url(#${clipId})`}
-                    style={{ width: contextWidth, height: trackHeight }}>
+                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
                         {/* Left context border */}
                         <rect 
                         x={0} 
@@ -247,7 +263,7 @@ class VistaTrack extends React.Component {
             <svg 
             ref={ref => this.FOCUS_REF = ref}
             clipPath={`url(#focus-clip)`}
-            style={{ width: focusWidth, height: trackHeight }}>
+            style={{ width: focusWidth, height: trackHeight, display: 'inline-block' }}>
                 {/* Focus Border */}
                 <rect 
                 x={0} 
@@ -313,7 +329,7 @@ class VistaTrack extends React.Component {
                     <svg 
                     key={`right-${i}`}
                     clipPath={`url(#${clipId})`}
-                    style={{ width: contextWidth, height: trackHeight }}>
+                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
                         <rect 
                         x={0} 
                         y={trackPaddingTop} 
@@ -354,21 +370,33 @@ const mapStateToProps = ({
     numContextsPerSide, 
     focusColor, 
     contextColor, 
-    controlTimelineScaleRange, 
-    focusBrushWidth 
+    focusBrushWidth, 
+    focusDX, 
+    focusMiddleX, 
+    zoomTransform
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
     numContextsPerSide, 
     focusColor, 
     contextColor, 
-    controlTimelineScaleRange, 
-    focusBrushWidth 
+    focusBrushWidth, 
+    focusDX, 
+    focusMiddleX, 
+    zoomTransform
 }); 
                         
 const mapDispatchToProps = dispatch => ({
+
     ACTION_CHANGE_zoomTransform: (zoomTransform) => 
-        dispatch(ACTION_CHANGE_zoomTransform(zoomTransform))
+        dispatch(ACTION_CHANGE_zoomTransform(zoomTransform)), 
+
+    ACTION_CHANGE_focusMiddleX: (focusMiddleX) => 
+        dispatch(ACTION_CHANGE_focusMiddleX(focusMiddleX)), 
+
+    ACTION_CHANGE_focusDX: (focusDX) => 
+        dispatch(ACTION_CHANGE_focusDX(focusDX)), 
+
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(VistaTrack); 

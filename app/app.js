@@ -34,6 +34,7 @@ d3.csv('../data/seattle-weather.csv', processRow)
         trackwiseObservations: [data, data, data, data],
         trackwiseTimeKeys: ['date', 'date', 'date', 'date'], 
         trackwiseValueKeys: ['precipitation', 'temp_max', 'temp_min', 'weather'], 
+        trackwiseUnits: ['inches', 'celsius', 'celsius', null],
         trackwiseEncodings: [
             [BarGroup, BarGroup, BarGroup], 
             [QuantitativeTraceGroup, LineGroup, QuantitativeTraceGroup], 
