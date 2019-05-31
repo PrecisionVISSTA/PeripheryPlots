@@ -134,9 +134,7 @@ class VistaTimelineControl extends React.Component {
                   .attr('width', width) 
                   .attr('height', height)
                   .style('border', '1px solid grey')
-                  .style('padding-left', padding)
-                  .style('padding-right', padding)
-                  .style('padding-top', padding)
+                  .style('padding', padding)
 
     // Pixel ranges for each brush 
     let brushRanges = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 
@@ -578,15 +576,15 @@ class VistaTimelineControl extends React.Component {
     }
 
     this.updateBrushExtras(newSelections);
-
-    if (didChange) {
-      this.props.ACTION_CHANGE_timeDomains(newSelections.map(s => s.map(this.props.controlScale.invert).map(t => new Date(t))));
-    }
+    this.props.ACTION_CHANGE_timeDomains(newSelections.map(s => s.map(this.props.controlScale.invert).map(t => new Date(t))));
     
   }
 
   render() {  
-    return <div ref={ref => this.ROOT = ref}/>
+    let { width, height, padding } = this.props; 
+    width += 2 * padding; 
+    height += 2 * padding + 2; 
+    return <div style={{ height, width }} ref={ref => this.ROOT = ref}/>
   }
 
 }

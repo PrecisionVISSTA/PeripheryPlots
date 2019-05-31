@@ -24,7 +24,7 @@ export default function VistaViewerContentHOC(config) {
             this.props.ACTION_CHANGE_timeExtentDomain(config.timeExtentDomain);  
 
             this.state.controlScale.domain(config.timeExtentDomain)
-                                   .range([0, this.props.controlTimelineWidth]); 
+                                   .range([0, this.props.baseWidth]); 
 
             // After mounting, we allow the component to render 
             this.setState({ firstRender: false });
@@ -43,7 +43,7 @@ export default function VistaViewerContentHOC(config) {
                     contextWidth, 
                     trackWidth, 
                     controlTimelineHeight, 
-                    controlTimelineWidth, 
+                    baseWidth, 
                     trackHeight, 
                     trackPaddingTop, 
                     trackPaddingBottom, 
@@ -72,11 +72,12 @@ export default function VistaViewerContentHOC(config) {
                     */}
                     <VistaTimelineControl
                     controlScale={controlScale}
-                    width={controlTimelineWidth}
+                    width={baseWidth}
                     height={controlTimelineHeight}/>
 
                     <VistaVerticalAligner
-                    width={708}
+                    controlScale={controlScale}
+                    width={baseWidth}
                     height={verticalAlignerHeight}/>
 
                     {/* 
@@ -89,28 +90,24 @@ export default function VistaViewerContentHOC(config) {
                         let encodings = trackwiseEncodings[i]; 
                         let unit = trackwiseUnits[i]; 
                         return (
-                            <div 
-                            key={`div-track-${i}`}
-                            style={{ border: '1px solid grey' }}>
-                                <VistaTrack
-                                controlScale={controlScale}
-                                id={ids[i]}
-                                key={`track-${i}`}
-                                title={valueKey}
-                                unit={unit}
-                                observations={observations} 
-                                timeKey={timeKey} 
-                                valueKey={valueKey}
-                                numContextsPerSide={numContextsPerSide}
-                                encodings={encodings}
-                                trackWidth={trackWidth}
-                                trackHeight={trackHeight}
-                                trackPaddingTop={trackPaddingTop}
-                                trackPaddingBottom={trackPaddingBottom}
-                                focusWidth={focusWidth}
-                                contextWidth={contextWidth}
-                                axesWidth={axesWidth}/>
-                            </div>
+                            <VistaTrack
+                            controlScale={controlScale}
+                            id={ids[i]}
+                            key={`track-${i}`}
+                            title={valueKey}
+                            unit={unit}
+                            observations={observations} 
+                            timeKey={timeKey} 
+                            valueKey={valueKey}
+                            numContextsPerSide={numContextsPerSide}
+                            encodings={encodings}
+                            trackWidth={trackWidth}
+                            trackHeight={trackHeight}
+                            trackPaddingTop={trackPaddingTop}
+                            trackPaddingBottom={trackPaddingBottom}
+                            focusWidth={focusWidth}
+                            contextWidth={contextWidth}
+                            axesWidth={axesWidth}/>
                         ); 
                     })}
                 </React.Fragment>
@@ -125,7 +122,7 @@ export default function VistaViewerContentHOC(config) {
                                 contextWidth, 
                                 trackWidth, 
                                 controlTimelineHeight, 
-                                controlTimelineWidth, 
+                                baseWidth, 
                                 trackHeight, 
                                 trackPaddingTop, 
                                 trackPaddingBottom, 
@@ -138,7 +135,7 @@ export default function VistaViewerContentHOC(config) {
                                 contextWidth, 
                                 trackWidth, 
                                 controlTimelineHeight, 
-                                controlTimelineWidth, 
+                                baseWidth, 
                                 trackHeight, 
                                 trackPaddingTop, 
                                 trackPaddingBottom, 

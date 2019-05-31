@@ -26,7 +26,7 @@ class VistaTrack extends React.Component {
         let { timeDomains, controlScale } = this.props; 
         let { lastK, lastX } = this.state; 
         let { k, x } = d3.zoomTransform(d3.select(this.ZOOM_REF).node());
-        let dZoom = 1.5; 
+        let dZoom = 2; 
         let isPan = lastK === k;      
         let focusIndex = parseInt(timeDomains.length / 2);
         let brushS = timeDomains[focusIndex].map(controlScale);
@@ -166,10 +166,10 @@ class VistaTrack extends React.Component {
                                                              d3.extent(observations.map(o => o[valueKey]));
 
         return (
-        <div style={{ width: '100%', padding }}>
+        <div style={{ width: '100%', padding, border: '1px solid grey' }}>
 
             <div style={{ width: "100%", display: "block" }}>
-                <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', margin: 3 }}>
+                <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', marginTop: 3, marginBottom: 3 }}>
                     {title.replace("_", ' ') + (unit ? ` (${unit})` : '')}
                 </p>
             </div>
@@ -177,7 +177,7 @@ class VistaTrack extends React.Component {
             {/* Value Axis */}
             <svg 
             ref={ref => this.AXES_REF = ref} 
-            style={{ width: axesWidth, height: trackHeight, marginLeft: 3 }}/>
+            style={{ width: axesWidth, height: trackHeight }}/>
 
             {/* Left Contexts */}
             {leftContextTimeDomains.map((timeDomain, i) => {
@@ -330,13 +330,15 @@ const mapStateToProps = ({
     timeExtentDomain, 
     numContextsPerSide, 
     focusColor, 
-    contextColor
+    contextColor, 
+    padding
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
     numContextsPerSide, 
     focusColor, 
-    contextColor
+    contextColor, 
+    padding
 }); 
                         
 const mapDispatchToProps = dispatch => ({

@@ -19,7 +19,7 @@ const DEFAULT_state = {
     contextWidth: 100, 
     trackWidth: 700, 
     controlTimelineHeight: 60, 
-    controlTimelineWidth: 700, 
+    baseWidth: 700, 
     trackHeight: 60, 
     trackPaddingTop: 5, 
     trackPaddingBottom: 5, 
@@ -30,8 +30,8 @@ const DEFAULT_state = {
 
 // Derivation of derived default properties 
 DEFAULT_state['focusWidth'] = (function() {
-    let { trackWidth, contextWidth, numContextsPerSide, axesWidth } = this; 
-    let focusWidth = trackWidth - contextWidth * 2 * numContextsPerSide - axesWidth;
+    let { trackWidth, contextWidth, numContextsPerSide, axesWidth, padding } = this; 
+    let focusWidth = trackWidth - contextWidth * 2 * numContextsPerSide - axesWidth - padding;
     return focusWidth; 
 }).bind(DEFAULT_state)()
 
