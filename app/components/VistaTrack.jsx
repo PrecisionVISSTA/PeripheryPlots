@@ -4,10 +4,7 @@ import _ from "lodash";
 import { connect } from "react-redux";
 import { scaleRangeToBox } from "../util/util"; 
 
-import {    ACTION_CHANGE_zoomTransform, 
-            ACTION_CHANGE_focusMiddleX, 
-            ACTION_CHANGE_focusDX 
-        } from "../actions/actions"; 
+import { ACTION_CHANGE_timeDomains } from "../actions/actions"; 
 
 class VistaTrack extends React.Component {
 
@@ -20,72 +17,44 @@ class VistaTrack extends React.Component {
         zoomsInitialized: false
     }
 
-    getAnchorBase(s) {
-        let focusDX = (s[1] - s[0]) / 2;
-        let focusMiddleX = s[0] + focusDX; 
-        return { focusDX, focusMiddleX };  
-    }
-
     zoomed = () => {
         // ignore zoom-by-brush
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") {
             return;
         }
         
-        let zoomTransform = d3.zoomTransform(d3.select(this.ZOOM_REF).node());
-
-        let { controlScale, focusMiddleX, focusDX } = this.props;
-        let { k } = zoomTransform; 
-        let controlRange = controlScale.range(); 
-        let isPan = k === this.props.zoomTransform.k; 
-
+        let { timeDomains, controlScale } = this.props; 
+        let { lastK, lastX } = this.state; 
+        let { k, x } = d3.zoomTransform(d3.select(this.ZOOM_REF).node());
+        let dZoom = 1.5; 
+        let isPan = lastK === k;      
+        let focusIndex = parseInt(timeDomains.length / 2);
+        let brushS = timeDomains[focusIndex].map(controlScale);
+        let zoomDir = k > lastK ? -1 : 1; 
+        let newSelections = timeDomains.map(domain => domain.map(controlScale)); 
         if (isPan) {
-            let zoomDX = this.props.zoomTransform.x - zoomTransform.x; 
-            focusMiddleX += zoomDX; 
-            this.props.ACTION_CHANGE_focusMiddleX(focusMiddleX); 
-        } 
+            let panShift = x - lastX; 
+            newSelections = newSelections.map(s => s.map(v => v + panShift)); 
+        } else {
+            let leftShift = zoomDir * dZoom; 
+            let rightShift = -zoomDir * dZoom; 
+            for (let i = 0; i < focusIndex; i++) {
+                newSelections[i] = newSelections[i].map(v => v + leftShift); 
+            }
+            newSelections[focusIndex] = [brushS[0] + leftShift, brushS[1] + rightShift];
+            for (let i = focusIndex + 1; i < newSelections.length; i++) {
+                newSelections[i] = newSelections[i].map(v => v + rightShift);
+            }
+        }
 
-        // Construct the new brush dimensions and find the corresponding zoom transformation 
-        let kx = k * focusDX; 
-        let x0 = focusMiddleX - kx; 
-        let x1 = focusMiddleX + kx; 
-        let sx = (x1 - x0) / (controlRange[1] - controlRange[0]); 
-        let newTransform = d3.zoomIdentity.translate(x0, 0).scale(sx); 
-
-        // Update the global zoom transform with the newly constructed zoom transform 
-        this.props.ACTION_CHANGE_zoomTransform(newTransform); 
+        debugger; 
+        this.setState({ lastK: k, lastX: x });
+        this.props.ACTION_CHANGE_timeDomains(newSelections.map(s => s.map(controlScale.invert)));
+        
     }
 
-    initZooms() {
-        
-        let { timeExtentDomain, timeDomains, trackHeight, trackPaddingBottom, controlScale } = this.props; 
-        let { zoom } = this.state; 
-
-        // Time domain corrresponding to the current focus region 
-        let controlRange = controlScale.range(); 
-        let focusDomain = timeDomains[parseInt(timeDomains.length / 2)]; 
-        let focusS = focusDomain.map(controlScale); 
-        let focusW = focusS[1] - focusS[0]; 
-
-        // Ensure that the zoom extent is equivalent to the dimensions of the control timeline container 
-        let totalW = controlRange[1] - controlRange[0]; 
-
-        // Determine scale / translation factor that maps container range to focus brush initial state
-        let scale = focusW / totalW; 
-        let translateX = focusS[0]; 
-
-        zoom.on("zoom", this.zoomed)
-                                                
-        let zoomTransform = d3.zoomIdentity.translate(translateX, 0).scale(scale); 
-                                                           
-        d3.select(this.ZOOM_REF).call(zoom); 
-
-        let { focusDX, focusMiddleX } = this.getAnchorBase(focusS); 
-        
-        this.props.ACTION_CHANGE_focusMiddleX(focusMiddleX); 
-        this.props.ACTION_CHANGE_focusDX(focusDX);
-        this.props.ACTION_CHANGE_zoomTransform(zoomTransform); 
-               
+    initZoom() {
+        d3.select(this.ZOOM_REF).call(this.state.zoom.on("zoom", this.zoomed)); 
     }
 
     updateAxes() {
@@ -107,6 +76,7 @@ class VistaTrack extends React.Component {
     componentDidMount() {
 
         this.updateAxes(); 
+        this.initZoom(); 
 
         d3.select(this.FOCUS_REF).on('mousemove', () => {
 
@@ -141,16 +111,7 @@ class VistaTrack extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        let { zoom, zoomsInitialized } = this.state; 
-        let { focusBrushWidth, timeDomains, controlScale } = this.props;
-
         this.updateAxes(); 
-
-        if (focusBrushWidth > 0 && !zoomsInitialized) {
-            this.initZooms(); 
-            this.setState({ zoomsInitialized: true }); 
-        }
-
     }
 
     render() {
@@ -369,33 +330,19 @@ const mapStateToProps = ({
     timeExtentDomain, 
     numContextsPerSide, 
     focusColor, 
-    contextColor, 
-    focusBrushWidth, 
-    focusDX, 
-    focusMiddleX, 
-    zoomTransform
+    contextColor
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
     numContextsPerSide, 
     focusColor, 
-    contextColor, 
-    focusBrushWidth, 
-    focusDX, 
-    focusMiddleX, 
-    zoomTransform
+    contextColor
 }); 
                         
 const mapDispatchToProps = dispatch => ({
 
-    ACTION_CHANGE_zoomTransform: (zoomTransform) => 
-        dispatch(ACTION_CHANGE_zoomTransform(zoomTransform)), 
-
-    ACTION_CHANGE_focusMiddleX: (focusMiddleX) => 
-        dispatch(ACTION_CHANGE_focusMiddleX(focusMiddleX)), 
-
-    ACTION_CHANGE_focusDX: (focusDX) => 
-        dispatch(ACTION_CHANGE_focusDX(focusDX)), 
+    ACTION_CHANGE_timeDomains: (timeDomains) => 
+        dispatch(ACTION_CHANGE_timeDomains(timeDomains))
 
 })
 
