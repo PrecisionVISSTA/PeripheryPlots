@@ -49,6 +49,8 @@ class VistaTrack extends React.Component {
 
         this.setState({ lastK: k, lastX: x });
         this.props.ACTION_CHANGE_timeDomains(newSelections.map(s => s.map(controlScale.invert)));
+
+        this.updateTooltip(); 
         
     }
 
@@ -74,63 +76,66 @@ class VistaTrack extends React.Component {
 
     }
 
+    updateTooltip = () => {
+        let { focusWidth } = this.props; 
+
+        let [x,y] = d3.mouse(this.FOCUS_REF); 
+        d3.selectAll('.focus-time-bar')
+          .attr('transform', `translate(${x},0)`); 
+
+        let toLeft = x < (this.props.trackWidth - 2 * this.props.contextWidth) / 2;
+
+        let currentDate = this.state.timeScale
+                                    .domain(this.props.timeDomains[this.props.numContextsPerSide])
+                                    .range([0, this.props.focusWidth])
+                                    .invert(x);
+
+        let dateString = d3.timeFormat('%B %d, %Y')(currentDate); 
+
+        let containerNode = d3.select(this.FOCUS_REF).node();
+
+        d3.selectAll('.focus-time-text').each(function(d,i) {
+            let parentNode = this.parentNode; 
+            if (parentNode.isEqualNode(containerNode)) {
+                let textS = d3.select(this).text(dateString); 
+                let textBbox = this.getBBox();
+                let textW = textBbox.width; 
+                let textX = textBbox.x; 
+                let dx = textW / 2; 
+                let tx = x + (toLeft ? -1 : 1) * dx; //Proposed x translation
+                let [newX0, newX1] = [textX + tx, textX + textW + tx]; //x bounds post proposed translation
+                if (newX0 < 0) {
+                    // this translation would cause the text to be cutoff to the left 
+                    tx += -newX0;                       
+                } else if (newX1 > focusWidth) {
+                    // this translation would cause the text to be cutoff to the right 
+                    tx += -(newX1 - focusWidth); 
+                } else {
+                    tx += (toLeft ? 1 : -1) * dx; 
+                }
+                textS
+                    .attr('display', 'block')
+                    .attr('transform', `translate(${tx},10)`)
+            }
+        }); 
+
+    }
+
+    removeTooltip = () => {
+        d3.selectAll('.focus-time-bar')
+            .attr('transform', `translate(${-1},0)`);
+            
+        d3.selectAll('.focus-time-text')
+            .attr('display', 'none') 
+    }
 
     componentDidMount() {
 
         this.updateAxes(); 
         this.initZoom(); 
 
-        let { focusWidth } = this.props; 
-
-        d3.select(this.FOCUS_REF).on('mousemove', () => {
-
-            let [x,y] = d3.mouse(this.FOCUS_REF); 
-            d3.selectAll('.focus-time-bar')
-              .attr('transform', `translate(${x},0)`); 
-
-            let toLeft = x < (this.props.trackWidth - 2 * this.props.contextWidth) / 2;
-
-            let currentDate = this.state.timeScale
-                                        .domain(this.props.timeDomains[this.props.numContextsPerSide])
-                                        .range([0, this.props.focusWidth])
-                                        .invert(x);
-
-            let dateString = d3.timeFormat('%B %d, %Y')(currentDate); 
-
-            let containerNode = d3.select(this.FOCUS_REF).node();
-
-            d3.selectAll('.focus-time-text').each(function(d,i) {
-                let parentNode = this.parentNode; 
-                if (parentNode.isEqualNode(containerNode)) {
-                    let textS = d3.select(this).text(dateString); 
-                    let textBbox = this.getBBox();
-                    let textW = textBbox.width; 
-                    let textX = textBbox.x; 
-                    let dx = textW / 2; 
-                    let tx = x + (toLeft ? -1 : 1) * dx; //Proposed x translation
-                    let [newX0, newX1] = [textX + tx, textX + textW + tx]; //x bounds post proposed translation
-                    if (newX0 < 0) {
-                        // this translation would cause the text to be cutoff to the left 
-                        tx += -newX0;                       
-                    } else if (newX1 > focusWidth) {
-                        // this translation would cause the text to be cutoff to the right 
-                        tx += -(newX1 - focusWidth); 
-                    } else {
-                        tx += (toLeft ? 1 : -1) * dx; 
-                    }
-                    textS
-                        .attr('display', 'block')
-                        .attr('transform', `translate(${tx},10)`)
-                }
-            }); 
-
-        }); 
-        d3.select(this.FOCUS_REF).on('mouseleave', () => {
-            d3.selectAll('.focus-time-bar')
-              .attr('transform', `translate(${-1},0)`);
-            d3.selectAll('.focus-time-text')
-                .attr('display', 'none') 
-        }); 
+        d3.select(this.FOCUS_REF).on('mousemove', this.updateTooltip); 
+        d3.select(this.FOCUS_REF).on('mouseleave', this.removeTooltip); 
 
     }
 
