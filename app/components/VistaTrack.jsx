@@ -59,12 +59,12 @@ class VistaTrack extends React.Component {
 
     updateAxes() {
         let { axis, quantitativeScale, categoricalScale } = this.state; 
-        let { observations, valueKey, trackHeight, trackPaddingTop, trackPaddingBottom } = this.props; 
+        let { observations, valueKey, trackHeight, trackPaddingTop } = this.props; 
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                             d3.extent(observations.map(o => o[valueKey]));
         let isQuantitative = valueDomain.length === 2 && !isNaN(valueDomain[0]) && !isNaN(valueDomain[1]);
         let scale = isQuantitative ? quantitativeScale : categoricalScale; 
-        let range = [trackHeight - trackPaddingBottom, trackPaddingTop]; 
+        let range = [trackHeight, trackPaddingTop]; 
 
         scale.domain(valueDomain).range(range); 
         d3.select(this.AXES_REF).call(isQuantitative ?  axis.scale(scale.nice()).ticks(4) : 
@@ -85,7 +85,6 @@ class VistaTrack extends React.Component {
               .attr('transform', `translate(${x},0)`); 
 
             let toLeft = x < (this.props.trackWidth - 2 * this.props.contextWidth) / 2;
-            let dText = 3;  
 
             let currentDate = this.state.timeScale
                                         .domain(this.props.timeDomains[this.props.numContextsPerSide])
@@ -93,11 +92,20 @@ class VistaTrack extends React.Component {
                                         .invert(x);
             let dateString = d3.timeFormat('%B %d, %Y')(currentDate); 
 
-            d3.selectAll('.focus-time-text')
-              .attr('display', 'block')
-              .attr('transform', `translate(${x + (toLeft ? 1 : -1) * dText},10)`)
-              .attr('text-anchor', toLeft ? 'start' : 'end')
-              .text(dateString); 
+            let containerNode = d3.select(this.FOCUS_REF).node();
+            d3.selectAll('.focus-time-text').each(function(d,i) {
+                let parentNode = this.parentNode; 
+                if (parentNode.isEqualNode(containerNode)) {
+                    let textS = d3.select(this); 
+                    let textW = this.getBBox().width;  
+                    let dx = textW / 2; 
+                    textS
+                        .attr('display', 'block')
+                        .attr('transform', `translate(${x + (toLeft ? -1 : 1) * dx},10)`)
+                        .attr('text-anchor', toLeft ? 'start' : 'end')
+                        .text(dateString); 
+                }
+            }); 
 
         }); 
         d3.select(this.FOCUS_REF).on('mouseleave', () => {
@@ -125,10 +133,8 @@ class VistaTrack extends React.Component {
             timeDomains, 
             numContextsPerSide, 
             encodings, 
-            trackWidth, 
             trackHeight, 
             trackPaddingTop, 
-            trackPaddingBottom, 
             contextWidth, 
             focusWidth, 
             axesWidth, 
@@ -136,8 +142,6 @@ class VistaTrack extends React.Component {
             contextColor, 
             padding
         } = this.props; 
-
-        console.log('updating track');
 
         // utility functions 
         let valueInDomain = (value, domain) => value >= domain[0] && value <= domain[1]; 
@@ -153,20 +157,28 @@ class VistaTrack extends React.Component {
         let FocusEncoding = encodings[numContextsPerSide]; 
         let rightContextEncodings = encodings.slice(numContextsPerSide + 1, encodings.length); 
 
+        let multipleFocusEncodings = Array.isArray(FocusEncoding); 
+
         // partitioned observations
         let leftContextObservations = leftContextTimeDomains.map(observationsInDomain);
         let focusObservations = observationsInDomain(focusTimeDomain); 
         let rightContextObservations = rightContextTimeDomains.map(observationsInDomain); 
 
-        let contextScaleRangeToBox = _.partial(scaleRangeToBox, [0, contextWidth], [trackHeight - trackPaddingBottom, trackPaddingTop]); 
-        let focusScaleRangeToBox = _.partial(scaleRangeToBox, [0, focusWidth], [trackHeight - trackPaddingBottom, trackPaddingTop]); 
+        let contextXRange = [0, contextWidth];
+        let contextYRange = [trackHeight, trackPaddingTop];  
+        let focusXRange = [0, focusWidth]; 
+        let focusYRange = [trackHeight, trackPaddingTop];
+        let contextScaleRangeToBox = _.partial(scaleRangeToBox, contextXRange, contextYRange); 
+        let focusScaleRangeToBox = _.partial(scaleRangeToBox, focusXRange, focusYRange); 
 
-        let tHeight = trackHeight - trackPaddingBottom * 2; 
+        let tHeight = trackHeight - trackPaddingTop; 
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                              d3.extent(observations.map(o => o[valueKey]));
 
+        let containerWidth = focusWidth + numContextsPerSide * contextWidth * 2 + axesWidth + padding; 
+
         return (
-        <div style={{ width: '100%', padding, border: '1px solid grey' }}>
+        <div style={{ width: containerWidth, paddingLeft: padding, paddingRight: padding, marginBottom: 1, border: '1px solid grey' }}>
 
             <div style={{ width: "100%", display: "block" }}>
                 <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', marginTop: 3, marginBottom: 3 }}>
@@ -182,6 +194,7 @@ class VistaTrack extends React.Component {
             {/* Left Contexts */}
             {leftContextTimeDomains.map((timeDomain, i) => {
                 let LeftContextEncoding = leftContextEncodings[i]; 
+                let multipleEncodings = Array.isArray(LeftContextEncoding); 
                 let clipId = `left-clip-${i}`; 
                 return (
                     <svg 
@@ -206,16 +219,32 @@ class VistaTrack extends React.Component {
                             height={tHeight}/>
                         </clipPath>
 
-                        {/* Left context visualization */}
-                        <LeftContextEncoding
-                        key={`left-${i}-inner`}
-                        timeKey={timeKey}
-                        valueKey={valueKey}
-                        timeDomain={timeDomain}
-                        valueDomain={valueDomain}
-                        observations={leftContextObservations[i]}
-                        scaleRangeToBox={contextScaleRangeToBox}/>
-
+                        {/* Left context visualization(s) */}
+                        {multipleEncodings ? 
+                            LeftContextEncoding.map((LayeredEncoding,j) => 
+                                <LayeredEncoding
+                                key={`left-${i}-${j}-inner`}
+                                timeKey={timeKey}
+                                valueKey={valueKey}
+                                timeDomain={timeDomain}
+                                valueDomain={valueDomain}
+                                observations={leftContextObservations[i]}
+                                scaleRangeToBox={contextScaleRangeToBox}
+                                xRange={contextXRange}
+                                yRange={contextYRange}/>
+                            ) 
+                            :
+                            <LeftContextEncoding
+                            key={`left-${i}-inner`}
+                            timeKey={timeKey}
+                            valueKey={valueKey}
+                            timeDomain={timeDomain}
+                            valueDomain={valueDomain}
+                            observations={leftContextObservations[i]}
+                            scaleRangeToBox={contextScaleRangeToBox}
+                            xRange={contextXRange}
+                            yRange={contextYRange}/> 
+                        }
                     </svg>
                 ); 
             })}
@@ -223,68 +252,96 @@ class VistaTrack extends React.Component {
             {/* Focus */}
             <svg 
             ref={ref => this.FOCUS_REF = ref}
-            clipPath={`url(#focus-clip)`}
             style={{ width: focusWidth, height: trackHeight, display: 'inline-block' }}>
-                {/* Focus Border */}
-                <rect 
-                x={0} 
-                y={trackPaddingTop} 
-                width={focusWidth} 
-                height={tHeight} 
-                stroke={focusColor} 
-                fill='none'/>
 
-                {/* Focus clip */}
-                <clipPath id="focus-clip">
+                <defs>
+                    {/* Focus clip */}
+                    <clipPath id="focus-clip">
+                        <rect 
+                        x={0} 
+                        y={trackPaddingTop} 
+                        width={focusWidth} 
+                        height={tHeight}/>
+                    </clipPath>
+                </defs>
+
+                <g clipPath={`url(#focus-clip)`}>
+                    {/* Focus Border */}
                     <rect 
                     x={0} 
                     y={trackPaddingTop} 
                     width={focusWidth} 
-                    height={tHeight}/>
-                </clipPath>
+                    height={tHeight} 
+                    stroke={focusColor} 
+                    fill='none'/>
 
-                {/* Focus visualization */}
-                <FocusEncoding
-                timeKey={timeKey}
-                valueKey={valueKey}
-                timeDomain={focusTimeDomain}
-                valueDomain={valueDomain}
-                observations={focusObservations}
-                scaleRangeToBox={focusScaleRangeToBox}/>
+                    {/* Focus visualization(s) */}
+                    {multipleFocusEncodings ? 
+                        FocusEncoding.map((LayeredEncoding,j) => 
+                            <LayeredEncoding
+                            key={`focus-${j}`}
+                            timeKey={timeKey}
+                            valueKey={valueKey}
+                            timeDomain={focusTimeDomain}
+                            valueDomain={valueDomain}
+                            observations={focusObservations}
+                            scaleRangeToBox={focusScaleRangeToBox}
+                            xRange={focusXRange}
+                            yRange={focusYRange}/>
+                        )
+                        :
+                        <FocusEncoding
+                        timeKey={timeKey}
+                        valueKey={valueKey}
+                        timeDomain={focusTimeDomain}
+                        valueDomain={valueDomain}
+                        observations={focusObservations}
+                        scaleRangeToBox={focusScaleRangeToBox}
+                        xRange={focusXRange}
+                        yRange={focusYRange}/>
+                    }
 
-                {/* Current time point hover bar */}
-                <rect
-                className="focus-time-bar"
-                x={0}
-                y={trackPaddingTop + 1}
-                width={.1}
-                height={tHeight - 2}
-                stroke="#515151"/>
+                    {/* Current time point hover bar */}
+                    <rect
+                    className="focus-time-bar"
+                    x={0}
+                    y={trackPaddingTop + 1}
+                    width={.1}
+                    height={tHeight - 2}
+                    stroke="#515151"/>
+
+                    {/* Focus zoom panel */}
+                    <rect 
+                    ref={ref => this.ZOOM_REF = ref}
+                    className={`zoom`}
+                    pointerEvents="all"
+                    x={0} 
+                    y={trackPaddingTop} 
+                    width={focusWidth} 
+                    height={tHeight} 
+                    fill='none'/>
+
+                </g>
 
                 {/* Current time tooltip (only visible when mouse in container) */}
                 <text
                 className="focus-time-text"
                 x={0}
-                y={trackPaddingTop + 1}
+                y={-2}
                 fontFamily={'Helvetica'}
-                fontSize={10}/>
+                fill={'black'}
+                stroke={'white'}
+                strokeWidth={.2}
+                fontSize={8}
+                textAnchor={'middle'}/>
 
-                {/* Focus zoom panel */}
-                <rect 
-                ref={ref => this.ZOOM_REF = ref}
-                className={`zoom`}
-                pointerEvents="all"
-                x={0} 
-                y={trackPaddingTop} 
-                width={focusWidth} 
-                height={tHeight} 
-                fill='none'/>
-
+                
             </svg>
 
             {/* Right Contexts */}
             {rightContextTimeDomains.map((timeDomain, i) => {
                 let RightContextEncoding = rightContextEncodings[i]; 
+                let multipleEncodings = Array.isArray(RightContextEncoding); 
                 let clipId = `right-clip-${i}`; 
                 return (
                     <svg 
@@ -307,15 +364,32 @@ class VistaTrack extends React.Component {
                             height={tHeight}/>
                         </clipPath>
 
-                        <RightContextEncoding
-                        key={`right-${i}-inner`}
-                        timeKey={timeKey}
-                        valueKey={valueKey}
-                        timeDomain={timeDomain}
-                        valueDomain={valueDomain}
-                        observations={rightContextObservations[i]}
-                        scaleRangeToBox={contextScaleRangeToBox}/>
-
+                        {/* Right context visualization(s) */}
+                        {multipleEncodings ? 
+                            RightContextEncoding.map((LayeredEncoding, j) => 
+                                <LayeredEncoding
+                                key={`right-${i}-${j}-inner`}
+                                timeKey={timeKey}
+                                valueKey={valueKey}
+                                timeDomain={timeDomain}
+                                valueDomain={valueDomain}
+                                observations={rightContextObservations[i]}
+                                scaleRangeToBox={contextScaleRangeToBox}
+                                xRange={contextXRange}
+                                yRange={contextYRange}/>
+                            ) 
+                            :
+                            <RightContextEncoding
+                            key={`right-${i}-inner`}
+                            timeKey={timeKey}
+                            valueKey={valueKey}
+                            timeDomain={timeDomain}
+                            valueDomain={valueDomain}
+                            observations={rightContextObservations[i]}
+                            scaleRangeToBox={contextScaleRangeToBox}
+                            xRange={contextXRange}
+                            yRange={contextYRange}/>
+                        }       
                     </svg>
                 );
             })}

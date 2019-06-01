@@ -125,8 +125,8 @@ class VistaTimelineControl extends React.Component {
 
   componentDidMount() {
     // Code to create the d3 element, using the root container 
-    let { width, height, focusColor, contextColor, padding } = this.props; 
-    let { focusIndex } = brushState; 
+    let { width, height, focusColor, contextColor, padding, controlScale } = this.props; 
+    
     let root = d3.select(this.ROOT); 
     
     // Create the svg container for the brushes
@@ -134,7 +134,9 @@ class VistaTimelineControl extends React.Component {
                   .attr('width', width) 
                   .attr('height', height)
                   .style('border', '1px solid grey')
-                  .style('padding', padding)
+                  .style('padding-left', padding)
+                  .style('padding-right', padding)
+                  .style('padding-top', padding)
 
     // Pixel ranges for each brush 
     let brushRanges = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 
@@ -265,25 +267,38 @@ class VistaTimelineControl extends React.Component {
 
     }
 
-    let timeAxisScale = d3.scaleTime().domain(this.props.controlScale.domain().map(d => new Date(d)))
-                                      .range(this.props.controlScale.range()); 
-    
+    let controlScaleRange = controlScale.range(); 
+    let timelineScale = d3.scaleTime().domain(controlScale.domain())
+                                      .range([controlScaleRange[0] + padding, controlScaleRange[1] + padding]); 
+
+    let axisSvg = root.append('svg')
+                        .attr('height', height + 2 * padding)
+                        .attr('width', width + 2 * padding)
+                        .attr('pointer-events', 'none')
+                        .style('position', 'absolute') 
+                        .style('top', padding + 1)
+                        .style('left', 0)
+                        .style('backgroundColor', 'rgba(0,0,0,0)');
+
     // Create a timeline 
     let yearAxis = d3.axisBottom()
-                    .scale(timeAxisScale)
+                    .scale(timelineScale)
                     .ticks(d3.timeYear.every(1));
 
     let monthAxis = d3.axisBottom()
-                      .scale(timeAxisScale)
+                      .scale(timelineScale)
                       .ticks(d3.timeMonth.every(3)); 
     
-    svg.append("g")
+    axisSvg.append("g")
        .call(yearAxis)
         .selectAll('text')
+        .attr('font-size', 8)
         .attr('font-weight', 'bold'); 
 
-    svg.append("g")
-       .call(monthAxis); 
+    axisSvg.append("g")
+       .call(monthAxis) 
+        .selectAll('text')
+        .attr('font-size', 8)
 
   }
 
@@ -584,7 +599,7 @@ class VistaTimelineControl extends React.Component {
     let { width, height, padding } = this.props; 
     width += 2 * padding; 
     height += 2 * padding + 2; 
-    return <div style={{ height, width }} ref={ref => this.ROOT = ref}/>
+    return <div style={{ height, width, position: 'relative' }} ref={ref => this.ROOT = ref}/>
   }
 
 }

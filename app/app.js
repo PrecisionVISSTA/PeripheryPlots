@@ -10,6 +10,7 @@ import EventGroup from "./encodings/TVPE/EventGroup.jsx";
 import MovingAverageEnvelopeGroup from "./encodings/TVPE/MovingAverageEnvelopeGroup.jsx"; 
 import QuantitativeTraceGroup from "./encodings/VPE/QuantitativeTraceGroup.jsx"; 
 import NominalTraceGroup from "./encodings/VPE/NominalTraceGroup.jsx"; 
+import AverageLine from "./encodings/VPE/AverageLine.jsx"; 
 
 import VistaViewer from "./components/VistaViewer.jsx";
 
@@ -37,7 +38,7 @@ d3.csv('../data/seattle-weather.csv', processRow)
         trackwiseUnits: ['inches', 'celsius', 'celsius', null],
         trackwiseEncodings: [
             [BarGroup, BarGroup, BarGroup], 
-            [QuantitativeTraceGroup, LineGroup, QuantitativeTraceGroup], 
+            [[QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]], 
             [ScatterGroup, LineGroup, ScatterGroup], 
             [NominalTraceGroup, EventGroup, NominalTraceGroup]
         ], 

@@ -21,10 +21,9 @@ const DEFAULT_state = {
     controlTimelineHeight: 60, 
     baseWidth: 700, 
     trackHeight: 60, 
-    trackPaddingTop: 5, 
-    trackPaddingBottom: 5, 
+    trackPaddingTop: 10, 
     verticalAlignerHeight: 30, 
-    padding: 5
+    padding: 12
 
 };
 

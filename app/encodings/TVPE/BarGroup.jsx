@@ -22,18 +22,18 @@ class BarGroup extends React.Component {
         timeScale.domain(timeDomain); 
         valueScale.domain(valueDomain); 
 
-        let height = valueScale.range()[0]; 
+        let valueRange = valueScale.range(); 
 
         return (
             <g>
                 {/* Bars */}
                 {observations.map((o,i) => <rect
-                                        key={i}
-                                        x={timeScale(o[timeKey]) - BAR_WIDTH / 2} 
-                                        y={valueScale(o[valueKey])}
-                                        width={BAR_WIDTH}
-                                        height={height - valueScale(o[valueKey])}
-                                        fill="steelblue"/>)}
+                                            key={i}
+                                            x={timeScale(o[timeKey]) - BAR_WIDTH / 2} 
+                                            y={valueScale(o[valueKey])}
+                                            width={BAR_WIDTH}
+                                            height={valueRange[0] - valueScale(o[valueKey])}
+                                            fill="steelblue"/>)}
             </g>
         );  
     
