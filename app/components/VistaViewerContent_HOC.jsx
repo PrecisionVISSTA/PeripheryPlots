@@ -38,16 +38,8 @@ export default function VistaViewerContentHOC(config) {
                 return null; 
             }
 
-            let {   numContextsPerSide, 
-                    axesWidth, 
-                    contextWidth, 
-                    trackWidth, 
-                    controlTimelineHeight, 
+            let {   controlTimelineHeight, 
                     baseWidth, 
-                    trackHeight, 
-                    trackPaddingTop, 
-                    trackPaddingBottom, 
-                    focusWidth, 
                     verticalAlignerHeight
                 } = this.props;
 
@@ -99,15 +91,7 @@ export default function VistaViewerContentHOC(config) {
                             observations={observations} 
                             timeKey={timeKey} 
                             valueKey={valueKey}
-                            numContextsPerSide={numContextsPerSide}
-                            encodings={encodings}
-                            trackWidth={trackWidth}
-                            trackHeight={trackHeight}
-                            trackPaddingTop={trackPaddingTop}
-                            trackPaddingBottom={trackPaddingBottom}
-                            focusWidth={focusWidth}
-                            contextWidth={contextWidth}
-                            axesWidth={axesWidth}/>
+                            encodings={encodings}/>
                         ); 
                     })}
                 </React.Fragment>
@@ -116,30 +100,14 @@ export default function VistaViewerContentHOC(config) {
     
     }
 
-    const mapStateToProps = ({
-                                numContextsPerSide, 
-                                axesWidth, 
-                                contextWidth, 
-                                trackWidth, 
+    const mapStateToProps = ({ 
                                 controlTimelineHeight, 
                                 baseWidth, 
-                                trackHeight, 
-                                trackPaddingTop, 
-                                trackPaddingBottom, 
-                                focusWidth, 
                                 verticalAlignerHeight
                             }) => 
                             ({
-                                numContextsPerSide, 
-                                axesWidth, 
-                                contextWidth, 
-                                trackWidth, 
                                 controlTimelineHeight, 
                                 baseWidth, 
-                                trackHeight, 
-                                trackPaddingTop, 
-                                trackPaddingBottom, 
-                                focusWidth, 
                                 verticalAlignerHeight
                             }); 
     

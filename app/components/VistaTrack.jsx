@@ -47,7 +47,6 @@ class VistaTrack extends React.Component {
             }
         }
 
-        debugger; 
         this.setState({ lastK: k, lastX: x });
         this.props.ACTION_CHANGE_timeDomains(newSelections.map(s => s.map(controlScale.invert)));
         
@@ -59,12 +58,15 @@ class VistaTrack extends React.Component {
 
     updateAxes() {
         let { axis, quantitativeScale, categoricalScale } = this.state; 
-        let { observations, valueKey, trackHeight, trackPaddingTop } = this.props; 
+        let { observations, valueKey, trackHeight, trackPaddingTop, trackPaddingBottom } = this.props; 
+        
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                             d3.extent(observations.map(o => o[valueKey]));
+        
         let isQuantitative = valueDomain.length === 2 && !isNaN(valueDomain[0]) && !isNaN(valueDomain[1]);
+
         let scale = isQuantitative ? quantitativeScale : categoricalScale; 
-        let range = [trackHeight, trackPaddingTop]; 
+        let range = [trackHeight - trackPaddingBottom - 1, trackPaddingTop]; 
 
         scale.domain(valueDomain).range(range); 
         d3.select(this.AXES_REF).call(isQuantitative ?  axis.scale(scale.nice()).ticks(4) : 
@@ -148,7 +150,8 @@ class VistaTrack extends React.Component {
             numContextsPerSide, 
             encodings, 
             trackHeight, 
-            trackPaddingTop, 
+            trackPaddingTop,
+            trackPaddingBottom,  
             contextWidth, 
             focusWidth, 
             axesWidth, 
@@ -179,20 +182,20 @@ class VistaTrack extends React.Component {
         let rightContextObservations = rightContextTimeDomains.map(observationsInDomain); 
 
         let contextXRange = [0, contextWidth];
-        let contextYRange = [trackHeight, trackPaddingTop];  
+        let contextYRange = [trackHeight - trackPaddingBottom, trackPaddingTop];  
         let focusXRange = [0, focusWidth]; 
-        let focusYRange = [trackHeight, trackPaddingTop];
+        let focusYRange = [trackHeight - trackPaddingBottom, trackPaddingTop];
         let contextScaleRangeToBox = _.partial(scaleRangeToBox, contextXRange, contextYRange); 
         let focusScaleRangeToBox = _.partial(scaleRangeToBox, focusXRange, focusYRange); 
 
-        let tHeight = trackHeight - trackPaddingTop; 
+        let tHeight = trackHeight - trackPaddingTop - trackPaddingBottom; 
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                              d3.extent(observations.map(o => o[valueKey]));
 
         let containerWidth = focusWidth + numContextsPerSide * contextWidth * 2 + axesWidth + padding; 
 
         return (
-        <div style={{ width: containerWidth, paddingLeft: padding, paddingRight: padding, marginBottom: 1, border: '1px solid grey' }}>
+        <div style={{ width: containerWidth, paddingLeft: padding, paddingRight: padding, marginBottom: 3, border: '1px solid grey' }}>
 
             <div style={{ width: "100%", display: "block" }}>
                 <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', marginTop: 3, marginBottom: 3 }}>
@@ -416,17 +419,31 @@ class VistaTrack extends React.Component {
 const mapStateToProps = ({ 
     timeDomains, 
     timeExtentDomain, 
-    numContextsPerSide, 
     focusColor, 
     contextColor, 
-    padding
+    padding, 
+    trackWidth, 
+    trackHeight, 
+    trackPaddingTop, 
+    trackPaddingBottom, 
+    axesWidth, 
+    contextWidth, 
+    focusWidth, 
+    numContextsPerSide
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
-    numContextsPerSide, 
     focusColor, 
     contextColor, 
-    padding
+    padding,
+    trackWidth, 
+    trackHeight, 
+    trackPaddingTop, 
+    trackPaddingBottom, 
+    axesWidth, 
+    contextWidth, 
+    focusWidth, 
+    numContextsPerSide
 }); 
                         
 const mapDispatchToProps = dispatch => ({
