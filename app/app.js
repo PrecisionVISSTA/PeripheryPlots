@@ -35,31 +35,13 @@ d3.csv('../data/seattle-weather.csv', processRow)
         trackwiseObservations: [data, data, data, data],
         trackwiseTimeKeys: ['date', 'date', 'date', 'date'], 
         trackwiseValueKeys: ['precipitation', 'temp_max', 'temp_min', 'weather'], 
-        trackwiseUnits: ['inches', 'celsius', 'celsius', null],
+        trackwiseUnits: ['inches', 'celsius', 'celsius', null, 'km / hr'],
         trackwiseEncodings: [
-            [BarGroup, BarGroup, BarGroup], 
             [[QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]], 
-            [ScatterGroup, LineGroup, ScatterGroup], 
+            [[QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]], 
+            [[QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]], 
             [NominalTraceGroup, EventGroup, NominalTraceGroup]
-        ], 
-        trackwiseAxes: [
-            { 
-                time: { type: 'quantitative' }, 
-                value: { type: 'quantitative' }
-            },
-            { 
-                time: { type: 'quantitative' }, 
-                value: { type: 'quantitative' }
-            },
-            { 
-                time: { type: 'quantitative' }, 
-                value: { type: 'quantitative' }
-            },
-            { 
-                time: { type: 'quantitative' }, 
-                value: { type: 'nominal' }
-            }
-        ], 
+        ],
 
         // Parameters to construct control 
         timeExtentDomain: dateExtent,  

@@ -15,7 +15,7 @@ class AverageLine extends React.Component {
 
         let scales = scaleRangeToBox(null, valueScale); 
         valueScale = scales.yScale; 
-        valueScale.domain([valueDomain[1], valueDomain[0]]); 
+        valueScale.domain([valueDomain[0], valueDomain[1]]); 
 
         let mean = d3.mean(observations.map(o => o[valueKey])); 
         let y = valueScale(mean); 
