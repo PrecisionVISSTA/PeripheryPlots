@@ -11,7 +11,6 @@ import MovingAverageEnvelopeGroup from "./encodings/TVPE/MovingAverageEnvelopeGr
 import QuantitativeTraceGroup from "./encodings/VPE/QuantitativeTraceGroup.jsx"; 
 import NominalTraceGroup from "./encodings/VPE/NominalTraceGroup.jsx"; 
 import AverageLine from "./encodings/VPE/AverageLine.jsx"; 
-
 import VistaViewer from "./components/VistaViewer.jsx";
 
 let data = []; 
@@ -23,6 +22,7 @@ function processRow(row) {
         data.push(row); 
     }
 }
+
 d3.csv('../data/seattle-weather.csv', processRow)
   .then(() => {
 

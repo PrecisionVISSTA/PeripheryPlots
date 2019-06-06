@@ -13,7 +13,7 @@ class QuantitativeTraceGroup extends React.Component {
 
     render() {
 
-        let { timeKey, valueKey, timeDomain, valueDomain, yRange, observations, scaleRangeToBox } = this.props; 
+        let { timeKey, valueKey, timeDomain, valueDomain, yRange, xRange, observations, scaleRangeToBox, doFlip } = this.props; 
         let { histogram, freqScale, valueScale } = this.state; 
 
         let scales = scaleRangeToBox(freqScale, valueScale); 
@@ -29,20 +29,20 @@ class QuantitativeTraceGroup extends React.Component {
                     .thresholds(valueScale.ticks(NUM_BINS))
                     (observations); 
 
-        console.log(bins); 
-
         bins = bins.map(bin => ({ 
             p: bin.length / observations.length, 
             y0: bin.x0, 
             y1: bin.x1
         })); 
 
-        console.log(bins); 
+        let binHeight = bins[0].y1 - bins[0].y0;
+        
+        let xWidth = xRange[1] - xRange[0]; 
+        let tx = xRange[0]; 
+        let ty = yRange[1]; 
 
-        let binHeight = bins[0].y1 - bins[0].y0; 
-    
         return (
-            <g>
+            <g transform={doFlip ? `translate(${xWidth + tx},${ty}) scale(-1,1) translate(${-tx},${-ty})` : ''}>
                 {/* Bars */}
                 {bins.map((bin,i) => <rect
                                  key={`${i}`}

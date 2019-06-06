@@ -11,7 +11,7 @@ class NominalTraceGroup extends React.Component {
 
     render() {
 
-        let { timeKey, valueKey, timeDomain, valueDomain, observations, scaleRangeToBox } = this.props; 
+        let { timeKey, valueKey, timeDomain, valueDomain, observations, scaleRangeToBox, xRange, yRange, doFlip } = this.props; 
         let { freqScale, valueScale, colors } = this.state; 
 
         let scales = scaleRangeToBox(freqScale, valueScale); 
@@ -29,8 +29,12 @@ class NominalTraceGroup extends React.Component {
             return acc; 
         }, {}); 
 
+        let xWidth = xRange[1] - xRange[0]; 
+        let tx = xRange[0]; 
+        let ty = yRange[1];
+
         return (
-            <g>
+            <g transform={doFlip ? `translate(${xWidth + tx},${ty}) scale(-1,1) translate(${-tx},${-ty})` : ''}>
                 {valueDomain.map((value,i) =>   <rect
                                                 key={`${value}`}
                                                 x={0}

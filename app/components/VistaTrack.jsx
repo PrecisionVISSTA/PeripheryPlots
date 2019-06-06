@@ -14,7 +14,8 @@ class VistaTrack extends React.Component {
         categoricalScale: d3.scaleBand(), 
         timeScale: d3.scaleTime(), 
         zoom: d3.zoom(), 
-        zoomsInitialized: false
+        zoomsInitialized: false, 
+        formatter: d3.timeFormat('%B %d, %Y')
     }
 
     zoomed = () => {
@@ -77,7 +78,8 @@ class VistaTrack extends React.Component {
     }
 
     updateTooltip = () => {
-        let { focusWidth } = this.props; 
+        let { focusWidth } = this.props;
+        let { formatter } = this.state;  
 
         let [x,y] = d3.mouse(this.FOCUS_REF); 
         d3.selectAll('.focus-time-bar')
@@ -90,7 +92,7 @@ class VistaTrack extends React.Component {
                                     .range([0, this.props.focusWidth])
                                     .invert(x);
 
-        let dateString = d3.timeFormat('%B %d, %Y')(currentDate); 
+        let dateString = formatter(currentDate); 
 
         let containerNode = d3.select(this.FOCUS_REF).node();
 
@@ -165,6 +167,8 @@ class VistaTrack extends React.Component {
             padding
         } = this.props; 
 
+        let { formatter } = this.state; 
+
         // utility functions 
         let valueInDomain = (value, domain) => value >= domain[0] && value <= domain[1]; 
         let observationsInDomain = domain => observations.filter(o => valueInDomain(o[timeKey], domain)); 
@@ -197,10 +201,17 @@ class VistaTrack extends React.Component {
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                              d3.extent(observations.map(o => o[valueKey]));
 
-        let containerWidth = focusWidth + numContextsPerSide * contextWidth * 2 + axesWidth + padding; 
+        let containerWidth = focusWidth + numContextsPerSide * contextWidth * 2 + axesWidth + padding;
 
+        let leftDates = _.union(leftContextTimeDomains.map(domain => domain[0]), 
+                                [leftContextTimeDomains[leftContextTimeDomains.length-1][1]])
+                        .map(formatter); 
+        let rightDates = _.union(rightContextTimeDomains.map(domain => domain[0]), 
+                                [rightContextTimeDomains[rightContextTimeDomains.length-1][1]])
+                        .map(formatter);
+                        
         return (
-        <div style={{ width: containerWidth, paddingLeft: padding, paddingRight: padding, marginBottom: 3, border: '1px solid grey' }}>
+        <div style={{ width: containerWidth, paddingLeft: padding, paddingRight: padding, marginBottom: 3 }}>
 
             <div style={{ width: "100%", display: "block" }}>
                 <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', marginTop: 3, marginBottom: 3 }}>
@@ -221,8 +232,14 @@ class VistaTrack extends React.Component {
                 return (
                     <svg 
                     key={`left-${i}`}
-                    clipPath={`url(#${clipId})`}
+                    
                     style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
+                        {/* Dates below chart */}
+                        {/* <g transform={`translate(0,${contextYRange[0] + 5})`}>
+                            <text 
+                            textAnchor="middle">{leftDates[i]}</text>
+                        </g> */}
+
                         {/* Left context border */}
                         <rect 
                         x={0} 
@@ -241,11 +258,25 @@ class VistaTrack extends React.Component {
                             height={tHeight}/>
                         </clipPath>
 
-                        {/* Left context visualization(s) */}
-                        {multipleEncodings ? 
-                            LeftContextEncoding.map((LayeredEncoding,j) => 
-                                <LayeredEncoding
-                                key={`left-${i}-${j}-inner`}
+                        <g clipPath={`url(#${clipId})`}>
+                            {/* Left context visualization(s) */}
+                            {multipleEncodings ? 
+                                LeftContextEncoding.map((LayeredEncoding,j) => 
+                                    <LayeredEncoding
+                                    key={`left-${i}-${j}-inner`}
+                                    timeKey={timeKey}
+                                    valueKey={valueKey}
+                                    timeDomain={timeDomain}
+                                    valueDomain={valueDomain}
+                                    observations={leftContextObservations[i]}
+                                    scaleRangeToBox={contextScaleRangeToBox}
+                                    xRange={contextXRange}
+                                    yRange={contextYRange}
+                                    doFlip={true}/>
+                                ) 
+                                :
+                                <LeftContextEncoding
+                                key={`left-${i}-inner`}
                                 timeKey={timeKey}
                                 valueKey={valueKey}
                                 timeDomain={timeDomain}
@@ -253,20 +284,11 @@ class VistaTrack extends React.Component {
                                 observations={leftContextObservations[i]}
                                 scaleRangeToBox={contextScaleRangeToBox}
                                 xRange={contextXRange}
-                                yRange={contextYRange}/>
-                            ) 
-                            :
-                            <LeftContextEncoding
-                            key={`left-${i}-inner`}
-                            timeKey={timeKey}
-                            valueKey={valueKey}
-                            timeDomain={timeDomain}
-                            valueDomain={valueDomain}
-                            observations={leftContextObservations[i]}
-                            scaleRangeToBox={contextScaleRangeToBox}
-                            xRange={contextXRange}
-                            yRange={contextYRange}/> 
-                        }
+                                yRange={contextYRange}
+                                doFlip={true}/> 
+                            }
+                        </g>
+
                     </svg>
                 ); 
             })}

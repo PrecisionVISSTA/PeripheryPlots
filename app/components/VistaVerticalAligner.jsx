@@ -41,12 +41,33 @@ class VistaVerticalAligner extends React.Component {
                     {/* Top lines */}
                     {topX.map((x,i) => <line x1={x} x2={x} y1={0} y2={ys[i]} {...lineStyle}/>)}
                     {/* Bottom Lines */}
-                    {botX.map((x,i) => <line x1={x} x2={x} y1={ys[i]} y2={height+1} {...lineStyle}/>)}
+                    {botX.map((x,i) => <line x1={x} x2={x} y1={ys[i]} y2={height} {...lineStyle}/>)}
                     {/* Connectors */}
                     {_.range(0, topX.length).map(i => {
                         let top = topX[i]; 
                         let bot = botX[i]; 
                         return <line x1={top} x2={bot} y1={ys[i]} y2={ys[i]} {...lineStyle}/>
+                    })}
+                    {/* Downward Pointing Arrows */}
+                    {botX.map((x,i) => {
+                        let dl = 6; // the length of the line 
+                        let dv = dl / Math.sqrt(2); 
+                        return <g>
+                            {/* line to left */}
+                            <line 
+                            x1={x - dv} 
+                            x2={x} 
+                            y1={height - 1 - dv} 
+                            y2={height} 
+                            {...lineStyle}/>
+                            {/* line to right */}
+                            <line 
+                            x1={x + dv} 
+                            x2={x} 
+                            y1={height - 1 - dv} 
+                            y2={height} 
+                            {...lineStyle}/>
+                        </g>
                     })}
                 </svg>
             </div>

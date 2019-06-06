@@ -22,7 +22,7 @@ const DEFAULT_state = {
     baseWidth: 700, 
     trackHeight: 60, 
     trackPaddingTop: 10, 
-    trackPaddingBottom: 3, 
+    trackPaddingBottom: 10, 
     verticalAlignerHeight: 30, 
     padding: 12
 

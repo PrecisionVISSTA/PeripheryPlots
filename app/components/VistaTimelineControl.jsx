@@ -133,7 +133,7 @@ class VistaTimelineControl extends React.Component {
     let svg = root.append('svg')
                   .attr('width', width) 
                   .attr('height', height)
-                  .style('border', '1px solid grey')
+                  // .style('border', '1px solid grey')
                   .style('padding-left', padding)
                   .style('padding-right', padding)
                   .style('padding-top', padding)
@@ -264,6 +264,10 @@ class VistaTimelineControl extends React.Component {
                 .attr("fill", "#009688")
                 .attr("fill-opacity", 0.8)
                 .attr("cursor", "ew-resize");
+
+      // Disable existing brushes. Pointer events only active on custom brushes 
+      brushG.select('.handle--e', ).style('pointer-events', 'none')
+      brushG.select('.handle--w', ).style('pointer-events', 'none')
 
     }
 
@@ -433,10 +437,10 @@ class VistaTimelineControl extends React.Component {
         (d3event.sourceEvent && d3event.sourceEvent.type === 'zoom')) 
         return; 
 
-    // Get the current and previous selections for all brushes 
+    // Current brush state after user interaction 
     let brushRanges = this.getBrushRanges(); 
+    // Brush state prior to last user generated event 
     let previousBrushSelections = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 
-
 
     // Get the current and previous selections for the event target brush 
     let preS = previousBrushSelections[index]; 
@@ -480,6 +484,10 @@ class VistaTimelineControl extends React.Component {
                         (preS[0] < curS[0] && preS[1] < curS[1]) ? brushActions.TRANSLATE_RIGHT : 
                         null; 
 
+    if (currentAction === null) {
+      console.log(preS); 
+      console.log(curS); 
+    }
     assert(currentAction !== null, 'invalid brush action'); 
 
     let newSelections = brushRanges.slice(); 
