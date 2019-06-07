@@ -34,12 +34,12 @@ d3.csv('../data/seattle-weather.csv', processRow)
         // Parameters to construct tracks
         trackwiseObservations: [data, data, data, data],
         trackwiseTimeKeys: ['date', 'date', 'date', 'date'], 
-        trackwiseValueKeys: ['precipitation', 'temp_max', 'temp_min', 'weather'], 
-        trackwiseUnits: ['inches', 'celsius', 'celsius', null, 'km / hr'],
+        trackwiseValueKeys: ['temp_max', 'precipitation', 'wind', 'weather'], 
+        trackwiseUnits: ['celsius', 'inches', 'km / hr', null],
         trackwiseEncodings: [
             [[QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]], 
-            [[QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]], 
-            [[QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]], 
+            [[BarGroup, AverageLine], [BarGroup, AverageLine], [BarGroup, AverageLine]], 
+            [[ScatterGroup, AverageLine], [LineGroup, AverageLine], [ScatterGroup, AverageLine]], 
             [NominalTraceGroup, EventGroup, NominalTraceGroup]
         ],
 
