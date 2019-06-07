@@ -4,7 +4,7 @@ import _ from "lodash";
 import { connect } from "react-redux";
 import { scaleRangeToBox } from "../util/util"; 
 
-import { ACTION_CHANGE_timeDomains } from "../actions/actions"; 
+import { ACTION_CHANGE_proposal } from "../actions/actions"; 
 
 class VistaTrack extends React.Component {
 
@@ -15,7 +15,10 @@ class VistaTrack extends React.Component {
         timeScale: d3.scaleTime(), 
         zoom: d3.zoom(), 
         zoomsInitialized: false, 
-        formatter: d3.timeFormat('%B %d, %Y')
+        formatter: d3.timeFormat('%B %d, %Y'), 
+        proposalId: 0, 
+        lastK: 1, 
+        lastX: 0
     }
 
     zoomed = () => {
@@ -23,34 +26,28 @@ class VistaTrack extends React.Component {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") {
             return;
         }
+
+        /* 
+        Produce a pan proposal 
+        Produce a grow / shrink proposal 
+        */ 
         
-        let { timeDomains, controlScale } = this.props; 
-        let { lastK, lastX } = this.state; 
+        let { lastK, lastX, proposalId } = this.state; 
         let { k, x } = d3.zoomTransform(d3.select(this.ZOOM_REF).node());
         let dZoom = 2; 
         let isPan = lastK === k;      
-        let focusIndex = parseInt(timeDomains.length / 2);
-        let brushS = timeDomains[focusIndex].map(controlScale);
         let zoomDir = k > lastK ? -1 : 1; 
-        let newSelections = timeDomains.map(domain => domain.map(controlScale)); 
-        if (isPan) {
-            let panShift = x - lastX; 
-            newSelections = newSelections.map(s => s.map(v => v + panShift)); 
-        } else {
-            let leftShift = zoomDir * dZoom; 
-            let rightShift = -zoomDir * dZoom; 
-            for (let i = 0; i < focusIndex; i++) {
-                newSelections[i] = newSelections[i].map(v => v + leftShift); 
-            }
-            newSelections[focusIndex] = [brushS[0] + leftShift, brushS[1] + rightShift];
-            for (let i = focusIndex + 1; i < newSelections.length; i++) {
-                newSelections[i] = newSelections[i].map(v => v + rightShift);
-            }
-        }
+        let newProposalId = proposalId + 1; 
+        let proposal = { 
+            id: proposalId + 1, 
+            type: isPan ? 'pan' : 'zoom', 
+            shift: isPan ? x - lastX : undefined, 
+            dl: !isPan ? zoomDir * dZoom : undefined, 
+            dr: !isPan ? -zoomDir * dZoom : undefined
+        }; 
 
-        this.setState({ lastK: k, lastX: x });
-        this.props.ACTION_CHANGE_timeDomains(newSelections.map(s => s.map(controlScale.invert)));
-
+        this.setState({ lastK: k, lastX: x, proposalId: newProposalId });
+        this.props.ACTION_CHANGE_proposal(proposal); 
         this.updateTooltip(); 
         
     }
@@ -475,8 +472,8 @@ const mapStateToProps = ({
                         
 const mapDispatchToProps = dispatch => ({
 
-    ACTION_CHANGE_timeDomains: (timeDomains) => 
-        dispatch(ACTION_CHANGE_timeDomains(timeDomains))
+    ACTION_CHANGE_proposal: (proposal) => 
+        dispatch(ACTION_CHANGE_proposal(proposal))
 
 })
 

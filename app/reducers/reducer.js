@@ -8,6 +8,7 @@ const DEFAULT_state = {
         [new Date("06/23/2000"), new Date("06/22/2010")],
         [new Date("06/23/2010"), new Date("06/22/2013")]
     ], 
+    proposal: { id: -1 },
 
     // Component styling properties (static)
     focusColor: '#515151', 
@@ -24,7 +25,7 @@ const DEFAULT_state = {
     trackPaddingTop: 10, 
     trackPaddingBottom: 10, 
     verticalAlignerHeight: 30, 
-    padding: 12
+    padding: 12, 
 
 };
 
@@ -55,6 +56,12 @@ const reducer = (state = DEFAULT_state, action) => {
             return {
                 ...state, 
                 numContextsPerSide 
+            };
+        case 'CHANGE_proposal ': 
+            let { proposal  } = action; 
+            return {
+                ...state, 
+                proposal  
             };
         default:
             return state;
