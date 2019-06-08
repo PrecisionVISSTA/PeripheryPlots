@@ -91,6 +91,11 @@ class VistaTimelineControl extends React.Component {
         newSelections1, newSelections2, 
         newSelections; 
 
+    // TODO: Remove this when locking is implemented for single handle resizing 
+    let aBrushIsLocked = this.state.brushLocks.reduce((acc,cur) => acc || cur, false); 
+    if (proposal.type === 'zoom' && aBrushIsLocked) 
+      return; 
+
     switch (proposal.type) {
       case 'pan': 
         // translate 
@@ -471,7 +476,6 @@ class VistaTimelineControl extends React.Component {
   computeAndPerformAction = (index, currentSelections) => this.updateAll(this.computeAction(index, currentSelections))
 
   userBrushed = (index) => (this.isUserGeneratedBrushEvent(index) && this.computeAndPerformAction(index))
-
 
   isUserGeneratedBrushEvent = (index) => !(
     // Ensure the current event was a user brush interaction 

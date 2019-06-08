@@ -30,8 +30,7 @@ const brushActions = {
 
 // Two utility functions for preprocessing the index ranges to ensure they are valid 
 const forceNonDecreasing = dup => dup[0] > dup[1] ? [0,0] : dup; 
-const packMultiIndex = arrs => arrs.reduce((all,arr) => 
-  _.union(all, _.range(...forceNonDecreasing(arr))), []);
+const packMultiIndex = arrs => arrs.reduce((all,arr) => _.union(all, _.range(...forceNonDecreasing(arr))), []);
 
 const actions = {
   perform_RESIZE_SHRINK_LEFT: (index, actionProperties) => {
@@ -45,14 +44,14 @@ const actions = {
       minWidth, 
       leftLockIndex, 
       leftLockBoundS, 
-      shift, 
+      shiftSet, 
       leftIndexRange, 
-      shiftIndices, 
       lockedToLeft, 
       currentSelections
     } = actionProperties; 
 
     // Perform action 
+    let shift, shiftIndices; 
     if (leftHandleLocked) {
       currentSelections[index] = preS;
     } else {
@@ -70,9 +69,12 @@ const actions = {
         shiftIndices = _.range(...leftIndexRange); 
       }
     }
+    shiftSet.push({
+      shift, shiftIndices
+    }); 
 
     // Return new state 
-    return { shift, shiftIndices, currentSelections }; 
+    return { shiftSet, currentSelections }; 
   },
   perform_RESIZE_SHRINK_RIGHT: (index, actionProperties) => {
 
@@ -83,14 +85,14 @@ const actions = {
       curS, 
       tooSmall, 
       minWidth, 
-      shift, 
+      shiftSet, 
       lockedToRight, 
       rightLockBoundS, 
-      shiftIndices, 
       rightIndexRange, 
       rightLockIndex 
     } = actionProperties; 
 
+    let shift, shiftIndices; 
     if (rightHandleLocked) {
       currentSelections[index] = preS;
     } else {
@@ -108,8 +110,11 @@ const actions = {
         shiftIndices = _.range(...rightIndexRange);
       }
     }
+    shiftSet.push({
+      shift, shiftIndices
+    }); 
 
-    return { shift, shiftIndices, currentSelections }; 
+    return { shiftSet, currentSelections }; 
   },
   perform_RESIZE_GROW_LEFT: (index, actionProperties) => {
 
@@ -117,20 +122,21 @@ const actions = {
       leftHandleLocked, 
       currentSelections, 
       preS, 
-      shift, 
       curS, 
-      shiftIndices, 
+      shiftSet, 
       leftIndexRange
     } = actionProperties; 
 
     if (leftHandleLocked) {
       currentSelections[index] = preS; 
     } else {
-      shift = curS[0] - preS[0]; 
-      shiftIndices = _.range(...leftIndexRange); 
+      shiftSet.push({
+        shift: curS[0] - preS[0], 
+        shiftIndices: _.range(...leftIndexRange)
+      });
     }
 
-    return { shift, shiftIndices, currentSelections }; 
+    return { shiftSet, currentSelections }; 
   },
   perform_RESIZE_GROW_RIGHT: (index, actionProperties) => {
 
@@ -139,19 +145,20 @@ const actions = {
       currentSelections, 
       preS, 
       curS, 
-      shift, 
-      shiftIndices, 
+      shiftSet, 
       rightIndexRange
     } = actionProperties; 
 
     if (rightHandleLocked) {
       currentSelections[index] = preS; 
     } else {
-      shift = curS[1] - preS[1]; 
-      shiftIndices = _.range(...rightIndexRange); 
+      shiftSet.push({
+        shift: curS[1] - preS[1], 
+        shiftIndices: _.range(...rightIndexRange)
+      });
     }
 
-    return { shift, shiftIndices, currentSelections }; 
+    return { shiftSet, currentSelections }; 
   },
   perform_TRANSLATE_LEFT: (index, actionProperties) => {
 
@@ -191,23 +198,21 @@ const actions = {
           newLeftLockedS = [leftLockedS[0], Math.max(leftLockedS[0] + MIN_CONTEXT_WIDTH, 
                                                      leftLockedS[1] + propShift)];
           currentSelections[leftLockIndex] = newLeftLockedS; 
-        }
-        if (newLeftLockedS !== null && !_.isEqual(leftLockedS, newLeftLockedS)) {
           shift = newLeftLockedS[1] - leftLockedS[1]; 
-          shiftSet.push({
-            shift, 
-            shiftIndices: packMultiIndex([
-              // between the target and the (left locked brush OR left brush bound)
-              [lockedToLeft ? leftLockIndex + 1 : 0, 
-               index], 
-              // between the target and the (right locked brush OR right lock bound)
-              [index + 1, 
-               lockedToRight ? rightLockIndex : numBrushes]
-            ])
-          });
         } else {
-          shift = 0; 
+          shift = propShift; 
         }
+        shiftSet.push({
+          shift, 
+          shiftIndices: packMultiIndex([
+            // between the target and the (left locked brush OR left brush bound)
+            [lockedToLeft ? leftLockIndex + 1 : 0, 
+              index], 
+            // between the target and the (right locked brush OR right lock bound)
+            [index + 1, 
+              lockedToRight ? rightLockIndex : numBrushes]
+          ])
+        });
 
         // The target brush was moved by this event. Correct its position by computing the 
         // Difference between the shift applied to the left locked brush and the target brush
@@ -279,23 +284,22 @@ const actions = {
                                       rightLockedS[0] + propShift),
                              rightLockedS[1]];   
           currentSelections[rightLockIndex] = newRightLockedS; 
-        }
-        if (newRightLockedS !== null && !_.isEqual(rightLockedS, newRightLockedS)) {
           shift = newRightLockedS[0] - rightLockedS[0]; 
-          shiftSet.push({
-            shift, 
-            shiftIndices: packMultiIndex([
-              // between the target and the (left locked brush OR left brush bound)
-              [lockedToLeft ? leftLockIndex + 1 : 0, 
-               index], 
-              // between the target and the (right locked brush OR right lock bound)
-              [index + 1, 
-               lockedToRight ? rightLockIndex : numBrushes]
-            ])
-          });
         } else {
-          shift = 0; 
+          shift = propShift; 
         }
+
+        shiftSet.push({
+          shift, 
+          shiftIndices: packMultiIndex([
+            // between the target and the (left locked brush OR left brush bound)
+            [lockedToLeft ? leftLockIndex + 1 : 0, 
+             index], 
+            // between the target and the (right locked brush OR right lock bound)
+            [index + 1, 
+              lockedToRight ? rightLockIndex : numBrushes]
+          ])
+        });
 
         // The target brush was moved by this event. Correct its position by computing the 
         // Difference between the shift applied to the left locked brush and the target brush
