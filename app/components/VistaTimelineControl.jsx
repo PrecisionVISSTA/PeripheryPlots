@@ -5,9 +5,8 @@ import { event as d3event } from 'd3';
 import _ from "lodash"; 
 import { assert } from "chai"; 
 
-// import { getEquilateralTriangleFromCentroid, logicalOrOver } from "../util/util"; 
-
-import { ACTION_CHANGE_timeDomains, 
+import { 
+         ACTION_CHANGE_timeDomains, 
          ACTION_CHANGE_timeExtentDomain
        } from "../actions/actions"; 
 
@@ -188,22 +187,63 @@ const action = {
 
     let { 
       isLocked, 
+      lockedToLeft, 
+      leftLockIndex, 
       currentSelections, 
       preS, 
       curS, 
-      shift, 
-      shiftIndices, 
-      numBrushes
+      shiftSet, 
+      numBrushes, 
+      isFocus
     } = actionProperties; 
 
+    let revertTargetToPreviousState = () => shiftSet.push({ 
+      shift: currentSelections[index-1][1] - curS[0], 
+      shiftIndices: [index]
+    });
+    
+    let shift, shiftIndices; 
     if (isLocked) {
-      currentSelections[index] = preS; 
+      revertTargetToPreviousState(); 
     } else {
-      shift = curS[0] - preS[0]; 
-      shiftIndices = _.range(0, numBrushes).filter(i => i !== index);
+      if (isFocus) {
+        // The focus brush can steal space from the leftmost locked brush if there is space available 
+        if (lockedToLeft) {
+          let lockedS = currentSelections[leftLockIndex];
+          let newLockedS, minLeft, propLeft, minShiftI, maxShiftI, propShift;
+          // The closest locked brush to the left can shrink in dimension 
+          propShift = curS[0] - preS[0]; 
+          minLeft = lockedS[0] + MIN_CONTEXT_WIDTH; 
+          propLeft = lockedS[1] + propShift; 
+          newLockedS = [lockedS[0], Math.max(minLeft, propLeft)]; 
+          currentSelections[leftLockIndex] = newLockedS; 
+          // Compute the amount by which the brush shrunk, brushes between 
+          // the target and locked brushes will be shifted by this amount 
+          shift = newLockedS[1] - lockedS[1]; 
+          minShiftI = leftLockIndex + 1; 
+          maxShiftI = index; 
+          maxShiftI = Math.max(minShiftI, maxShiftI); 
+          shiftIndices = _.union(_.range(minShiftI, maxShiftI), _.range(maxShiftI + 1, numBrushes)); 
+          shiftSet.push({ shift, shiftIndices }); 
+          // Correct difference between proposed shift and actual shift for target 
+          shift = shift - propShift; 
+          shiftIndices = [index]; 
+          shiftSet.push({ shift, shiftIndices }); 
+        }
+      } else {
+        if (lockedToLeft) {
+          revertTargetToPreviousState();
+        } else {
+          // Shift all brushes except for the target 
+          shiftSet.push({
+            shift: curS[0] - preS[0], 
+            shiftIndices: _.range(0, numBrushes).filter(i => i !== index)
+          }); 
+        }
+      } 
     }
 
-    return { shift, shiftIndices, currentSelections }; 
+    return { currentSelections, shiftSet }; 
   },
   perform_TRANSLATE_RIGHT: (index, actionProperties) => {
 
@@ -292,51 +332,54 @@ class VistaTimelineControl extends React.Component {
     
   }
 
+  ingestProposal = (nextProps) => {
+
+    let { proposal } = nextProps; 
+    let { shift, dl, dr } = proposal; 
+    let { focusIndex } = this.state; 
+    let currentSelections = this.getBrushRanges(); 
+    let previousSelections1, previousSelections2, 
+        newSelections1, newSelections2, 
+        newSelections; 
+
+    switch (proposal.type) {
+      case 'pan': 
+        // translate 
+        previousSelections1 = currentSelections.slice(); 
+        newSelections1 = previousSelections1.slice(); 
+        newSelections1[focusIndex] = previousSelections1[focusIndex].map(v => v + shift); 
+
+        newSelections = this.computeAction(focusIndex, newSelections1, previousSelections1).newSelections; 
+        break; 
+      case 'zoom': 
+
+        // grow/shrink left 
+        previousSelections1 = currentSelections.slice(); 
+        newSelections1 = currentSelections.slice(); 
+        newSelections1[focusIndex] = [previousSelections1[focusIndex][0] + dl, 
+                                      previousSelections1[focusIndex][1]]; 
+        
+        // grow/shrink right 
+        previousSelections2 = this.computeAction(focusIndex, newSelections1, previousSelections1).newSelections; 
+        newSelections2 = previousSelections2.slice(); 
+        newSelections2[focusIndex] = [previousSelections2[focusIndex][0], 
+                                      previousSelections2[focusIndex][1] + dr]; 
+
+        newSelections = this.computeAction(focusIndex, newSelections2, previousSelections2).newSelections;
+        break; 
+    }
+    this.updateAll(newSelections.map(e => 0), newSelections); 
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
 
-    let newProposal = nextProps.proposal.id !== this.props.proposal.id; 
-    if (newProposal) {
-      let { proposal } = nextProps; 
-      let { shift, dl, dr } = proposal; 
-      let { focusIndex } = this.state; 
-      let currentSelections = this.getBrushRanges(); 
-      let previousSelections1, previousSelections2, 
-          newSelections1, newSelections2, 
-          newSelections; 
-      switch (proposal.type) {
-        case 'pan': 
-
-          if (shift === 0) break; 
-
-          previousSelections1 = currentSelections.slice(); 
-          newSelections1 = previousSelections1.slice(); 
-          newSelections1[focusIndex] = previousSelections1[focusIndex].map(v => v + shift); 
-
-          newSelections = this.computeAction(focusIndex, newSelections1, previousSelections1).newSelections;
-          this.updateAll(newSelections.map(e => 0), newSelections); 
-
-          break; 
-        case 'zoom': 
-
-          previousSelections1 = currentSelections.slice(); 
-          newSelections1 = currentSelections.slice(); 
-          newSelections1[focusIndex] = [previousSelections1[focusIndex][0] + dl, 
-                                        previousSelections1[focusIndex][1]]; 
-
-          previousSelections2 = this.computeAction(focusIndex, newSelections1, previousSelections1).newSelections; 
-          newSelections2 = previousSelections2.slice(); 
-          newSelections2[focusIndex] = [previousSelections2[focusIndex][0], 
-                                        previousSelections2[focusIndex][1] + dr]; 
-
-          newSelections = this.computeAction(focusIndex, newSelections2, previousSelections2).newSelections;
-          this.updateAll(newSelections.map(e => 0), newSelections); 
-
-          break; 
-      }
+    // If change occurred in vista track, we will have a new proposal 
+    if (nextProps.proposal.id !== this.props.proposal.id) {
+      this.ingestProposal(nextProps); 
     }
 
-    return true;
-
+    // D3 performs updates 
+    return false;
   }
 
   componentDidMount() {
@@ -523,12 +566,12 @@ class VistaTimelineControl extends React.Component {
 
   }
 
-  _updateBrushSelections = (oldSelections, newSelections) => {
+  _updateBrushSelections = (newSelections) => {
     for (let i = 0; i < this.state.numBrushes; i++) {
-      if (!_.isEqual(oldSelections[i], newSelections[i])) {
+      // if (!_.isEqual(oldSelections[i], newSelections[i])) {
         d3.select(`#${this.state.brushIds[i]}`)
           .call(this.state.brushes[i].move, newSelections[i]); 
-      }
+      // }
     }
   }
 
@@ -573,33 +616,11 @@ class VistaTimelineControl extends React.Component {
     
   }
 
-  isBrushLeftLocked(brushIndex) {
-      // Returns true if the brush at brushIndex has its left handle locked 
-    return this.state.brushLocks[brushIndex]; 
-  }
+  isBrushLeftLocked = (brushIndex) => this.state.brushLocks[brushIndex] 
 
-  isBrushRightLocked(brushIndex) {
-    // Returns true if the brush at brushIndex has its right handle locked 
-    return this.state.brushLocks[brushIndex+1]; 
-  }
+  isBrushRightLocked = (brushIndex) => this.state.brushLocks[brushIndex+1]
 
-  isBrushLocked = (brushIndex) => {
-    // Returns an array of the form [boolean, boolean] which indicates 
-    // whether or not the left and right handles of the current brush are locked 
-    return [this.isBrushLeftLocked(brushIndex), this.isBrushRightLocked(brushIndex)]; 
-  }
-
-  areAnyBrushesLocked(start, end) {
-    /*
-    Returns true if any brushes in the index range [start, end) are locked on either handle 
-    */ 
-    for ( ; start < end; start++) {
-      if (this.isBrushLeftLocked(start) || this.isBrushRightLocked(end)) {
-        return true; 
-      }
-    }
-    return false;  
-  }
+  isBrushLocked = (brushIndex) => [this.isBrushLeftLocked(brushIndex), this.isBrushRightLocked(brushIndex)]
 
   getLockBounds(brushIndex) {
 
@@ -629,37 +650,15 @@ class VistaTimelineControl extends React.Component {
     return [leftLockedBrushIndex, rightLockedBrushIndex]; 
   }
 
-  getBrushRanges() {
-    // Returns an array of two element lists, each representing the current selected pixel 
-    // region of all of the brushes 
-    return this.state.brushIds
-                .map(id => d3.select(`#${id}`).node())
-                .map(d3.brushSelection); 
-  }
-
-  selectionsCanShift(selections, shift) {
-    /*
-    Test if a collection of selections can be shifted 'shift' units and remain within the 
-    bounds of the container. Returns true if selections is empty 
-    */
-    let [smin, smax] = [0 + MARGIN.left, this.props.width - MARGIN.right]; 
-    for (let i = 0; i < selections.length; i++) {
-      let [s0,s1] = selections[i]; 
-      let canShift = s0 + shift >= smin && s1 + shift < smax;  
-      if (!canShift) {
-        return false; 
-      }
-    }
-    return true; 
-  }
-
   computeActionProperties = (index, currentSelections=null, previousSelections=null) => {
     // Compute a set of properties related to the current action 
 
     currentSelections = currentSelections === null ? this.getBrushRanges() : currentSelections.slice(); 
-    previousSelections = previousSelections === null ? this.state.brushRanges.slice() : previousSelections; 
+    previousSelections = previousSelections === null ? this.state.brushRanges.slice() : previousSelections.slice(); 
 
+    let isFocus = index === this.state.focusIndex;  
     let preS = previousSelections[index]; 
+    let preW = tupdif(preS); 
     let curS = currentSelections[index]; 
     let [leftHandleLocked, rightHandleLocked] = this.isBrushLocked(index); 
     let isLocked = leftHandleLocked || rightHandleLocked; 
@@ -677,19 +676,17 @@ class VistaTimelineControl extends React.Component {
     let leftOverlappedRight = preS[1] === curS[0]; 
     let rightOverlappedLeft = preS[0] === curS[1]; 
     let overlapped = leftOverlappedRight || rightOverlappedLeft; 
-    let shift = 0; 
-    let shiftIndices = []; 
+    let shiftSet = []; 
     let { numBrushes } = this.state; 
     let action = computeAction(preS, curS); 
-    if (action === null) {
-      debugger; 
-    }
     assert(action !== null, 'invalid brush action');
     return { 
+      isFocus,
       action, 
       currentSelections, 
       previousSelections, 
       preS, 
+      preW, 
       curS, 
       numBrushes, 
       overlapped, 
@@ -710,58 +707,59 @@ class VistaTimelineControl extends React.Component {
       rightLockBoundS, 
       leftOverlappedRight, 
       rightOverlappedLeft, 
-      shift, 
-      shiftIndices
+      shiftSet
     }; 
   }
 
-  perform_SHIFTS = (selections, shiftIndices, shift) => {
-    return shift !== 0 ?  selections.map((s,i) => shiftIndices.includes(i) ? s.map(e => e + shift) : s) : 
-                          selections; 
-  }
+  getBrushRanges = () => (
+    // Returns an array of two element lists, each representing the current selected pixel 
+    // region of all of the brushes 
+    this.state.brushIds
+        .map(id => d3.select(`#${id}`).node())
+        .map(d3.brushSelection)
+  )
 
-  isUserGeneratedBrushEvent = (index) => {
+  performShifts = (selections, shiftIndices, shift) => (
+    shift !== 0 ? selections.map((s,i) => shiftIndices.includes(i) ? s.map(e => e + shift) : s) : 
+                  selections
+  )
+
+  isUserGeneratedBrushEvent = (index) => !(
     // Ensure the current event was a user brush interaction 
     // We do not perform updates on zooms of via calls to brush.move 
-    return !(
-      !d3.select(`#${this.state.brushIds[index]}`).node() || 
-      !d3event.sourceEvent ||
-      (d3event.sourceEvent && d3event.sourceEvent.type === 'brush') || 
-      (d3event.sourceEvent && d3event.sourceEvent.type === 'zoom')
-    );  
-  }
+    !d3.select(`#${this.state.brushIds[index]}`).node() || 
+    !d3event.sourceEvent ||
+    (d3event.sourceEvent && d3event.sourceEvent.type === 'brush') || 
+    (d3event.sourceEvent && d3event.sourceEvent.type === 'zoom')
+  )
 
   computeAction(index, currentSelections=null, previousSelections=null) {
       // Compute properties associated with the current action
       let actionProperties = this.computeActionProperties(index, currentSelections, previousSelections); 
 
+      if (actionProperties.action !== brushActions.TRANSLATE_LEFT) return {}; 
+
       let newSelections; 
       if (actionProperties.overlapped) {
-        // True if brush handles overlapped, this action is disallowed so revert to previous valid state 
         newSelections = actionProperties.previousSelections; 
       } else {
-        // Get the function required to perform the action 
         let res = functionFromAction(actionProperties.action)(index, actionProperties);  
-        // Many actions result in a shift to a subset of all indices. Perform this shift if necessary 
-        newSelections = this.perform_SHIFTS(res.currentSelections, res.shiftIndices, res.shift); 
+        newSelections = res.currentSelections; 
+        for (let shiftObj of res.shiftSet) {
+          let { shift, shiftIndices } = shiftObj; 
+          newSelections = this.performShifts(newSelections, shiftIndices, shift); 
+        }
       }
 
-      previousSelections = actionProperties.previousSelections; 
-
-      return { previousSelections, newSelections }; 
+      return newSelections
   }
 
-  computeAndPerformAction = (index, currentSelections) => {
-    // Compute properties associated with the current action
-    let { previousSelections, newSelections } = this.computeAction(index, currentSelections); 
-    this.updateAll(previousSelections, newSelections); 
-  }
+  computeAndPerformAction = (index, currentSelections) => this.updateAll(this.computeAction(index, currentSelections))
 
-  userBrushed = index => (this.isUserGeneratedBrushEvent(index) && 
-                          this.computeAndPerformAction(index))
+  userBrushed = (index) => (this.isUserGeneratedBrushEvent(index) && this.computeAndPerformAction(index))
 
-  updateAll = (previousSelections, newSelections) => {
-    this._updateBrushSelections(previousSelections, newSelections); 
+  updateAll = (newSelections) => {
+    this._updateBrushSelections(newSelections); 
     this._updateBrushExtras(newSelections);
     this.setState({ brushRanges: newSelections }); 
     this.props.ACTION_CHANGE_timeDomains(newSelections.map(s => s.map(this.props.controlScale.invert).map(t => new Date(t)))); 

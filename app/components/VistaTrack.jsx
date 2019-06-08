@@ -46,10 +46,14 @@ class VistaTrack extends React.Component {
             dr: !isPan ? -zoomDir * dZoom : undefined
         }; 
 
-        this.setState({ lastK: k, lastX: x, proposalId: newProposalId });
-        this.props.ACTION_CHANGE_proposal(proposal); 
-        this.updateTooltip(); 
+        if (isPan && lastX === x) {
+            this.setState({ lastK: k, lastX: x });
+        } else {
+            this.setState({ lastK: k, lastX: x, proposalId: newProposalId });
+            this.props.ACTION_CHANGE_proposal(proposal); 
+        }
         
+        this.updateTooltip();
     }
 
     initZoom() {
