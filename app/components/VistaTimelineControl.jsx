@@ -5,280 +5,29 @@ import { event as d3event } from 'd3';
 import _ from "lodash"; 
 import { assert } from "chai"; 
 
-import { 
-         ACTION_CHANGE_timeDomains, 
+import  { computeActionFromSelectionTransition, 
+          functionFromAction, 
+          performShifts,
+          CONTROL_CONFIGURATION
+        } from "./VistaTimelineControlUtility.js"; 
+
+import { ACTION_CHANGE_timeDomains, 
          ACTION_CHANGE_timeExtentDomain
        } from "../actions/actions"; 
 
-const MARGIN = {
-  left: 0, 
-  right: 0, 
-  top: 0, 
-  bottom: 5
-}; 
-const LOCK_WIDTH = 10; 
-const LOCK_HEIGHT = 10; 
-const LOCK_ACTIVE_COLOR = "grey"; 
-const LOCK_INACTIVE_COLOR = "black"; 
-const HANDLE_WIDTH = 12; 
-const HANDLE_HEIGHT = 12; 
-const MIN_CONTEXT_WIDTH = HANDLE_WIDTH * 2; 
-const MIN_FOCUS_WIDTH = HANDLE_WIDTH * 2; 
+const {
+  MARGIN,
+  LOCK_WIDTH, 
+  LOCK_HEIGHT, 
+  LOCK_ACTIVE_COLOR, 
+  LOCK_INACTIVE_COLOR, 
+  HANDLE_WIDTH, 
+  HANDLE_HEIGHT, 
+  MIN_CONTEXT_WIDTH, 
+  MIN_FOCUS_WIDTH
+} = CONTROL_CONFIGURATION;
 
 const tupdif = tup => tup[1] - tup[0]; 
-
-const brushActions = {
-
-  // Possible brush actions
-  RESIZE_SHRINK_LEFT: 0, 
-  RESIZE_SHRINK_RIGHT: 1, 
-  RESIZE_GROW_LEFT: 2, 
-  RESIZE_GROW_RIGHT: 3, 
-  TRANSLATE_LEFT: 4, 
-  TRANSLATE_RIGHT: 5, 
-
-  // If not resize, translate occurred 
-  isResize: function(brushAction) {
-     return [this.RESIZE_SHRINK_LEFT, 
-             this.RESIZE_SHRINK_RIGHT, 
-             this.RESIZE_GROW_LEFT, 
-             this.RESIZE_GROW_RIGHT].includes(brushAction); 
-  }, 
-
-  leftHandleChanged: function(brushAction) {
-    return [this.RESIZE_SHRINK_LEFT, 
-            this.RESIZE_GROW_LEFT, 
-            this.TRANSLATE_LEFT].includes(brushAction);
-  }
-
-}; 
-
-const computeAction = (preS, curS) => {
-  return  (preS[0] < curS[0] && preS[1] === curS[1]) ? brushActions.RESIZE_SHRINK_LEFT : 
-          (preS[0] > curS[0] && preS[1] === curS[1]) ? brushActions.RESIZE_GROW_LEFT :
-          (preS[1] > curS[1] && preS[0] === curS[0]) ? brushActions.RESIZE_SHRINK_RIGHT : 
-          (preS[1] < curS[1] && preS[0] === curS[0]) ? brushActions.RESIZE_GROW_RIGHT :           
-          (preS[0] > curS[0] && preS[1] > curS[1]) ?   brushActions.TRANSLATE_LEFT : 
-          (preS[0] < curS[0] && preS[1] < curS[1]) ?   brushActions.TRANSLATE_RIGHT : 
-          null;
-}
-
-const action = {
-  perform_RESIZE_SHRINK_LEFT: (index, actionProperties) => {
-
-    // Unpack properties 
-    let { 
-      leftHandleLocked, 
-      tooSmall, 
-      preS, 
-      curS, 
-      minWidth, 
-      leftLockIndex, 
-      leftLockBoundS, 
-      shift, 
-      leftIndexRange, 
-      shiftIndices, 
-      lockedToLeft, 
-      currentSelections
-    } = actionProperties; 
-
-    // Perform action 
-    if (leftHandleLocked) {
-      currentSelections[index] = preS;
-    } else {
-      if (tooSmall) {
-        currentSelections[index] = [preS[1] - minWidth, preS[1]];
-        shift = currentSelections[index][0] - preS[0];
-      } else {
-        shift = curS[0] - preS[0]; 
-      }
-      if (lockedToLeft) {
-        currentSelections[leftLockIndex] = [leftLockBoundS[0],
-                                        leftLockBoundS[1] + shift]; 
-        shiftIndices = _.range(leftIndexRange[0] + 1, leftIndexRange[1]); 
-      } else {
-        shiftIndices = _.range(...leftIndexRange); 
-      }
-    }
-
-    // Return new state 
-    return { shift, shiftIndices, currentSelections }; 
-  },
-  perform_RESIZE_SHRINK_RIGHT: (index, actionProperties) => {
-
-    let { 
-      rightHandleLocked, 
-      currentSelections, 
-      preS, 
-      curS, 
-      tooSmall, 
-      minWidth, 
-      shift, 
-      lockedToRight, 
-      rightLockBoundS, 
-      shiftIndices, 
-      rightIndexRange, 
-      rightLockIndex 
-    } = actionProperties; 
-
-    if (rightHandleLocked) {
-      currentSelections[index] = preS;
-    } else {
-      if (tooSmall) {
-        currentSelections[index] = [preS[0], preS[0] + minWidth];
-        shift = currentSelections[index][1] - preS[1];   
-      } else {
-        shift = curS[1] - preS[1];  
-      }
-      if (lockedToRight) {
-        currentSelections[rightLockIndex] = [rightLockBoundS[0], 
-                                          rightLockBoundS[1] + shift];
-        shiftIndices = _.range(index + 1, rightLockIndex); 
-      } else {
-        shiftIndices = _.range(...rightIndexRange);
-      }
-    }
-
-    return { shift, shiftIndices, currentSelections }; 
-  },
-  perform_RESIZE_GROW_LEFT: (index, actionProperties) => {
-
-    let { 
-      leftHandleLocked, 
-      currentSelections, 
-      preS, 
-      shift, 
-      curS, 
-      shiftIndices, 
-      leftIndexRange
-    } = actionProperties; 
-
-    if (leftHandleLocked) {
-      currentSelections[index] = preS; 
-    } else {
-      shift = curS[0] - preS[0]; 
-      shiftIndices = _.range(...leftIndexRange); 
-    }
-
-    return { shift, shiftIndices, currentSelections }; 
-  },
-  perform_RESIZE_GROW_RIGHT: (index, actionProperties) => {
-
-    let { 
-      rightHandleLocked, 
-      currentSelections, 
-      preS, 
-      curS, 
-      shift, 
-      shiftIndices, 
-      rightIndexRange
-    } = actionProperties; 
-
-    if (rightHandleLocked) {
-      currentSelections[index] = preS; 
-    } else {
-      shift = curS[1] - preS[1]; 
-      shiftIndices = _.range(...rightIndexRange); 
-    }
-
-    return { shift, shiftIndices, currentSelections }; 
-  },
-  perform_TRANSLATE_LEFT: (index, actionProperties) => {
-
-    let { 
-      isLocked, 
-      lockedToLeft, 
-      leftLockIndex, 
-      currentSelections, 
-      preS, 
-      curS, 
-      shiftSet, 
-      numBrushes, 
-      isFocus
-    } = actionProperties; 
-
-    let revertTargetToPreviousState = () => shiftSet.push({ 
-      shift: currentSelections[index-1][1] - curS[0], 
-      shiftIndices: [index]
-    });
-    
-    let shift, shiftIndices; 
-    if (isLocked) {
-      revertTargetToPreviousState(); 
-    } else {
-      if (isFocus) {
-        // The focus brush can steal space from the leftmost locked brush if there is space available 
-        if (lockedToLeft) {
-          let lockedS = currentSelections[leftLockIndex];
-          let newLockedS, minLeft, propLeft, minShiftI, maxShiftI, propShift;
-          // The closest locked brush to the left can shrink in dimension 
-          propShift = curS[0] - preS[0]; 
-          minLeft = lockedS[0] + MIN_CONTEXT_WIDTH; 
-          propLeft = lockedS[1] + propShift; 
-          newLockedS = [lockedS[0], Math.max(minLeft, propLeft)]; 
-          currentSelections[leftLockIndex] = newLockedS; 
-          // Compute the amount by which the brush shrunk, brushes between 
-          // the target and locked brushes will be shifted by this amount 
-          shift = newLockedS[1] - lockedS[1]; 
-          minShiftI = leftLockIndex + 1; 
-          maxShiftI = index; 
-          maxShiftI = Math.max(minShiftI, maxShiftI); 
-          shiftIndices = _.union(_.range(minShiftI, maxShiftI), _.range(maxShiftI + 1, numBrushes)); 
-          shiftSet.push({ shift, shiftIndices }); 
-          // Correct difference between proposed shift and actual shift for target 
-          shift = shift - propShift; 
-          shiftIndices = [index]; 
-          shiftSet.push({ shift, shiftIndices }); 
-        }
-      } else {
-        if (lockedToLeft) {
-          revertTargetToPreviousState();
-        } else {
-          // Shift all brushes except for the target 
-          shiftSet.push({
-            shift: curS[0] - preS[0], 
-            shiftIndices: _.range(0, numBrushes).filter(i => i !== index)
-          }); 
-        }
-      } 
-    }
-
-    return { currentSelections, shiftSet }; 
-  },
-  perform_TRANSLATE_RIGHT: (index, actionProperties) => {
-
-    let { 
-      isLocked, 
-      currentSelections, 
-      preS, 
-      curS, 
-      shift, 
-      shiftIndices, 
-      numBrushes
-    } = actionProperties; 
-
-    if (isLocked) {
-      currentSelections[index] = preS; 
-    } else {
-      shift = curS[0] - preS[0]; 
-      shiftIndices = _.range(0, numBrushes).filter(i => i !== index);
-    }
-
-    return { shift, shiftIndices, currentSelections };  
-  }
-};
-
-const functionFromAction = (currentAction) => {
-  switch (currentAction) {
-    case brushActions.RESIZE_SHRINK_LEFT:   return action.perform_RESIZE_SHRINK_LEFT;
-    case brushActions.RESIZE_SHRINK_RIGHT:  return action.perform_RESIZE_SHRINK_RIGHT;
-    case brushActions.RESIZE_GROW_LEFT:     return action.perform_RESIZE_GROW_LEFT; 
-    case brushActions.RESIZE_GROW_RIGHT:    return action.perform_RESIZE_GROW_RIGHT; 
-    case brushActions.TRANSLATE_LEFT:       return action.perform_TRANSLATE_LEFT;
-    case brushActions.TRANSLATE_RIGHT:      return action.perform_TRANSLATE_RIGHT; 
-    default:                                return null; 
-  }
-}
 
 class VistaTimelineControl extends React.Component {
 
@@ -349,10 +98,9 @@ class VistaTimelineControl extends React.Component {
         newSelections1 = previousSelections1.slice(); 
         newSelections1[focusIndex] = previousSelections1[focusIndex].map(v => v + shift); 
 
-        newSelections = this.computeAction(focusIndex, newSelections1, previousSelections1).newSelections; 
+        newSelections = this.computeAction(focusIndex, newSelections1, previousSelections1); 
         break; 
       case 'zoom': 
-
         // grow/shrink left 
         previousSelections1 = currentSelections.slice(); 
         newSelections1 = currentSelections.slice(); 
@@ -360,15 +108,16 @@ class VistaTimelineControl extends React.Component {
                                       previousSelections1[focusIndex][1]]; 
         
         // grow/shrink right 
-        previousSelections2 = this.computeAction(focusIndex, newSelections1, previousSelections1).newSelections; 
+        previousSelections2 = this.computeAction(focusIndex, newSelections1, previousSelections1); 
         newSelections2 = previousSelections2.slice(); 
         newSelections2[focusIndex] = [previousSelections2[focusIndex][0], 
                                       previousSelections2[focusIndex][1] + dr]; 
 
-        newSelections = this.computeAction(focusIndex, newSelections2, previousSelections2).newSelections;
+        newSelections = this.computeAction(focusIndex, newSelections2, previousSelections2);
         break; 
     }
-    this.updateAll(newSelections.map(e => 0), newSelections); 
+
+    this.updateAll(newSelections); 
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -616,12 +365,6 @@ class VistaTimelineControl extends React.Component {
     
   }
 
-  isBrushLeftLocked = (brushIndex) => this.state.brushLocks[brushIndex] 
-
-  isBrushRightLocked = (brushIndex) => this.state.brushLocks[brushIndex+1]
-
-  isBrushLocked = (brushIndex) => [this.isBrushLeftLocked(brushIndex), this.isBrushRightLocked(brushIndex)]
-
   getLockBounds(brushIndex) {
 
     // Determine the closest brush to the left of the current brush that is either left or right locked
@@ -678,7 +421,7 @@ class VistaTimelineControl extends React.Component {
     let overlapped = leftOverlappedRight || rightOverlappedLeft; 
     let shiftSet = []; 
     let { numBrushes } = this.state; 
-    let action = computeAction(preS, curS); 
+    let action = computeActionFromSelectionTransition(preS, curS); 
     assert(action !== null, 'invalid brush action');
     return { 
       isFocus,
@@ -711,6 +454,12 @@ class VistaTimelineControl extends React.Component {
     }; 
   }
 
+  isBrushLeftLocked = (brushIndex) => this.state.brushLocks[brushIndex] 
+
+  isBrushRightLocked = (brushIndex) => this.state.brushLocks[brushIndex+1]
+
+  isBrushLocked = (brushIndex) => [this.isBrushLeftLocked(brushIndex), this.isBrushRightLocked(brushIndex)]
+
   getBrushRanges = () => (
     // Returns an array of two element lists, each representing the current selected pixel 
     // region of all of the brushes 
@@ -719,10 +468,10 @@ class VistaTimelineControl extends React.Component {
         .map(d3.brushSelection)
   )
 
-  performShifts = (selections, shiftIndices, shift) => (
-    shift !== 0 ? selections.map((s,i) => shiftIndices.includes(i) ? s.map(e => e + shift) : s) : 
-                  selections
-  )
+  computeAndPerformAction = (index, currentSelections) => this.updateAll(this.computeAction(index, currentSelections))
+
+  userBrushed = (index) => (this.isUserGeneratedBrushEvent(index) && this.computeAndPerformAction(index))
+
 
   isUserGeneratedBrushEvent = (index) => !(
     // Ensure the current event was a user brush interaction 
@@ -734,11 +483,8 @@ class VistaTimelineControl extends React.Component {
   )
 
   computeAction(index, currentSelections=null, previousSelections=null) {
-      // Compute properties associated with the current action
+
       let actionProperties = this.computeActionProperties(index, currentSelections, previousSelections); 
-
-      if (actionProperties.action !== brushActions.TRANSLATE_LEFT) return {}; 
-
       let newSelections; 
       if (actionProperties.overlapped) {
         newSelections = actionProperties.previousSelections; 
@@ -747,16 +493,12 @@ class VistaTimelineControl extends React.Component {
         newSelections = res.currentSelections; 
         for (let shiftObj of res.shiftSet) {
           let { shift, shiftIndices } = shiftObj; 
-          newSelections = this.performShifts(newSelections, shiftIndices, shift); 
+          newSelections = performShifts(newSelections, shiftIndices, shift); 
         }
       }
 
       return newSelections
   }
-
-  computeAndPerformAction = (index, currentSelections) => this.updateAll(this.computeAction(index, currentSelections))
-
-  userBrushed = (index) => (this.isUserGeneratedBrushEvent(index) && this.computeAndPerformAction(index))
 
   updateAll = (newSelections) => {
     this._updateBrushSelections(newSelections); 
