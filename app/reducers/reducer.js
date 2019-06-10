@@ -4,9 +4,11 @@ const DEFAULT_state = {
     // Component logical properties (dynamic)
     timeExtentDomain: [new Date("06/22/1997"), new Date("06/22/2020")], 
     timeDomains: [
-        [new Date("06/22/1997"), new Date("06/22/2000")],
-        [new Date("06/23/2000"), new Date("06/22/2010")],
-        [new Date("06/23/2010"), new Date("06/22/2013")]
+        ['01/01/2012', '09/01/2012'].map(dateStr => new Date(dateStr)),
+        ['09/02/2012', '11/01/2013'].map(dateStr => new Date(dateStr)),
+        ['11/02/2013', '05/01/2014'].map(dateStr => new Date(dateStr)),
+        ['05/02/2014', '11/01/2014'].map(dateStr => new Date(dateStr)),
+        ['11/02/2014', '4/05/2015'].map(dateStr => new Date(dateStr))
     ], 
     proposal: { id: -1 },
 
@@ -15,7 +17,7 @@ const DEFAULT_state = {
     contextColor: '#aaaaaa', 
 
     // Component dimension properties (static)
-    numContextsPerSide: 1, 
+    numContextsPerSide: 2, 
     axesWidth: 40, 
     contextWidth: 100, 
     trackWidth: 700, 

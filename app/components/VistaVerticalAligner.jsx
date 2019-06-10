@@ -24,7 +24,7 @@ class VistaVerticalAligner extends React.Component {
         let topX = _.union(timeDomains.map(d => d[0]), [timeDomains[timeDomains.length-1][1]])
                     .map(controlScale); 
         let botX = []; 
-        let ys = [height/4, height/1.5, height/1.5, height/4]; 
+        let ys = [height/4, height/2.5, height/1.5, height/1.5, height/2.5, height/4]; 
 
         for (let i = 0; i < numContextsPerSide; i++) {
             botX.push(axesWidth + i * contextWidth); 

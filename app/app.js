@@ -37,18 +37,44 @@ d3.csv('../data/seattle-weather.csv', processRow)
         trackwiseValueKeys: ['temp_max', 'precipitation', 'wind', 'weather'], 
         trackwiseUnits: ['celsius', 'inches', 'km / hr', null],
         trackwiseEncodings: [
-            [[QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]], 
-            [[BarGroup, AverageLine], [BarGroup, AverageLine], [BarGroup, AverageLine]], 
-            [[ScatterGroup, AverageLine], [LineGroup, AverageLine], [ScatterGroup, AverageLine]], 
-            [NominalTraceGroup, EventGroup, NominalTraceGroup]
+            [
+                [QuantitativeTraceGroup, AverageLine], 
+                [QuantitativeTraceGroup, AverageLine], 
+                [LineGroup, AverageLine], 
+                [QuantitativeTraceGroup, AverageLine],
+                [QuantitativeTraceGroup, AverageLine] 
+            ], 
+            [
+                [BarGroup, AverageLine],
+                [BarGroup, AverageLine], 
+                [BarGroup, AverageLine], 
+                [BarGroup, AverageLine],
+                [BarGroup, AverageLine]
+            ], 
+            [
+                [ScatterGroup, AverageLine],
+                [ScatterGroup, AverageLine], 
+                [LineGroup, AverageLine], 
+                [ScatterGroup, AverageLine],
+                [ScatterGroup, AverageLine]
+            ], 
+            [
+                NominalTraceGroup,
+                NominalTraceGroup, 
+                EventGroup, 
+                NominalTraceGroup,
+                NominalTraceGroup
+            ]
         ],
 
         // Parameters to construct control 
         timeExtentDomain: dateExtent,  
         timeDomains: [
-            ['02/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
-            ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
-            ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)) 
+            ['01/01/2012', '09/01/2012'].map(dateStr => new Date(dateStr)),
+            ['09/02/2012', '11/01/2013'].map(dateStr => new Date(dateStr)),
+            ['11/02/2013', '05/01/2014'].map(dateStr => new Date(dateStr)),
+            ['05/02/2014', '11/01/2014'].map(dateStr => new Date(dateStr)),
+            ['11/02/2014', '4/05/2015'].map(dateStr => new Date(dateStr))
         ],
     }; 
 

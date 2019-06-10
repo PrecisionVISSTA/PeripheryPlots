@@ -204,12 +204,14 @@ class VistaTrack extends React.Component {
 
         let containerWidth = focusWidth + numContextsPerSide * contextWidth * 2 + axesWidth + padding;
 
-        let leftDates = _.union(leftContextTimeDomains.map(domain => domain[0]), 
-                                [leftContextTimeDomains[leftContextTimeDomains.length-1][1]])
-                        .map(formatter); 
-        let rightDates = _.union(rightContextTimeDomains.map(domain => domain[0]), 
-                                [rightContextTimeDomains[rightContextTimeDomains.length-1][1]])
-                        .map(formatter);
+        // let leftDates = _.union(leftContextTimeDomains.map(domain => domain[0]), 
+        //                         [leftContextTimeDomains[leftContextTimeDomains.length-1][1]])
+        //                 .map(formatter); 
+        // let rightDates = _.union(rightContextTimeDomains.map(domain => domain[0]), 
+        //                         [rightContextTimeDomains[rightContextTimeDomains.length-1][1]])
+        //                 .map(formatter);
+
+        // debugger;
                         
         return (
         <div style={{ width: containerWidth, paddingLeft: padding, paddingRight: padding, marginBottom: 3 }}>
