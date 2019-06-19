@@ -16,4 +16,4 @@ This implementation requires the latest version of [NodeJS](https://nodejs.org/e
 
 ## Preprint
 
-A preprint describing the periphery plot data visualization approach in more detail will be available on arxiv.
+A preprint describing the periphery plot data visualization approach in detail is available on arxiv: https://arxiv.org/abs/1906.07637.
