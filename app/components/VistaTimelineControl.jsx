@@ -7,9 +7,10 @@ import { assert } from "chai";
 
 import  { computeActionFromSelectionTransition, 
           functionFromAction, 
-          performShifts,
-          CONTROL_CONFIGURATION
-        } from "./VistaTimelineControlUtility.js"; 
+          performShifts
+        } from "./VistaTimelineControlUtility.js";
+        
+import { CONTROL_CONFIGURATION } from "./VistaTimelineControlConfiguration.js"; 
 
 import { ACTION_CHANGE_timeDomains, 
          ACTION_CHANGE_timeExtentDomain
@@ -424,6 +425,8 @@ class VistaTimelineControl extends React.Component {
     let leftOverlappedRight = preS[1] === curS[0]; 
     let rightOverlappedLeft = preS[0] === curS[1]; 
     let overlapped = leftOverlappedRight || rightOverlappedLeft; 
+    let isFirst = index === 0; 
+    let isLast = index === numBrushes - 1; 
     let shiftSet = []; 
     let { numBrushes } = this.state; 
     let action = computeActionFromSelectionTransition(preS, curS); 
@@ -455,7 +458,9 @@ class VistaTimelineControl extends React.Component {
       rightLockBoundS, 
       leftOverlappedRight, 
       rightOverlappedLeft, 
-      shiftSet
+      shiftSet, 
+      isFirst, 
+      isLast
     }; 
   }
 
