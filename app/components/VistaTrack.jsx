@@ -27,11 +27,6 @@ class VistaTrack extends React.Component {
             return;
         }
 
-        /* 
-        Produce a pan proposal 
-        Produce a grow / shrink proposal 
-        */ 
-        
         let { lastK, lastX, proposalId } = this.state; 
         let { k, x } = d3.zoomTransform(d3.select(this.ZOOM_REF).node());
         let dZoom = 2; 
@@ -46,11 +41,9 @@ class VistaTrack extends React.Component {
             dr: !isPan ? -zoomDir * dZoom : undefined
         }; 
 
-        if (isPan && lastX === x) {
-            this.setState({ lastK: k, lastX: x });
-        } else {
+        if ((isPan && lastX !== x) || lastK !== k) {
             this.setState({ lastK: k, lastX: x, proposalId: newProposalId });
-            this.props.ACTION_CHANGE_proposal(proposal); 
+            this.props.ACTION_CHANGE_proposal(proposal);
         }
         
         this.updateTooltip();

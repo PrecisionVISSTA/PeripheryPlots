@@ -93,9 +93,9 @@ class VistaTimelineControl extends React.Component {
         newSelections; 
 
     // TODO: Remove this when locking is implemented for single handle resizing 
-    let aBrushIsLocked = this.state.brushLocks.reduce((acc,cur) => acc || cur, false); 
-    if (proposal.type === 'zoom' && aBrushIsLocked) 
-      return; 
+    // let aBrushIsLocked = this.state.brushLocks.reduce((acc,cur) => acc || cur, false); 
+    // if (proposal.type === 'zoom' && aBrushIsLocked) 
+    //   return; 
 
     switch (proposal.type) {
       case 'pan': 
@@ -485,8 +485,8 @@ class VistaTimelineControl extends React.Component {
   isUserGeneratedBrushEvent = (index) => !(
     // Ensure the current event was a user brush interaction 
     // We do not perform updates on zooms of via calls to brush.move 
-    !d3.select(`#${this.state.brushIds[index]}`).node() || 
-    !d3event.sourceEvent ||
+    (!d3.select(`#${this.state.brushIds[index]}`).node()) || 
+    (!d3event.sourceEvent) ||
     (d3event.sourceEvent && d3event.sourceEvent.type === 'brush') || 
     (d3event.sourceEvent && d3event.sourceEvent.type === 'zoom')
   )
@@ -498,7 +498,8 @@ class VistaTimelineControl extends React.Component {
       if (actionProperties.overlapped) {
         newSelections = actionProperties.previousSelections; 
       } else {
-        let res = functionFromAction(actionProperties.action)(index, actionProperties);  
+        let actionExecutor = functionFromAction(actionProperties.action);
+        let res = actionExecutor(index, actionProperties);  
         newSelections = res.currentSelections; 
         for (let shiftObj of res.shiftSet) {
           let { shift, shiftIndices } = shiftObj; 
