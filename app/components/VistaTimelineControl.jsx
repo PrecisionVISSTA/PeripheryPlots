@@ -200,6 +200,16 @@ class VistaTimelineControl extends React.Component {
             .attr('fill', LOCK_INACTIVE_COLOR)
             .attr('rx', LOCK_HEIGHT / 4)
             .on('click', _.partial(lockClick, lockId)); 
+
+            // .append('path')
+            // .attr('d', "M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z")
+            // .attr('id', lockId)
+            // .attr('x', 0)
+            // .attr('y', y)
+            // .attr('width', LOCK_WIDTH)
+            // .attr('height', LOCK_HEIGHT)
+            // .attr('transform', `scale(.5) translate(${x - LOCK_WIDTH / 2},0)`)
+            // .on('click', _.partial(lockClick, lockId)); 
     }
 
     // Creating a locking mechanism for every bi-directional handle 

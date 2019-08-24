@@ -13,6 +13,8 @@ import NominalTraceGroup from "./encodings/VPE/NominalTraceGroup.jsx";
 import AverageLine from "./encodings/VPE/AverageLine.jsx"; 
 import VistaViewer from "./components/VistaViewer.jsx";
 
+import validateConfig from "./util/configValidation.js"; 
+
 let data = []; 
 function processRow(row) {
     if (row && row.date) {
@@ -28,20 +30,30 @@ d3.csv('../data/seattle-weather.csv', processRow)
 
     let dateExtent = d3.extent(data.map(d => d.date)); 
 
-    // Testing with 3 tracks 
     let config = {
 
         // Parameters to construct tracks
         trackwiseObservations: [data, data, data, data],
         trackwiseTimeKeys: ['date', 'date', 'date', 'date'], 
         trackwiseValueKeys: ['temp_max', 'precipitation', 'wind', 'weather'], 
+        trackwiseTypes: ['continuous', 'continuous', 'continuous', 'discrete'],
         trackwiseUnits: ['celsius', 'inches', 'km / hr', null],
         trackwiseEncodings: [
-            [[QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]], 
-            [[BarGroup, AverageLine], [BarGroup, AverageLine], [BarGroup, AverageLine]], 
-            [[ScatterGroup, AverageLine], [LineGroup, AverageLine], [ScatterGroup, AverageLine]], 
-            [NominalTraceGroup, EventGroup, NominalTraceGroup]
+            [
+                [QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]
+            ], 
+            [
+                [BarGroup, AverageLine], [BarGroup, AverageLine], [BarGroup, AverageLine]
+            ], 
+            [
+                [ScatterGroup, AverageLine], [LineGroup, AverageLine], [ScatterGroup, AverageLine]
+            ], 
+            [
+                NominalTraceGroup, EventGroup, NominalTraceGroup
+            ]
         ],
+        applyContextsUniformly: false, 
+        numContextsPerSide: 1, 
 
         // Parameters to construct control 
         timeExtentDomain: dateExtent,  
@@ -49,8 +61,11 @@ d3.csv('../data/seattle-weather.csv', processRow)
             ['02/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
             ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
             ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)) 
-        ],
+        ]
+
     }; 
+
+    validateConfig(config); 
 
     ReactDOM.render(
         <VistaViewer config={config}/>, 
