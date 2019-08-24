@@ -17,3 +17,19 @@ This implementation requires the latest version of [NodeJS](https://nodejs.org/e
 ## Preprint
 
 A preprint describing the periphery plot data visualization approach in detail is available on arxiv: https://arxiv.org/abs/1906.07637.
+
+## Component Configuration 
+
+
+| Property  | Type | Description |
+| ------------- | ------------- | ------------- |
+| `trackwiseObservations` | [ [ Object, ... ], ... ] | The set of temporal observations for each track. |
+| `trackwiseTimeKeys` | [ String, ... ] | The property used to extract the temporal attribute of an observation. |
+| `trackwiseValueKeys` | [ String, ... ] | The property used to extract the value attributre of an observation.  |
+| `trackwiseTypes` | [ String, ... ] | The type of data for each track. Can be "continuous" or "discrete". |
+| `trackwiseUnits` | [ String OR Null, ... ] | The corresponding unit (if one exists) for each tracks data source. |
+| `trackwiseEncodings` | [ React.Component OR [ React.Component, ... ], ... ] | The encoding specification for tracks. |
+| `applyEncodingsUniformly` | Boolean | Determines the number of encoding specifications required. |
+| `numContextsPerSide` | Integer | The number of context plots on each side of the focus plot. |
+| `timeExtentDomain` | [ Date, Date ] | A temporal range including all data observations across all data sources. |
+| `timeDomains` | [ [ Date, Date ], ... ] | A set of temporal ranges which correspond to the initially selected brush regions in control component. |
