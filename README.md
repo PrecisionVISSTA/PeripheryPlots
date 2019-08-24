@@ -20,6 +20,7 @@ A preprint describing the periphery plot data visualization approach in detail i
 
 ## Component Configuration 
 
+The PeripheryPlots React component takes a single configuration object as input. This object encapsulates the data model and initial state of the componet. 
 
 | Property  | Type | Description |
 | ------------- | ------------- | ------------- |
@@ -33,3 +34,53 @@ A preprint describing the periphery plot data visualization approach in detail i
 | `numContextsPerSide` | Integer | The number of context plots on each side of the focus plot. |
 | `timeExtentDomain` | [ Date, Date ] | A temporal range including all data observations across all data sources. |
 | `timeDomains` | [ [ Date, Date ], ... ] | A set of temporal ranges which correspond to the initially selected brush regions in control component. |
+
+Some of the descriptions in the table above are sufficient, but some properties are more complex and must satisfy specific criteria to be considered valid.
+
+We describe these properties in further detail as they relate to the two core subcomponents of the parent PeripheryPlot component: 
+
+* Tracks 
+* Control Timeline 
+
+### Tracks 
+
+Tracks are vertically aligned containers that house multiple focus and context plots. The plots are horizontally organized along the temporal axis. The focus plot is always in the middle and there are an equal number of context plots on both sides of the focus plot. 
+
+All properties that begin with the word 'trackwise' are arrays and they must have equal lengths. The *ith* value in each of these arrays corresponds to some property for the *ith* track. 
+
+*`trackwiseObservations`* 
+> Each individual set of observations is an array of objects. Each object is a temporal observation with a temporal attribute and one or more value attributes. 
+
+*`trackwiseTypes`*
+> We broadly group data into two main classes:
+<br>* Continuous (assumed to be numeric)
+<br>* Discrete (can be numeric or of some other form)
+
+*`trackwiseUnits`* 
+> This information is used to display optional labels.
+
+*`trackwiseEncodings`* 
+> Each track has is bound to an array of encodings. The individual elements in an encodings array can be 
+> * A React component
+>   * A single view is bound to a single plot. 
+> * An array where each element is a React component 
+>   * Multiple views are bound to a single plot. The views are rendered in the order they are specified, stacking on top of previously rendered views. 
+>     * ex: [BarChart, AverageLine] would result in a bar chart with an average line rendered on top. You can see an example of this in the 'precipitation' track in the teaser image located near the top of the README. 
+>
+> The value of `applyEncodingsUniformly` influences the length of the encoding specification for each track. 
+> * when `true`: 
+>   * Each encoding array must have a length of 3. First element describes the encodings to be applied to all left contexts. The second element describes the encodings to apply to the focus. The third element describes the encodings to be applied to all right contexts. 
+> * when `false`: 
+>   * Each encoding array must have a length equal to `(numContextsPerSide * 2) + 1`. Encodings are individually described for each focus and context plot. 
+
+### Control Timeline
+
+The control timeline is a set of multiple linked brushes which allow users to dynamically configure focus and context zones, temporal regions to be viewed and summarized at varying visual resolutions. 
+
+The ith brush (from left to right) in the control timeline determines the temporal period bound to the ith subplot (from left to right) across all tracks in the interface. 
+
+*`timeExtentDomain`*
+> A temporal range containing all points. This should almost always be as small as possible, so there is no temporal subrange for which there is no data. 
+
+*`timeDomains`*
+> The initial temporal ranges of analysis. There should be `(numContextsPerSide * 2) + 1` timeDomains specified. There should be no temporal distance between two adjacent temporal ranges (i.e. where `timeDomains[i]` ends, `timeDomains[i+1]` should begin). 
