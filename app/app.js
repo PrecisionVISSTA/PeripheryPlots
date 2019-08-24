@@ -11,7 +11,7 @@ import MovingAverageEnvelopeGroup from "./encodings/TVPE/MovingAverageEnvelopeGr
 import QuantitativeTraceGroup from "./encodings/VPE/QuantitativeTraceGroup.jsx"; 
 import NominalTraceGroup from "./encodings/VPE/NominalTraceGroup.jsx"; 
 import AverageLine from "./encodings/VPE/AverageLine.jsx"; 
-import VistaViewer from "./components/VistaViewer.jsx";
+import PeripheryPlots from "./components/PeripheryPlots.jsx";
 
 import validateConfig from "./util/configValidation.js"; 
 
@@ -68,7 +68,7 @@ d3.csv('../data/seattle-weather.csv', processRow)
     validateConfig(config); 
 
     ReactDOM.render(
-        <VistaViewer config={config}/>, 
+        <PeripheryPlots config={config}/>, 
         document.getElementById('ROOT')
     );
 
