@@ -55,7 +55,7 @@ class Track extends React.Component {
 
     updateAxes() {
         let { axis, quantitativeScale, categoricalScale } = this.state; 
-        let { observations, valueKey, trackHeight, trackPaddingTop, trackPaddingBottom } = this.props; 
+        let { observations, valueKey, trackHeight, trackSvgOffsetTop, trackSvgOffsetBottom } = this.props; 
         
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                             d3.extent(observations.map(o => o[valueKey]));
@@ -63,7 +63,7 @@ class Track extends React.Component {
         let isQuantitative = valueDomain.length === 2 && !isNaN(valueDomain[0]) && !isNaN(valueDomain[1]);
 
         let scale = isQuantitative ? quantitativeScale : categoricalScale; 
-        let range = [trackHeight - trackPaddingBottom - 1, trackPaddingTop]; 
+        let range = [trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop]; 
 
         scale.domain(valueDomain).range(range); 
         d3.select(this.AXES_REF).call(isQuantitative ?  axis.scale(scale.nice()).ticks(4) : 
@@ -151,8 +151,8 @@ class Track extends React.Component {
             numContextsPerSide, 
             encodings, 
             trackHeight, 
-            trackPaddingTop,
-            trackPaddingBottom, 
+            trackSvgOffsetTop,
+            trackSvgOffsetBottom, 
             axesWidth, 
             focusColor, 
             contextColor, 
@@ -184,18 +184,18 @@ class Track extends React.Component {
         let rightContextObservations = rightContextTimeDomains.map(observationsInDomain); 
 
         let contextXRange = [0, contextWidth];
-        let contextYRange = [trackHeight - trackPaddingBottom, trackPaddingTop];  
+        let contextYRange = [trackHeight - trackSvgOffsetBottom, trackSvgOffsetTop];  
         let focusXRange = [0, focusWidth]; 
-        let focusYRange = [trackHeight - trackPaddingBottom, trackPaddingTop];
+        let focusYRange = [trackHeight - trackSvgOffsetBottom, trackSvgOffsetTop];
         let contextScaleRangeToBox = _.partial(scaleRangeToBox, contextXRange, contextYRange); 
         let focusScaleRangeToBox = _.partial(scaleRangeToBox, focusXRange, focusYRange); 
 
-        let tHeight = trackHeight - trackPaddingTop - trackPaddingBottom; 
+        let tHeight = trackHeight - trackSvgOffsetTop - trackSvgOffsetBottom; 
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                              d3.extent(observations.map(o => o[valueKey]));
                         
         return (
-        <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding, marginBottom: 3 }}>
+        <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding }}>
 
             <div style={{ width: "100%", display: "block" }}>
                 <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', marginTop: 3, marginBottom: 3 }}>
@@ -227,7 +227,7 @@ class Track extends React.Component {
                         {/* Left context border */}
                         <rect 
                         x={0} 
-                        y={trackPaddingTop} 
+                        y={trackSvgOffsetTop} 
                         width={contextWidth} 
                         height={tHeight} 
                         stroke={contextColor} 
@@ -237,7 +237,7 @@ class Track extends React.Component {
                         <clipPath id={clipId}>
                             <rect 
                             x={0} 
-                            y={trackPaddingTop} 
+                            y={trackSvgOffsetTop} 
                             width={contextWidth} 
                             height={tHeight}/>
                         </clipPath>
@@ -287,7 +287,7 @@ class Track extends React.Component {
                     <clipPath id="focus-clip">
                         <rect 
                         x={0} 
-                        y={trackPaddingTop} 
+                        y={trackSvgOffsetTop} 
                         width={focusWidth} 
                         height={tHeight}/>
                     </clipPath>
@@ -297,7 +297,7 @@ class Track extends React.Component {
                     {/* Focus Border */}
                     <rect 
                     x={0} 
-                    y={trackPaddingTop} 
+                    y={trackSvgOffsetTop} 
                     width={focusWidth} 
                     height={tHeight} 
                     stroke={focusColor} 
@@ -333,7 +333,7 @@ class Track extends React.Component {
                     <rect
                     className="focus-time-bar"
                     x={0}
-                    y={trackPaddingTop + 1}
+                    y={trackSvgOffsetTop + 1}
                     width={.1}
                     height={tHeight - 2}
                     stroke="#515151"/>
@@ -344,7 +344,7 @@ class Track extends React.Component {
                     className={`zoom`}
                     pointerEvents="all"
                     x={0} 
-                    y={trackPaddingTop} 
+                    y={trackSvgOffsetTop} 
                     width={focusWidth} 
                     height={tHeight} 
                     fill='none'/>
@@ -378,7 +378,7 @@ class Track extends React.Component {
                     style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
                         <rect 
                         x={0} 
-                        y={trackPaddingTop} 
+                        y={trackSvgOffsetTop} 
                         width={contextWidth} 
                         height={tHeight} 
                         stroke={contextColor} 
@@ -387,7 +387,7 @@ class Track extends React.Component {
                         <clipPath id={clipId}>
                             <rect 
                             x={0} 
-                            y={trackPaddingTop} 
+                            y={trackSvgOffsetTop} 
                             width={contextWidth} 
                             height={tHeight}/>
                         </clipPath>
@@ -437,8 +437,8 @@ const mapStateToProps = ({
     contextWidth, 
     trackWidth, 
     trackHeight, 
-    trackPaddingTop, 
-    trackPaddingBottom, 
+    trackSvgOffsetTop, 
+    trackSvgOffsetBottom, 
     axesWidth, 
     numContextsPerSide, 
     baseWidth
@@ -452,8 +452,8 @@ const mapStateToProps = ({
     contextWidth, 
     trackWidth, 
     trackHeight, 
-    trackPaddingTop, 
-    trackPaddingBottom, 
+    trackSvgOffsetTop, 
+    trackSvgOffsetBottom, 
     axesWidth, 
     numContextsPerSide, 
     baseWidth

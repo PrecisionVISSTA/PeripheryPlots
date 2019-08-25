@@ -63,7 +63,17 @@ d3.csv('../data/seattle-weather.csv', processRow)
             ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)) 
         ], 
 
-        contextWidthRatio: .2
+        contextWidthRatio: .3, 
+
+        // Optional attributes 
+        containerBackgroundColor: '#ebebeb',
+        containerPadding: 10, 
+        controlTimelineHeight: 50, 
+        verticalAlignerHeight: 30, 
+        axesWidth: 40, 
+        trackHeight: 50, 
+        trackSvgOffsetTop: 10, 
+        trackSvgOffsetBottom: 0
 
     }; 
 

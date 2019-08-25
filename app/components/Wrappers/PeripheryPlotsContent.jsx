@@ -8,7 +8,15 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_timeExtentDomain, 
             ACTION_CHANGE_baseWidth, 
             ACTION_CHANGE_contextWidthRatio, 
-            ACTION_CHANGE_numContextsPerSide } from "../../actions/actions"; 
+            ACTION_CHANGE_numContextsPerSide,
+            ACTION_CHANGE_containerPadding, 
+            ACTION_CHANGE_controlTimelineHeight, 
+            ACTION_CHANGE_verticalAlignerHeight, 
+            ACTION_CHANGE_axesWidth, 
+            ACTION_CHANGE_trackHeight, 
+            ACTION_CHANGE_trackSvgOffsetTop, 
+            ACTION_CHANGE_trackSvgOffsetBottom
+        } from "../../actions/actions"; 
 
 import TimelineControl from "../ControlTimeline/TimelineControl.jsx"; 
 import Track from "../Tracks/Track.jsx"; 
@@ -27,9 +35,8 @@ function PeripheryPlotsContent(props) {
         trackwiseUnits, 
         trackwiseTimeKeys, 
         trackwiseValueKeys, 
-        trackwiseEncodings, 
-        contextWidthRatio, 
-        numContextsPerSide } = config;
+        trackwiseEncodings 
+    } = config;
 
     const [controlScale, setControlScale] = useState(() => d3.scaleTime()); 
     const [ref, { width }] = useDimensions();
@@ -58,8 +65,32 @@ function PeripheryPlotsContent(props) {
 
     let doRender = controlScale.range()[1] > 0 && baseWidth > 0; 
 
+    let containerBackgroundColor = config.containerBackgroundColor === undefined ? '#fff' : config.containerBackgroundColor; 
+
+    // Update store with optional properties anytime user changes configuration option
+    useEffect(() => {
+
+        const optionalProperties = [
+            'containerPadding', 
+            'controlTimelineHeight', 
+            'verticalAlignerHeight', 
+            'axesWidth', 
+            'trackHeight', 
+            'trackSvgOffsetTop', 
+            'trackSvgOffsetBottom'
+        ]; 
+
+        for (let p of optionalProperties) {
+            let value = config[p]; 
+            if (value !== undefined) {
+                props[`ACTION_CHANGE_${p}`](value); 
+            }
+        }
+
+    }, [config]); 
+
     return (
-    <div ref={ref} style={{ width: '100%' }}>
+    <div ref={ref} style={{ width: '100%', backgroundColor: containerBackgroundColor }}>
         {doRender ? 
             <React.Fragment>
 
@@ -128,7 +159,28 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ACTION_CHANGE_contextWidthRatio(contextWidthRatio)), 
 
     ACTION_CHANGE_numContextsPerSide: (numContextsPerSide) => 
-    dispatch(ACTION_CHANGE_numContextsPerSide(numContextsPerSide))
+    dispatch(ACTION_CHANGE_numContextsPerSide(numContextsPerSide)),
+
+    ACTION_CHANGE_containerPadding: (containerPadding) => 
+    dispatch(ACTION_CHANGE_containerPadding(containerPadding)), 
+
+    ACTION_CHANGE_controlTimelineHeight: (controlTimelineHeight) => 
+    dispatch(ACTION_CHANGE_controlTimelineHeight(controlTimelineHeight)), 
+
+    ACTION_CHANGE_verticalAlignerHeight: (verticalAlignerHeight) => 
+    dispatch(ACTION_CHANGE_verticalAlignerHeight(verticalAlignerHeight)), 
+
+    ACTION_CHANGE_axesWidth: (axesWidth) => 
+    dispatch(ACTION_CHANGE_axesWidth(axesWidth)), 
+
+    ACTION_CHANGE_trackHeight: (trackHeight) => 
+    dispatch(ACTION_CHANGE_trackHeight(trackHeight)), 
+
+    ACTION_CHANGE_trackSvgOffsetTop: (trackSvgOffsetTop) => 
+    dispatch(ACTION_CHANGE_trackSvgOffsetTop(trackSvgOffsetTop)), 
+
+    ACTION_CHANGE_trackSvgOffsetBottom: (trackSvgOffsetBottom) => 
+    dispatch(ACTION_CHANGE_trackSvgOffsetBottom(trackSvgOffsetBottom))
 
 }); 
 

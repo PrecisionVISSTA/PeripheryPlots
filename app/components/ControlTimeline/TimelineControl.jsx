@@ -33,13 +33,13 @@ const tupdif = tup => tup[1] - tup[0];
 class TimelineControl extends React.Component {
 
   state = {
-    brushes: [], //collection of d3 brush objects 
-    brushIds: [], // Collection of brush ids for selection 
-    brushLocks: [], // Collection of booleans to indicate whether or not a brush is locked 
-    brushLockIds: [], // Collection of ids to reference brush lock ids 
-    numBrushes: 0, // The total number of brushes 
-    brushHeight: 0, // The vertical height of the brush 
-    brushRanges: [], // The current selected regions for all brushes in pixel space 
+    brushes: [],        //collection of d3 brush objects 
+    brushIds: [],       // Collection of brush ids for selection 
+    brushLocks: [],     // Collection of booleans to indicate whether or not a brush is locked 
+    brushLockIds: [],   // Collection of ids to reference brush lock ids 
+    numBrushes: 0,      // The total number of brushes 
+    brushHeight: 0,     // The vertical height of the brush 
+    brushRanges: [],    // The current selected regions for all brushes in pixel space 
     timelineScale: d3.scaleTime(), 
     timelineAxis: d3.axisBottom() 
   }
@@ -190,6 +190,9 @@ class TimelineControl extends React.Component {
         }
       }
 
+      // Update state with newly selected brush ranges
+      this.setState({ brushRanges });
+
     }
 
     // D3 performs updates in all other cases 
@@ -310,6 +313,10 @@ class TimelineControl extends React.Component {
                       .attr('clipPath', `url(#${clipId})`)
                       .call(brushFn.on("brush", userBrushed))
                       .call(brushFn.move, brushSelection); 
+
+      // Removes white stroke outline from brush. This looks bad if the user uses a custom style 
+      // and the background color clashes with the white 
+      brushG.selectAll('rect').attr('stroke', 'none'); 
 
       // Removes pointer events on overlay which takes up 100% of space in svg container 
       // By doing this, we only capture mouse events that occur over the selection region 
@@ -589,7 +596,7 @@ class TimelineControl extends React.Component {
   }
 
   render() {  
-    return <div style={{ position: 'relative', border: '1px solid red' }} ref={ref => this.ROOT = ref}/>
+    return <div style={{ position: 'relative' }} ref={ref => this.ROOT = ref}/>
   }
 
 }

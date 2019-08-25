@@ -8,26 +8,25 @@ const DEFAULT_state = {
         [new Date("06/23/2000"), new Date("06/22/2010")],
         [new Date("06/23/2010"), new Date("06/22/2013")]
     ], 
-    proposal: { id: -1 },
+    proposal: { id: -1 },     
 
-    // Component styling properties (static)
-    focusColor: '#515151', 
-    contextColor: '#aaaaaa', 
+    // Computed dynamically at runtime 
+    baseWidth: null,       
 
-    // Properties from user configuration
+    // Required properties from user configuration 
     numContextsPerSide: null, 
     contextWidthRatio: null, 
 
-    // Component dimension properties
-    baseWidth: 0,                   // computed dynamically at runtime. component fills all available space
-    axesWidth: 40, 
-    controlTimelineHeight: 60, 
-    trackHeight: 60, 
-    trackPaddingTop: 10, 
-    trackPaddingBottom: 10, 
-    verticalAlignerHeight: 30, 
+    // Appearance / layout properties with sensible defaults 
+    focusColor: '#515151', 
+    contextColor: '#aaaaaa',
     containerPadding: 12, 
-
+    controlTimelineHeight: 60, 
+    verticalAlignerHeight: 30, 
+    axesWidth: 40, 
+    trackHeight: 60, 
+    trackSvgOffsetTop: 10, 
+    trackSvgOffsetBottom: 10
 
 };
 
@@ -89,8 +88,36 @@ const reducer = (state = DEFAULT_state, action) => {
                                                                     state.containerPadding, 
                                                                     state.axesWidth);
             return { ...state, contextWidthRatio, focusWidth, contextWidth }; 
+        },
+        'CHANGE_containerPadding': () => {
+            let { containerPadding } = action;
+            return { ...state, containerPadding }; 
+        },
+        'CHANGE_controlTimelineHeight': () => {
+            let { controlTimelineHeight } = action;
+            return { ...state, controlTimelineHeight }; 
+        },
+        'CHANGE_verticalAlignerHeight': () => {
+            let { verticalAlignerHeight } = action;
+            return { ...state, verticalAlignerHeight }; 
+        },
+        'CHANGE_axesWidth': () => {
+            let { axesWidth } = action;
+            return { ...state, axesWidth }; 
+        },
+        'CHANGE_trackHeight': () => {
+            let { trackHeight } = action;
+            return { ...state, trackHeight }; 
+        },
+        'CHANGE_trackSvgOffsetTop': () => {
+            let { trackSvgOffsetTop } = action;
+            return { ...state, trackSvgOffsetTop }; 
+        },
+        'CHANGE_trackSvgOffsetBottom': () => {
+            let { trackSvgOffsetBottom } = action;
+            return { ...state, trackSvgOffsetBottom }; 
         }
-    }
+    };
 
     let mutator = mutations[action.type]; 
     return mutator === undefined ? state : mutator(); 

@@ -40,3 +40,53 @@ export function ACTION_CHANGE_contextWidthRatio (contextWidthRatio) {
     }
 };
 
+export function ACTION_CHANGE_containerPadding (containerPadding) {
+    return {
+        type: 'CHANGE_containerPadding', 
+        containerPadding
+    }
+};
+
+export function ACTION_CHANGE_controlTimelineHeight (controlTimelineHeight) {
+    return {
+        type: 'CHANGE_controlTimelineHeight', 
+        controlTimelineHeight
+    }
+};
+
+export function ACTION_CHANGE_verticalAlignerHeight (verticalAlignerHeight) {
+    return {
+        type: 'CHANGE_verticalAlignerHeight', 
+        verticalAlignerHeight
+    }
+};
+
+
+export function ACTION_CHANGE_axesWidth (axesWidth) {
+    return {
+        type: 'CHANGE_axesWidth', 
+        axesWidth
+    }
+};
+
+export function ACTION_CHANGE_trackHeight (trackHeight) {
+    return {
+        type: 'CHANGE_trackHeight', 
+        trackHeight
+    }
+};
+
+export function ACTION_CHANGE_trackSvgOffsetTop (trackSvgOffsetTop) {
+    return {
+        type: 'CHANGE_trackSvgOffsetTop', 
+        trackSvgOffsetTop
+    }
+};
+
+export function ACTION_CHANGE_trackSvgOffsetBottom (trackSvgOffsetBottom) {
+    return {
+        type: 'CHANGE_trackSvgOffsetBottom', 
+        trackSvgOffsetBottom
+    }
+};
+
