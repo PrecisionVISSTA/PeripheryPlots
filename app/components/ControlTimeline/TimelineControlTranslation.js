@@ -1,6 +1,6 @@
 import _ from "lodash"; 
-import { packMultiIndex } from "./VistaTimelineControlUtility.js"; 
-import { BRUSH_ACTIONS } from "./VistaTimelineControlConfiguration.js"; 
+import { packMultiIndex } from "./TimelineControlUtility.js"; 
+import { BRUSH_ACTIONS } from "./TimelineControlConfiguration.js"; 
 
 function TRANSLATE_revertTargetToPreviousState(index, actionProperties) {
     let { shiftSet, previousSelections, curS } = actionProperties; 

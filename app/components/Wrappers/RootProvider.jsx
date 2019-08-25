@@ -2,9 +2,9 @@ import React from "react";
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 
-import reducer from "../reducers/reducer.js"; 
+import reducer from "../../reducers/reducer.js"; 
 
-class VistaDataProviderWrapper extends React.Component {
+class RootProvider extends React.Component {
 
     state = {
         store: createStore(
@@ -23,6 +23,6 @@ class VistaDataProviderWrapper extends React.Component {
 
 }
 
-export default VistaDataProviderWrapper; 
+export default RootProvider; 
 
     

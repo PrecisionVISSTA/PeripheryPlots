@@ -1,6 +1,6 @@
 import _ from "lodash"; 
-import { BRUSH_ACTIONS } from "./VistaTimelineControlConfiguration.js";
-import { packMultiIndex } from "./VistaTimelineControlUtility.js"; 
+import { BRUSH_ACTIONS } from "./TimelineControlConfiguration.js";
+import { packMultiIndex } from "./TimelineControlUtility.js"; 
 
 function GROW_revertTargetToPreviousState(index, actionProperties) {
     let { preS, currentSelections } = actionProperties; 

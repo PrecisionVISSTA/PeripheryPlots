@@ -1,8 +1,8 @@
 import _ from "lodash"; 
-import { perform_TRANSLATE } from "./VistaTimelineControlTranslation.js";  
-import { perform_SHRINK } from "./VistaTimelineControlShrink.js"; 
-import { perform_GROW } from "./VistaTimelineControlGrow.js"; 
-import { BRUSH_ACTIONS } from "./VistaTimelineControlConfiguration.js"; 
+import { perform_TRANSLATE } from "./TimelineControlTranslation.js";  
+import { perform_SHRINK } from "./TimelineControlShrink.js"; 
+import { perform_GROW } from "./TimelineControlGrow.js"; 
+import { BRUSH_ACTIONS } from "./TimelineControlConfiguration.js"; 
 
 // Two utility functions for preprocessing the index ranges to ensure they are valid 
 export const forceNonDecreasing = dup => dup[0] > dup[1] ? [0,0] : dup; 

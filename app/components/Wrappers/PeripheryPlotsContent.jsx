@@ -8,13 +8,13 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_timeExtentDomain, 
             ACTION_CHANGE_baseWidth, 
             ACTION_CHANGE_contextWidthRatio, 
-            ACTION_CHANGE_numContextsPerSide } from "../actions/actions"; 
+            ACTION_CHANGE_numContextsPerSide } from "../../actions/actions"; 
 
-import VistaTimelineControl from "./VistaTimelineControl.jsx"; 
-import VistaTrack from "./VistaTrack.jsx"; 
-import VistaVerticalAligner from "./VistaVerticalAligner.jsx"; 
+import TimelineControl from "../ControlTimeline/TimelineControl.jsx"; 
+import Track from "../Tracks/Track.jsx"; 
+import ControlToTrackAligner from "../Aligner/ControlToTrackAligner.jsx";
 
-function VistaViewerContent(props) {
+function PeripheryPlotsContent(props) {
 
     let {   
         config, 
@@ -63,12 +63,12 @@ function VistaViewerContent(props) {
         {doRender ? 
             <React.Fragment>
 
-                <VistaTimelineControl
+                <TimelineControl
                 controlScale={controlScale}
                 width={baseWidth}
                 height={controlTimelineHeight}/>    
 
-                <VistaVerticalAligner
+                <ControlToTrackAligner
                 controlScale={controlScale}
                 width={baseWidth}
                 height={verticalAlignerHeight}/>
@@ -80,7 +80,7 @@ function VistaViewerContent(props) {
                     let encodings = trackwiseEncodings[i]; 
                     let unit = trackwiseUnits[i]; 
                     return (
-                        <VistaTrack
+                        <Track
                         controlScale={controlScale}
                         id={`track-${i}`}
                         key={`track-${i}`}
@@ -132,5 +132,5 @@ const mapDispatchToProps = dispatch => ({
 
 }); 
 
-export default connect(mapStateToProps, mapDispatchToProps)(VistaViewerContent);
+export default connect(mapStateToProps, mapDispatchToProps)(PeripheryPlotsContent);
 

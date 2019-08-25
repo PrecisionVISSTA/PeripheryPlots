@@ -2,11 +2,11 @@ import React from "react";
 import * as d3 from "d3"; 
 import _ from "lodash"; 
 import { connect } from "react-redux";
-import { scaleRangeToBox } from "../util/util"; 
+import { scaleRangeToBox } from "../../util/util"; 
 
-import { ACTION_CHANGE_proposal } from "../actions/actions"; 
+import { ACTION_CHANGE_proposal } from "../../actions/actions"; 
 
-class VistaTrack extends React.Component {
+class Track extends React.Component {
 
     state = {
         axis: d3.axisRight(), 
@@ -158,7 +158,8 @@ class VistaTrack extends React.Component {
             contextColor, 
             containerPadding, 
             focusWidth, 
-            contextWidth 
+            contextWidth, 
+            baseWidth
         } = this.props; 
 
         // utility functions 
@@ -192,18 +193,9 @@ class VistaTrack extends React.Component {
         let tHeight = trackHeight - trackPaddingTop - trackPaddingBottom; 
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                              d3.extent(observations.map(o => o[valueKey]));
-
-        let containerWidth = focusWidth + numContextsPerSide * contextWidth * 2 + axesWidth + containerPadding;
-
-        // let leftDates = _.union(leftContextTimeDomains.map(domain => domain[0]), 
-        //                         [leftContextTimeDomains[leftContextTimeDomains.length-1][1]])
-        //                 .map(formatter); 
-        // let rightDates = _.union(rightContextTimeDomains.map(domain => domain[0]), 
-        //                         [rightContextTimeDomains[rightContextTimeDomains.length-1][1]])
-        //                 .map(formatter);
                         
         return (
-        <div style={{ width: containerWidth, paddingLeft: containerPadding, paddingRight: containerPadding, marginBottom: 3 }}>
+        <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding, marginBottom: 3 }}>
 
             <div style={{ width: "100%", display: "block" }}>
                 <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', marginTop: 3, marginBottom: 3 }}>
@@ -448,7 +440,8 @@ const mapStateToProps = ({
     trackPaddingTop, 
     trackPaddingBottom, 
     axesWidth, 
-    numContextsPerSide
+    numContextsPerSide, 
+    baseWidth
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
@@ -462,7 +455,8 @@ const mapStateToProps = ({
     trackPaddingTop, 
     trackPaddingBottom, 
     axesWidth, 
-    numContextsPerSide
+    numContextsPerSide, 
+    baseWidth
 }); 
                         
 const mapDispatchToProps = dispatch => ({
@@ -472,4 +466,4 @@ const mapDispatchToProps = dispatch => ({
 
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(VistaTrack); 
+export default connect(mapStateToProps, mapDispatchToProps)(Track); 

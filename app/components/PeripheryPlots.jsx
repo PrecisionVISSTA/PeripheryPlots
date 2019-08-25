@@ -1,14 +1,12 @@
 import React from "react";
-import _ from "lodash"; 
-
-import VistaDataProviderWrapper from "./VistaDataProviderWrapper.jsx";
-import VistaViewerContent from "./VistaViewerContent.jsx"; 
+import RootProvider from "./Wrappers/RootProvider.jsx";
+import PeripheryPlotsContent from "./Wrappers/PeripheryPlotsContent.jsx"; 
 
 export default function PeripheryPlots(props) {
     return (
-        <VistaDataProviderWrapper>
-            <VistaViewerContent config={props.config}/>
-        </VistaDataProviderWrapper>
+        <RootProvider>
+            <PeripheryPlotsContent config={props.config}/>
+        </RootProvider>
     ); 
 }; 
 

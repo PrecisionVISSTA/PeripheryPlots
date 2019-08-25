@@ -8,13 +8,13 @@ import { assert } from "chai";
 import  { computeActionFromSelectionTransition, 
           functionFromAction, 
           performShifts
-        } from "./VistaTimelineControlUtility.js";
+        } from "./TimelineControlUtility.js";
         
-import { CONTROL_CONFIGURATION } from "./VistaTimelineControlConfiguration.js"; 
+import { CONTROL_CONFIGURATION } from "./TimelineControlConfiguration.js"; 
 
 import { ACTION_CHANGE_timeDomains, 
          ACTION_CHANGE_timeExtentDomain
-       } from "../actions/actions"; 
+       } from "../../actions/actions"; 
 
 const {
   MARGIN,
@@ -30,7 +30,7 @@ const {
 
 const tupdif = tup => tup[1] - tup[0]; 
 
-class VistaTimelineControl extends React.Component {
+class TimelineControl extends React.Component {
 
   state = {
     brushes: [], //collection of d3 brush objects 
@@ -39,7 +39,9 @@ class VistaTimelineControl extends React.Component {
     brushLockIds: [], // Collection of ids to reference brush lock ids 
     numBrushes: 0, // The total number of brushes 
     brushHeight: 0, // The vertical height of the brush 
-    brushRanges: [] // The current selected regions for all brushes in pixel space 
+    brushRanges: [], // The current selected regions for all brushes in pixel space 
+    timelineScale: d3.scaleTime(), 
+    timelineAxis: d3.axisBottom() 
   }
 
   constructor(props) {
@@ -133,20 +135,86 @@ class VistaTimelineControl extends React.Component {
       this.ingestProposal(nextProps); 
     }
 
+    // If container was resized, we need to resize the control axis and brushes 
+    if (nextProps.width !== this.props.width && nextProps.width > 0) {
+
+      let { controlScale, containerPadding } = nextProps; 
+      let { brushSvgWidth, axisSvgWidth } = this.computeBrushAndAxisSvgWidths(nextProps.width, nextProps.containerPadding); 
+      let { timelineScale, timelineAxis } = nextState; 
+
+      // Update the control axis 
+      d3.select('#axis-svg').attr('width', axisSvgWidth); 
+      let [cr0, cr1] = controlScale.range(); 
+      timelineScale.range([cr0 + containerPadding, cr1 - containerPadding]);
+      d3.selectAll('.control-axis').call(timelineAxis); 
+
+      // Update the brushes 
+      d3.select('#brush-svg').attr('width', brushSvgWidth); 
+      
+      // Pixel ranges for each brush 
+      let brushRanges = nextProps.timeDomains.map(domain => domain.map(nextProps.controlScale)); 
+
+      // Update clipping paths for each brush 
+      for (let i = 0; i < nextState.numBrushes; i++) {
+        let clipId = nextState.clipIds[i]; 
+        let brushSelection = brushRanges[i]; 
+        d3.select(`#${clipId}`)
+          .attr('width', `${brushSelection[1] - brushSelection[0]}`)
+          .attr('transform', `translate(${brushSelection[0]}, 0)`);
+      }
+
+      // Update the brushes 
+      for (let i = 0; i < nextState.numBrushes; i++) {
+        
+        // move brush 
+        let brushFn = nextState.brushes[i]; 
+        let brushId = nextState.brushIds[i]; 
+        let brushSelection = brushRanges[i]; 
+        let brush = d3.select(`#${brushId}`); 
+        brush.call(brushFn.move, brushSelection); 
+
+        // move handles 
+        brush.select('.handle-left').attr('transform', `translate(${brushSelection[0]},0)`); 
+        brush.select('.handle-right').attr('transform', `translate(${brushSelection[1] - HANDLE_WIDTH},0)`); 
+      } 
+
+      // Update the locks 
+      for (let i = 0, li = 0; i < this.state.numBrushes; i++) {
+        let brushSelection = brushRanges[i]; 
+        if (i === 0) {
+          d3.select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[0] - LOCK_WIDTH / 2}, 0)`); 
+          d3.select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[1]- LOCK_WIDTH / 2}, 0)`); 
+        }
+        else {
+          d3.select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[1]- LOCK_WIDTH / 2}, 0)`);  
+        }
+      }
+
+    }
+
     // D3 performs updates in all other cases 
     return false;
 
   }
 
+  computeBrushAndAxisSvgWidths = (width, containerPadding) => {
+    let brushSvgWidth = width - (2 * containerPadding); 
+    let axisSvgWidth = width; 
+    return { brushSvgWidth, axisSvgWidth }; 
+  }
+
   componentDidMount() {
     // Code to create the d3 element, using the root container 
-    let { width, height, focusColor, contextColor, containerPadding, controlScale } = this.props; 
+    let { width, height, focusColor, contextColor, containerPadding } = this.props; 
     
     let root = d3.select(this.ROOT); 
+
+    let { brushSvgWidth } = this.computeBrushAndAxisSvgWidths(width, containerPadding); 
     
     // Create the svg container for the brushes
     let svg = root.append('svg')
-                  .attr('width', width - 2 * containerPadding)  // padding on left and right 
+                  .attr('id', 'brush-svg')
+                  .attr('width', brushSvgWidth)  // padding on left and right 
                   .attr('height', height)
                   .style('padding-left', containerPadding)
                   .style('padding-right', containerPadding)
@@ -283,18 +351,30 @@ class VistaTimelineControl extends React.Component {
                 .attr("cursor", "ew-resize");
 
       // Disable existing brushes. Pointer events only active on custom brushes 
-      brushG.select('.handle--e', ).style('pointer-events', 'none')
-      brushG.select('.handle--w', ).style('pointer-events', 'none')
+      brushG.select('.handle--e').style('pointer-events', 'none')
+      brushG.select('.handle--w').style('pointer-events', 'none')
 
     }
 
-    let controlScaleRange = controlScale.range(); 
-    let timelineScale = d3.scaleTime().domain(controlScale.domain())
-                                      .range([controlScaleRange[0] + containerPadding, controlScaleRange[1] - containerPadding]); 
+    this.appendTimeline(); 
+
+  }
+
+  appendTimeline = () => {
+
+    let root = d3.select(this.ROOT); 
+    let { controlScale, containerPadding, height, width } = this.props; 
+    let { timelineScale, timelineAxis } = this.state; 
+    let { axisSvgWidth } = this.computeBrushAndAxisSvgWidths(width, containerPadding); 
+
+    let [cr0, cr1] = controlScale.range(); 
+    timelineScale.domain(controlScale.domain())
+                 .range([cr0 + containerPadding, cr1 - containerPadding]); 
 
     let axisSvg = root.append('svg')
+                        .attr('id', 'axis-svg')
                         .attr('height', height)
-                        .attr('width', width)
+                        .attr('width', axisSvgWidth)
                         .attr('pointer-events', 'none')
                         .style('position', 'absolute') 
                         .style('top', containerPadding)
@@ -302,24 +382,13 @@ class VistaTimelineControl extends React.Component {
                         .style('backgroundColor', 'rgba(0,0,0,0)');
 
     // Create a timeline 
-    let yearAxis = d3.axisBottom()
-                    .scale(timelineScale)
-                    .ticks(d3.timeYear.every(1));
+    let axisGenerator = timelineAxis.scale(timelineScale).ticks(d3.timeMonth.every(3)); 
 
-    let monthAxis = d3.axisBottom()
-                      .scale(timelineScale)
-                      .ticks(d3.timeMonth.every(3)); 
-    
-    axisSvg.append("g")
-       .call(yearAxis)
-        .selectAll('text')
-        .attr('font-size', 8)
-        .attr('font-weight', 'bold'); 
-
-    axisSvg.append("g")
-       .call(monthAxis) 
-        .selectAll('text')
-        .attr('font-size', 8)
+    axisSvg .append("g")
+            .attr('class', 'control-axis')
+            .call(axisGenerator) 
+              .selectAll('text')
+              .attr('font-size', 8);
 
   }
 
@@ -538,4 +607,4 @@ const mapDispatchToProps = dispatch => ({
     
 }); 
 
-export default connect(mapStateToProps, mapDispatchToProps)(VistaTimelineControl);
+export default connect(mapStateToProps, mapDispatchToProps)(TimelineControl);

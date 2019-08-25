@@ -1,5 +1,5 @@
 import _ from "lodash"; 
-import { BRUSH_ACTIONS } from "./VistaTimelineControlConfiguration.js"; 
+import { BRUSH_ACTIONS } from "./TimelineControlConfiguration.js"; 
 
 function SHRINK_revertTargetToPreviousState(index, actionProperties) {
     let { preS, currentSelections } = actionProperties; 

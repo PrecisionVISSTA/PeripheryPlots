@@ -32,10 +32,14 @@ const DEFAULT_state = {
 };
 
 function computePlotDimensions(numContextsPerSide, contextWidthRatio, baseWidth, containerPadding, axesWidth) {
-    let svgWidth = baseWidth - 2 * containerPadding - axesWidth; 
+    
+    // The width for all focus + context plots within one track 
+    let svgWidth = baseWidth - (2 * containerPadding) - axesWidth; 
+
+    // The width for individual focuc and context plots 
     let contextWidth = svgWidth * contextWidthRatio; 
-    let focusWidth = svgWidth - contextWidth * numContextsPerSide;
-    debugger; 
+    let focusWidth = svgWidth - (contextWidth * numContextsPerSide * 2);
+    
     return {
         contextWidth, 
         focusWidth

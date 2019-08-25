@@ -7,7 +7,7 @@ const lineStyle = {
     strokeDasharray: "1 1"
 }
 
-class VistaVerticalAligner extends React.Component {
+class ControlToTrackAligner extends React.Component {
 
     state = {
         alignerScale: d3.scaleLinear()
@@ -111,4 +111,4 @@ const mapStateToProps = ({
                             contextWidthRatio
                         }); 
 
-export default connect(mapStateToProps, null)(VistaVerticalAligner); 
+export default connect(mapStateToProps, null)(ControlToTrackAligner); 
