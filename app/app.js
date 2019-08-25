@@ -61,7 +61,9 @@ d3.csv('../data/seattle-weather.csv', processRow)
             ['02/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
             ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
             ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)) 
-        ]
+        ], 
+
+        contextWidthRatio: .2
 
     }; 
 

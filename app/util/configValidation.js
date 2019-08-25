@@ -32,7 +32,9 @@ export default function validateConfiguration(config) {
 
         // control timeline configuration 
         timeExtentDomain, 
-        timeDomains
+        timeDomains, 
+
+        contextWidthRatio
 
     } = config; 
 
@@ -71,6 +73,12 @@ export default function validateConfiguration(config) {
 
     // Ensure that numContextsPerSide is a number 
     assert(typeof numContextsPerSide === 'number', 'attribute "numContextsPerSide" should be an integer')
+
+    // Ensure contextWidthRatio is a number between 0.01 and .99
+    assert(!isNaN(contextWidthRatio) && 
+            contextWidthRatio >= .01 && 
+            contextWidthRatio <= .99, 
+            'contextWidthRatio was invalid or unspecified'); 
 
     // Create a suite of test functions for each individual input 
     let testingFunctions = {

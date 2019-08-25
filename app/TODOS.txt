@@ -1,0 +1,2 @@
+* add validation that numContexts per side is an integer
+    * handle case where number of contexts is 0? 

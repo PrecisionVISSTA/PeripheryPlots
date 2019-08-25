@@ -520,10 +520,7 @@ class VistaTimelineControl extends React.Component {
   }
 
   render() {  
-    let { width, height, containerPadding } = this.props; 
-    width += 2 * containerPadding; 
-    height += containerPadding + 2; 
-    return <div style={{ height, width, position: 'relative' }} ref={ref => this.ROOT = ref}/>
+    return <div style={{ position: 'relative', border: '1px solid red' }} ref={ref => this.ROOT = ref}/>
   }
 
 }

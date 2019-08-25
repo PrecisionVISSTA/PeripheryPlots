@@ -6,7 +6,9 @@ import _ from "lodash";
 
 import {    ACTION_CHANGE_timeDomains, 
             ACTION_CHANGE_timeExtentDomain, 
-            ACTION_CHANGE_baseWidth } from "../actions/actions"; 
+            ACTION_CHANGE_baseWidth, 
+            ACTION_CHANGE_contextWidthRatio, 
+            ACTION_CHANGE_numContextsPerSide } from "../actions/actions"; 
 
 import VistaTimelineControl from "./VistaTimelineControl.jsx"; 
 import VistaTrack from "./VistaTrack.jsx"; 
@@ -25,17 +27,20 @@ function VistaViewerContent(props) {
         trackwiseUnits, 
         trackwiseTimeKeys, 
         trackwiseValueKeys, 
-        trackwiseEncodings } = config;
+        trackwiseEncodings, 
+        contextWidthRatio, 
+        numContextsPerSide } = config;
 
     const [controlScale, setControlScale] = useState(() => d3.scaleTime()); 
-    const [ref, { x, y, width }] = useDimensions();
+    const [ref, { width }] = useDimensions();
 
     useEffect(() => {
 
-        // Update global store timeDomains and timeExtentDomain with 
-        // user provided configuration values 
+        // Update global store with values from user configuration object 
         props.ACTION_CHANGE_timeDomains(config.timeDomains); 
         props.ACTION_CHANGE_timeExtentDomain(config.timeExtentDomain);  
+        props.ACTION_CHANGE_contextWidthRatio(config.contextWidthRatio); 
+        props.ACTION_CHANGE_numContextsPerSide(config.numContextsPerSide); 
 
     }, []); 
 
@@ -54,12 +59,42 @@ function VistaViewerContent(props) {
     let doRender = controlScale.range()[1] > 0 && baseWidth > 0; 
 
     return (
-    <div ref={ref} style={{ width: '100%', border: '1px solid red' }}>
+    <div ref={ref} style={{ width: '100%' }}>
         {doRender ? 
-            <VistaTimelineControl
-            controlScale={controlScale}
-            width={baseWidth}
-            height={controlTimelineHeight}/> 
+            <React.Fragment>
+
+                <VistaTimelineControl
+                controlScale={controlScale}
+                width={baseWidth}
+                height={controlTimelineHeight}/>    
+
+                <VistaVerticalAligner
+                controlScale={controlScale}
+                width={baseWidth}
+                height={verticalAlignerHeight}/>
+
+                {_.range(0, trackwiseObservations.length).map(i => {
+                    let observations = trackwiseObservations[i]; 
+                    let timeKey = trackwiseTimeKeys[i]; 
+                    let valueKey = trackwiseValueKeys[i]; 
+                    let encodings = trackwiseEncodings[i]; 
+                    let unit = trackwiseUnits[i]; 
+                    return (
+                        <VistaTrack
+                        controlScale={controlScale}
+                        id={`track-${i}`}
+                        key={`track-${i}`}
+                        title={valueKey}
+                        unit={unit}
+                        observations={observations} 
+                        timeKey={timeKey} 
+                        valueKey={valueKey}
+                        encodings={encodings}/>
+                    ); 
+                })}
+
+            </React.Fragment>
+            
             : null
         }
     </div>
@@ -87,58 +122,15 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ACTION_CHANGE_timeExtentDomain(timeExtentDomain)), 
 
     ACTION_CHANGE_baseWidth: (baseWidth) => 
-    dispatch(ACTION_CHANGE_baseWidth(baseWidth))
+    dispatch(ACTION_CHANGE_baseWidth(baseWidth)), 
+
+    ACTION_CHANGE_contextWidthRatio: (contextWidthRatio) => 
+    dispatch(ACTION_CHANGE_contextWidthRatio(contextWidthRatio)), 
+
+    ACTION_CHANGE_numContextsPerSide: (numContextsPerSide) => 
+    dispatch(ACTION_CHANGE_numContextsPerSide(numContextsPerSide))
 
 }); 
 
 export default connect(mapStateToProps, mapDispatchToProps)(VistaViewerContent);
-
-    // class VistaViewerContent extends React.Component {
-    
-    //     componentDidMount() {
-            
-    //     }
-    
-    //     render() {
-
-                
-    //         return (
-    //             <React.Fragment>
-                    
-                    
-
-    //                 {/* <VistaVerticalAligner
-    //                 controlScale={controlScale}
-    //                 width={baseWidth}
-    //                 height={verticalAlignerHeight}/> */}
-
-    //                 {/* 
-    //                 Time series tracks 
-    //                 */}
-    //                 {/* {_.range(0, trackwiseObservations.length).map(i => {
-    //                     let observations = trackwiseObservations[i]; 
-    //                     let timeKey = trackwiseTimeKeys[i]; 
-    //                     let valueKey = trackwiseValueKeys[i]; 
-    //                     let encodings = trackwiseEncodings[i]; 
-    //                     let unit = trackwiseUnits[i]; 
-    //                     return (
-    //                         <VistaTrack
-    //                         controlScale={controlScale}
-    //                         id={`track-${i}`}
-    //                         key={`track-${i}`}
-    //                         title={valueKey}
-    //                         unit={unit}
-    //                         observations={observations} 
-    //                         timeKey={timeKey} 
-    //                         valueKey={valueKey}
-    //                         encodings={encodings}/>
-    //                     ); 
-    //                 })} */}
-    //             </React.Fragment>
-    //         );
-    //     }
-    
-    // } 
-
-
 

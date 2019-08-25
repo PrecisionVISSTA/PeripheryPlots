@@ -1,4 +1,5 @@
 import React from "react"; 
+import * as d3 from "d3"; 
 import { connect } from "react-redux"; 
 
 const lineStyle = {
@@ -8,21 +9,34 @@ const lineStyle = {
 
 class VistaVerticalAligner extends React.Component {
 
+    state = {
+        alignerScale: d3.scaleLinear()
+    }
+
     render() {
+
         let { 
             width, 
             height, 
             controlScale,
             timeDomains, 
             numContextsPerSide, 
-            padding, 
-            axesWidth, 
+            containerPadding, 
             focusWidth, 
-            contextWidth 
+            contextWidth, 
+            axesWidth
         } = this.props; 
+
+        let { alignerScale } = this.state; 
+
+        let [cr0, cr1] = controlScale.range(); 
+
+        alignerScale.domain(controlScale.domain()); 
+        alignerScale.range([cr0 + containerPadding, cr1 - containerPadding]); 
 
         let topX = _.union(timeDomains.map(d => d[0]), [timeDomains[timeDomains.length-1][1]])
                     .map(controlScale); 
+
         let botX = []; 
         let ys = [height/4, height/1.5, height/1.5, height/4]; 
 
@@ -37,7 +51,7 @@ class VistaVerticalAligner extends React.Component {
 
         return (
             <div style={{ height }}>
-                <svg style={{ width, height, paddingLeft: padding, paddingRight: padding }}>
+                <svg style={{ width, height, paddingLeft: containerPadding, paddingRight: containerPadding }}>
                     {/* Top lines */}
                     {topX.map((x,i) => <line x1={x} x2={x} y1={0} y2={ys[i]} {...lineStyle}/>)}
                     {/* Bottom Lines */}
@@ -80,19 +94,21 @@ const mapStateToProps = ({
                             timeDomains, 
                             numContextsPerSide, 
                             timeExtentDomain, 
-                            padding, 
+                            containerPadding, 
                             axesWidth, 
                             focusWidth, 
-                            contextWidth 
+                            contextWidth, 
+                            contextWidthRatio
                         }) => 
                         ({ 
                             timeDomains, 
                             numContextsPerSide, 
                             timeExtentDomain, 
-                            padding,  
+                            containerPadding,  
                             axesWidth, 
                             focusWidth, 
-                            contextWidth 
+                            contextWidth, 
+                            contextWidthRatio
                         }); 
 
 export default connect(mapStateToProps, null)(VistaVerticalAligner); 

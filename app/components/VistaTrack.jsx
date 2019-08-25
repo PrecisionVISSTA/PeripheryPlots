@@ -152,16 +152,14 @@ class VistaTrack extends React.Component {
             encodings, 
             trackHeight, 
             trackPaddingTop,
-            trackPaddingBottom,  
-            contextWidth, 
-            focusWidth, 
+            trackPaddingBottom, 
             axesWidth, 
             focusColor, 
             contextColor, 
-            padding
+            containerPadding, 
+            focusWidth, 
+            contextWidth 
         } = this.props; 
-
-        let { formatter } = this.state; 
 
         // utility functions 
         let valueInDomain = (value, domain) => value >= domain[0] && value <= domain[1]; 
@@ -195,17 +193,17 @@ class VistaTrack extends React.Component {
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                              d3.extent(observations.map(o => o[valueKey]));
 
-        let containerWidth = focusWidth + numContextsPerSide * contextWidth * 2 + axesWidth + padding;
+        let containerWidth = focusWidth + numContextsPerSide * contextWidth * 2 + axesWidth + containerPadding;
 
-        let leftDates = _.union(leftContextTimeDomains.map(domain => domain[0]), 
-                                [leftContextTimeDomains[leftContextTimeDomains.length-1][1]])
-                        .map(formatter); 
-        let rightDates = _.union(rightContextTimeDomains.map(domain => domain[0]), 
-                                [rightContextTimeDomains[rightContextTimeDomains.length-1][1]])
-                        .map(formatter);
+        // let leftDates = _.union(leftContextTimeDomains.map(domain => domain[0]), 
+        //                         [leftContextTimeDomains[leftContextTimeDomains.length-1][1]])
+        //                 .map(formatter); 
+        // let rightDates = _.union(rightContextTimeDomains.map(domain => domain[0]), 
+        //                         [rightContextTimeDomains[rightContextTimeDomains.length-1][1]])
+        //                 .map(formatter);
                         
         return (
-        <div style={{ width: containerWidth, paddingLeft: padding, paddingRight: padding, marginBottom: 3 }}>
+        <div style={{ width: containerWidth, paddingLeft: containerPadding, paddingRight: containerPadding, marginBottom: 3 }}>
 
             <div style={{ width: "100%", display: "block" }}>
                 <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', marginTop: 3, marginBottom: 3 }}>
@@ -442,28 +440,28 @@ const mapStateToProps = ({
     timeExtentDomain, 
     focusColor, 
     contextColor, 
-    padding, 
+    containerPadding, 
+    focusWidth, 
+    contextWidth, 
     trackWidth, 
     trackHeight, 
     trackPaddingTop, 
     trackPaddingBottom, 
     axesWidth, 
-    contextWidth, 
-    focusWidth, 
     numContextsPerSide
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
     focusColor, 
     contextColor, 
-    padding,
+    containerPadding,
+    focusWidth, 
+    contextWidth, 
     trackWidth, 
     trackHeight, 
     trackPaddingTop, 
     trackPaddingBottom, 
     axesWidth, 
-    contextWidth, 
-    focusWidth, 
     numContextsPerSide
 }); 
                         
