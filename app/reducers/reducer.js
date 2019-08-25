@@ -20,19 +20,19 @@ const DEFAULT_state = {
     contextWidth: 100, 
     trackWidth: 700, 
     controlTimelineHeight: 60, 
-    baseWidth: 700, 
+    baseWidth: 0, 
     trackHeight: 60, 
     trackPaddingTop: 10, 
     trackPaddingBottom: 10, 
     verticalAlignerHeight: 30, 
-    padding: 12, 
+    containerPadding: 12, 
 
 };
 
 // Derivation of derived default properties 
 DEFAULT_state['focusWidth'] = (function() {
-    let { trackWidth, contextWidth, numContextsPerSide, axesWidth, padding } = this; 
-    let focusWidth = trackWidth - contextWidth * 2 * numContextsPerSide - axesWidth - padding;
+    let { trackWidth, contextWidth, numContextsPerSide, axesWidth, containerPadding } = this; 
+    let focusWidth = trackWidth - contextWidth * 2 * numContextsPerSide - axesWidth - containerPadding;
     return focusWidth; 
 }).bind(DEFAULT_state)()
 
@@ -41,28 +41,19 @@ const reducer = (state = DEFAULT_state, action) => {
     switch (action.type) {
         case 'CHANGE_timeExtentDomain': 
             let { timeExtentDomain } = action; 
-            return {
-                ...state, 
-                timeExtentDomain 
-            };
+            return { ...state, timeExtentDomain };
         case 'CHANGE_timeDomains': 
             let { timeDomains } = action; 
-            return {
-                ...state, 
-                timeDomains
-            };
+            return { ...state, timeDomains };
         case 'CHANGE_numContextsPerSide': 
             let { numContextsPerSide } = action; 
-            return {
-                ...state, 
-                numContextsPerSide 
-            };
+            return { ...state, numContextsPerSide };
         case 'CHANGE_proposal ': 
             let { proposal  } = action; 
-            return {
-                ...state, 
-                proposal  
-            };
+            return { ...state, proposal };
+        case 'CHANGE_baseWidth': 
+            let { baseWidth } = action; 
+            return { ...state, baseWidth }
         default:
             return state;
     }

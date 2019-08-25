@@ -27,4 +27,10 @@ export function ACTION_CHANGE_proposal (proposal) {
     };
 }
 
+export function ACTION_CHANGE_baseWidth (baseWidth) {
+    return {
+        type: 'CHANGE_baseWidth', 
+        baseWidth
+    }; 
+}
 

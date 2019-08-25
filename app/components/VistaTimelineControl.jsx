@@ -133,23 +133,24 @@ class VistaTimelineControl extends React.Component {
       this.ingestProposal(nextProps); 
     }
 
-    // D3 performs updates 
+    // D3 performs updates in all other cases 
     return false;
+
   }
 
   componentDidMount() {
     // Code to create the d3 element, using the root container 
-    let { width, height, focusColor, contextColor, padding, controlScale } = this.props; 
+    let { width, height, focusColor, contextColor, containerPadding, controlScale } = this.props; 
     
     let root = d3.select(this.ROOT); 
     
     // Create the svg container for the brushes
     let svg = root.append('svg')
-                  .attr('width', width) 
+                  .attr('width', width - 2 * containerPadding)  // padding on left and right 
                   .attr('height', height)
-                  .style('padding-left', padding)
-                  .style('padding-right', padding)
-                  .style('padding-top', padding)
+                  .style('padding-left', containerPadding)
+                  .style('padding-right', containerPadding)
+                  .style('padding-top', containerPadding)
 
     // Pixel ranges for each brush 
     let brushRanges = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 
@@ -200,16 +201,7 @@ class VistaTimelineControl extends React.Component {
             .attr('fill', LOCK_INACTIVE_COLOR)
             .attr('rx', LOCK_HEIGHT / 4)
             .on('click', _.partial(lockClick, lockId)); 
-
-            // .append('path')
-            // .attr('d', "M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z")
-            // .attr('id', lockId)
-            // .attr('x', 0)
-            // .attr('y', y)
-            // .attr('width', LOCK_WIDTH)
-            // .attr('height', LOCK_HEIGHT)
-            // .attr('transform', `scale(.5) translate(${x - LOCK_WIDTH / 2},0)`)
-            // .on('click', _.partial(lockClick, lockId)); 
+            
     }
 
     // Creating a locking mechanism for every bi-directional handle 
@@ -298,14 +290,14 @@ class VistaTimelineControl extends React.Component {
 
     let controlScaleRange = controlScale.range(); 
     let timelineScale = d3.scaleTime().domain(controlScale.domain())
-                                      .range([controlScaleRange[0] + padding, controlScaleRange[1] + padding]); 
+                                      .range([controlScaleRange[0] + containerPadding, controlScaleRange[1] - containerPadding]); 
 
     let axisSvg = root.append('svg')
-                        .attr('height', height + 2 * padding)
-                        .attr('width', width + 2 * padding)
+                        .attr('height', height)
+                        .attr('width', width)
                         .attr('pointer-events', 'none')
                         .style('position', 'absolute') 
-                        .style('top', padding + 1)
+                        .style('top', containerPadding)
                         .style('left', 0)
                         .style('backgroundColor', 'rgba(0,0,0,0)');
 
@@ -528,16 +520,16 @@ class VistaTimelineControl extends React.Component {
   }
 
   render() {  
-    let { width, height, padding } = this.props; 
-    width += 2 * padding; 
-    height += padding + 2; 
+    let { width, height, containerPadding } = this.props; 
+    width += 2 * containerPadding; 
+    height += containerPadding + 2; 
     return <div style={{ height, width, position: 'relative' }} ref={ref => this.ROOT = ref}/>
   }
 
 }
 
-const mapStateToProps = ({ timeDomains, timeExtentDomain, focusColor, contextColor, padding, proposal }) => 
-                        ({ timeDomains, timeExtentDomain, focusColor, contextColor, padding, proposal });
+const mapStateToProps = ({ timeDomains, timeExtentDomain, focusColor, contextColor, containerPadding, proposal }) => 
+                        ({ timeDomains, timeExtentDomain, focusColor, contextColor, containerPadding, proposal });
 
 const mapDispatchToProps = dispatch => ({
 
@@ -549,4 +541,4 @@ const mapDispatchToProps = dispatch => ({
     
 }); 
 
-export default connect(mapStateToProps, mapDispatchToProps)(VistaTimelineControl); 
+export default connect(mapStateToProps, mapDispatchToProps)(VistaTimelineControl);
