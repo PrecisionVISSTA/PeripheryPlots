@@ -193,6 +193,19 @@ class Track extends React.Component {
         let tHeight = trackHeight - trackSvgOffsetTop - trackSvgOffsetBottom; 
         let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                              d3.extent(observations.map(o => o[valueKey]));
+
+        // namespace for periphery plot specific properties 
+        // let pplot = {
+        //     timeKey,
+        //     valueKey,
+        //     timeDomain,
+        //     valueDomain,
+        //     observations,
+        //     scaleRangeToBox,
+        //     xRange,
+        //     yRange,
+        //     doFlip,
+        // }; 
                         
         return (
         <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding }}>

@@ -3,15 +3,16 @@ import * as d3 from "d3";
 import ReactDOM from "react-dom";
 import _ from "lodash"; 
 
-import LineGroup from "./encodings/TVPE/LineGroup.jsx"; 
-import BarGroup from "./encodings/TVPE/BarGroup.jsx"; 
-import ScatterGroup from "./encodings/TVPE/ScatterGroup.jsx"; 
-import EventGroup from "./encodings/TVPE/EventGroup.jsx"; 
-import MovingAverageEnvelopeGroup from "./encodings/TVPE/MovingAverageEnvelopeGroup.jsx"; 
-import QuantitativeTraceGroup from "./encodings/VPE/QuantitativeTraceGroup.jsx"; 
-import NominalTraceGroup from "./encodings/VPE/NominalTraceGroup.jsx"; 
-import AverageLine from "./encodings/VPE/AverageLine.jsx"; 
-import PeripheryPlots from "./components/PeripheryPlots.jsx";
+import PeripheryPlots, {
+    LineGroup, 
+    BarGroup,
+    ScatterGroup,
+    EventGroup,
+    MovingAverageEnvelopeGroup,
+    QuantitativeTraceGroup,
+    NominalTraceGroup,
+    AverageLine
+} from "./components/Wrappers/Root.js"; 
 
 import validateConfig from "./util/configValidation.js"; 
 
@@ -66,7 +67,7 @@ d3.csv('../data/seattle-weather.csv', processRow)
         contextWidthRatio: .3, 
 
         // Optional attributes 
-        containerBackgroundColor: '#ebebeb',
+        // containerBackgroundColor: '#ebebeb',
         containerPadding: 10, 
         controlTimelineHeight: 50, 
         verticalAlignerHeight: 30, 
