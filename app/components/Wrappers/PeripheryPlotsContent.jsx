@@ -15,7 +15,8 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_axesWidth, 
             ACTION_CHANGE_trackHeight, 
             ACTION_CHANGE_trackSvgOffsetTop, 
-            ACTION_CHANGE_trackSvgOffsetBottom
+            ACTION_CHANGE_trackSvgOffsetBottom, 
+            ACTION_CHANGE_tickInterval
         } from "../../actions/actions"; 
 
 import TimelineControl from "../ControlTimeline/TimelineControl.jsx"; 
@@ -35,7 +36,10 @@ function PeripheryPlotsContent(props) {
         trackwiseUnits, 
         trackwiseTimeKeys, 
         trackwiseValueKeys, 
-        trackwiseEncodings 
+        trackwiseEncodings, 
+        trackwiseTypes, 
+        trackwiseNumAxisTicks,
+        trackwiseAxisTickFormatters
     } = config;
 
     const [controlScale, setControlScale] = useState(() => d3.scaleTime()); 
@@ -48,7 +52,8 @@ function PeripheryPlotsContent(props) {
         props.ACTION_CHANGE_timeExtentDomain(config.timeExtentDomain);  
         props.ACTION_CHANGE_contextWidthRatio(config.contextWidthRatio); 
         props.ACTION_CHANGE_numContextsPerSide(config.numContextsPerSide); 
-
+        props.ACTION_CHANGE_tickInterval(config.tickInterval); 
+        
     }, []); 
 
     useEffect(() => {
@@ -108,15 +113,21 @@ function PeripheryPlotsContent(props) {
                     let observations = trackwiseObservations[i]; 
                     let timeKey = trackwiseTimeKeys[i]; 
                     let valueKey = trackwiseValueKeys[i]; 
-                    let encodings = trackwiseEncodings[i]; 
+                    let encodings = trackwiseEncodings[i];
+                    let type = trackwiseTypes[i];  
                     let unit = trackwiseUnits[i]; 
+                    let numAxisTicks = trackwiseNumAxisTicks ? trackwiseNumAxisTicks[i] : null; 
+                    let axisTickFormatter = trackwiseAxisTickFormatters ? trackwiseAxisTickFormatters[i] : null; 
                     return (
                         <Track
                         controlScale={controlScale}
                         id={`track-${i}`}
                         key={`track-${i}`}
+                        type={type}
                         title={valueKey}
                         unit={unit}
+                        numAxisTicks={numAxisTicks}
+                        axisTickFormatter={axisTickFormatter}
                         observations={observations} 
                         timeKey={timeKey} 
                         valueKey={valueKey}
@@ -180,7 +191,10 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ACTION_CHANGE_trackSvgOffsetTop(trackSvgOffsetTop)), 
 
     ACTION_CHANGE_trackSvgOffsetBottom: (trackSvgOffsetBottom) => 
-    dispatch(ACTION_CHANGE_trackSvgOffsetBottom(trackSvgOffsetBottom))
+    dispatch(ACTION_CHANGE_trackSvgOffsetBottom(trackSvgOffsetBottom)), 
+
+    ACTION_CHANGE_tickInterval: (tickInterval) => 
+    dispatch(ACTION_CHANGE_tickInterval(tickInterval))
 
 }); 
 

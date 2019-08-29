@@ -16,6 +16,7 @@ const DEFAULT_state = {
     // Required properties from user configuration 
     numContextsPerSide: null, 
     contextWidthRatio: null, 
+    tickInterval: null, 
 
     // Appearance / layout properties with sensible defaults 
     focusColor: '#515151', 
@@ -116,6 +117,10 @@ const reducer = (state = DEFAULT_state, action) => {
         'CHANGE_trackSvgOffsetBottom': () => {
             let { trackSvgOffsetBottom } = action;
             return { ...state, trackSvgOffsetBottom }; 
+        }, 
+        'CHANGE_tickInterval': () => {
+            let { tickInterval } = action; 
+            return { ...state, tickInterval }; 
         }
     };
 

@@ -55,36 +55,57 @@ class Track extends React.Component {
 
     updateAxes() {
         let { axis, quantitativeScale, categoricalScale } = this.state; 
-        let { observations, valueKey, trackHeight, trackSvgOffsetTop, trackSvgOffsetBottom } = this.props; 
+        let { observations, valueKey, trackHeight, trackSvgOffsetTop, trackSvgOffsetBottom, type, numAxisTicks, axisTickFormatter } = this.props; 
         
-        let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
-                                                            d3.extent(observations.map(o => o[valueKey]));
+        if (axisTickFormatter) {
+            axis.tickFormat(axisTickFormatter); 
+        }
+
+        let valueDomain;
+        let scale; 
+        let applyScaleToAxis; 
+        switch (type) {
+            case 'discrete': 
+                valueDomain = _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d); 
+                scale = categoricalScale; 
+                applyScaleToAxis = scale => axis.scale(scale);
+                break; 
+            case 'continuous': 
+                valueDomain = d3.extent(observations.map(o => o[valueKey])); 
+                scale = quantitativeScale; 
+                applyScaleToAxis = scale => axis.scale(scale.nice()).ticks(numAxisTicks ? numAxisTicks : 4); 
+                break; 
+            case 'other': 
+                break; 
+
+        }
         
-        let isQuantitative = valueDomain.length === 2 && !isNaN(valueDomain[0]) && !isNaN(valueDomain[1]);
-
-        let scale = isQuantitative ? quantitativeScale : categoricalScale; 
-        let range = [trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop]; 
-
-        scale.domain(valueDomain).range(range); 
-        d3.select(this.AXES_REF).call(isQuantitative ?  axis.scale(scale.nice()).ticks(4) : 
-                                                        axis.scale(scale)); 
-
+        if (type !== 'other') {
+            applyScaleToAxis(
+                scale.domain(valueDomain)
+                     .range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop])
+            ); 
+            d3.select(this.AXES_REF).call(axis);
+        }
+         
     }
 
     updateTooltip = () => {
-        let { focusWidth } = this.props;
-        let { formatter } = this.state;  
+
+        let { focusWidth, numContextsPerSide, contextWidth, trackWidth, timeDomains } = this.props;
+        let { formatter, timeScale } = this.state;  
 
         let [x,y] = d3.mouse(this.FOCUS_REF); 
         d3.selectAll('.focus-time-bar')
           .attr('transform', `translate(${x},0)`); 
 
-        let toLeft = x < (this.props.trackWidth - 2 * this.props.contextWidth) / 2;
+        // True if mouse in left half of container 
+        let toLeft = x < focusWidth / 2;
 
-        let currentDate = this.state.timeScale
-                                    .domain(this.props.timeDomains[this.props.numContextsPerSide])
-                                    .range([0, this.props.focusWidth])
-                                    .invert(x);
+        let currentDate = timeScale
+                            .domain(timeDomains[numContextsPerSide])
+                            .range([0, focusWidth])
+                            .invert(x);
 
         let dateString = formatter(currentDate); 
 
@@ -96,22 +117,16 @@ class Track extends React.Component {
                 let textS = d3.select(this).text(dateString); 
                 let textBbox = this.getBBox();
                 let textW = textBbox.width; 
-                let textX = textBbox.x; 
-                let dx = textW / 2; 
-                let tx = x + (toLeft ? -1 : 1) * dx; //Proposed x translation
-                let [newX0, newX1] = [textX + tx, textX + textW + tx]; //x bounds post proposed translation
-                if (newX0 < 0) {
-                    // this translation would cause the text to be cutoff to the left 
-                    tx += -newX0;                       
-                } else if (newX1 > focusWidth) {
-                    // this translation would cause the text to be cutoff to the right 
-                    tx += -(newX1 - focusWidth); 
-                } else {
-                    tx += (toLeft ? 1 : -1) * dx; 
-                }
+                let propBbox = [x - textW / 2, x + textW / 2]; 
+                if (propBbox[0] < 0) {
+                    propBbox = propBbox.map(v => v + -propBbox[0]); 
+                } else if (propBbox[1] > focusWidth) {
+                    propBbox = propBbox.map(v => v + -(propBbox[1] - focusWidth)); 
+                } 
+                let newX = (propBbox[1] + propBbox[0]) / 2; 
                 textS
                     .attr('display', 'block')
-                    .attr('transform', `translate(${tx},10)`)
+                    .attr('transform', `translate(${newX},10)`)
             }
         }); 
 
@@ -317,21 +332,9 @@ class Track extends React.Component {
                     fill='none'/>
 
                     {/* Focus visualization(s) */}
-                    {multipleFocusEncodings ? 
-                        FocusEncoding.map((LayeredEncoding,j) => 
-                            <LayeredEncoding
-                            key={`focus-${j}`}
-                            timeKey={timeKey}
-                            valueKey={valueKey}
-                            timeDomain={focusTimeDomain}
-                            valueDomain={valueDomain}
-                            observations={focusObservations}
-                            scaleRangeToBox={focusScaleRangeToBox}
-                            xRange={focusXRange}
-                            yRange={focusYRange}/>
-                        )
-                        :
-                        <FocusEncoding
+                    {FocusEncoding.map((LayeredEncoding,j) => 
+                        <LayeredEncoding
+                        key={`focus-${j}`}
                         timeKey={timeKey}
                         valueKey={valueKey}
                         timeDomain={focusTimeDomain}
@@ -340,7 +343,7 @@ class Track extends React.Component {
                         scaleRangeToBox={focusScaleRangeToBox}
                         xRange={focusXRange}
                         yRange={focusYRange}/>
-                    }
+                    )}
 
                     {/* Current time point hover bar */}
                     <rect
@@ -376,7 +379,6 @@ class Track extends React.Component {
                 fontSize={8}
                 textAnchor="middle"/>
 
-                
             </svg>
 
             {/* Right Contexts */}

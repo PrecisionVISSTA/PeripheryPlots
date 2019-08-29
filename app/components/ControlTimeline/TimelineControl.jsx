@@ -370,7 +370,7 @@ class TimelineControl extends React.Component {
   appendTimeline = () => {
 
     let root = d3.select(this.ROOT); 
-    let { controlScale, containerPadding, height, width } = this.props; 
+    let { controlScale, containerPadding, height, width, tickInterval } = this.props; 
     let { timelineScale, timelineAxis } = this.state; 
     let { axisSvgWidth } = this.computeBrushAndAxisSvgWidths(width, containerPadding); 
 
@@ -389,7 +389,7 @@ class TimelineControl extends React.Component {
                         .style('backgroundColor', 'rgba(0,0,0,0)');
 
     // Create a timeline 
-    let axisGenerator = timelineAxis.scale(timelineScale).ticks(d3.timeMonth.every(3)); 
+    let axisGenerator = timelineAxis.scale(timelineScale).ticks(tickInterval); 
 
     axisSvg .append("g")
             .attr('class', 'control-axis')
@@ -601,8 +601,8 @@ class TimelineControl extends React.Component {
 
 }
 
-const mapStateToProps = ({ timeDomains, timeExtentDomain, focusColor, contextColor, containerPadding, proposal }) => 
-                        ({ timeDomains, timeExtentDomain, focusColor, contextColor, containerPadding, proposal });
+const mapStateToProps = ({ timeDomains, timeExtentDomain, focusColor, contextColor, containerPadding, proposal, tickInterval }) => 
+                        ({ timeDomains, timeExtentDomain, focusColor, contextColor, containerPadding, proposal, tickInterval });
 
 const mapDispatchToProps = dispatch => ({
 

@@ -90,3 +90,9 @@ export function ACTION_CHANGE_trackSvgOffsetBottom (trackSvgOffsetBottom) {
     }
 };
 
+export function ACTION_CHANGE_tickInterval (tickInterval) {
+    return {
+        type: 'CHANGE_tickInterval',
+        tickInterval
+    }; 
+}

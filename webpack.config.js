@@ -24,6 +24,12 @@ module.exports = {
             loader: "html-loader"
           }
         ]
+      }, 
+      {
+        test: /\.(csv|tsv)$/,
+        use: [
+          'csv-loader'
+        ]
       }
     ]
   }, 

@@ -1,21 +1,26 @@
 {
   "name": "timeseriesviewer",
   "version": "1.0.0",
-  "description": "",
+  "author": "Bryce Morrow",
+  "license": "ISC",
+  "description": "A React component for multivariate time series analysis",
   "main": "index.js",
+  "homepage": "http://PrecisionVISSTA.github.io/PeripheryPlots",
   "scripts": {
     "start": "webpack-dev-server --open",
-    "build": "webpack"
+    "build": "webpack",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.4.4",
     "babel-cli": "^6.26.0",
+    "chai": "^4.2.0",
     "csv-parser": "^2.2.0",
     "d3": "^5.9.2",
     "fs": "0.0.1-security",
     "lodash": "^4.17.15",
+    "prop-types": "^15.7.2",
     "react": "^16.9.0",
     "react-dom": "^16.8.6",
     "react-hot-loader": "^4.8.4",
@@ -24,8 +29,7 @@
     "redux": "^4.0.1",
     "request": "^2.88.0",
     "webpack": "^4.30.0",
-    "webpack-dev-server": "^3.3.1",
-    "chai": "^4.2.0"
+    "webpack-dev-server": "^3.3.1"
   },
   "private": true,
   "devDependencies": {
@@ -33,8 +37,11 @@
     "@babel/preset-env": "^7.4.4",
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.5",
+    "csv-loader": "^3.0.2",
+    "gh-pages": "^2.0.1",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
+    "papaparse": "^5.0.2",
     "webpack-cli": "^3.3.2"
   }
 }
