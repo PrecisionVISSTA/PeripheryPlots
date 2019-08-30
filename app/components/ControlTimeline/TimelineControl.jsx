@@ -242,6 +242,9 @@ class TimelineControl extends React.Component {
     }
 
     let lockClick = (lockId) => {
+
+        debugger; 
+
         // Determine the lock index of the clicked lock 
         let lockIndex = this.state.brushLockIds.indexOf(lockId); 
         assert(lockIndex >= 0, 'lock doesnt exist'); 
@@ -599,9 +602,27 @@ class TimelineControl extends React.Component {
 
 }
 
-const mapStateToProps = ({ timeDomains, timeExtentDomain, focusColor, contextColor, containerPadding, proposal, tickInterval }) => 
-                        ({ timeDomains, timeExtentDomain, focusColor, contextColor, containerPadding, proposal, tickInterval });
-
+const mapStateToProps = ({ 
+                          timeDomains, 
+                          timeExtentDomain, 
+                          focusColor, contextColor, 
+                          containerPadding, 
+                          proposal, 
+                          tickInterval, 
+                          lockActiveColor, 
+                          lockInactiveColor
+                        }) => 
+                        ({ 
+                          timeDomains, 
+                          timeExtentDomain, 
+                          focusColor, contextColor, 
+                          containerPadding, 
+                          proposal, 
+                          tickInterval, 
+                          lockActiveColor, 
+                          lockInactiveColor
+                        });
+                        
 const mapDispatchToProps = dispatch => ({
 
   ACTION_CHANGE_timeDomains: (timeDomains) => 

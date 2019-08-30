@@ -88,8 +88,8 @@ let config = {
     containerBackgroundColor: 'white',
     focusColor: '#576369', 
     contextColor: '#9bb1ba', 
-    lockActiveColor: 'red', 
-    lockInactiveColor: 'green', 
+    lockActiveColor: '#00496e', 
+    lockInactiveColor: 'grey', 
     
     containerPadding: 14, 
     controlTimelineHeight: 50, 
