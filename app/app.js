@@ -57,22 +57,22 @@ let config = {
         ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
         ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)) 
     ], 
-    dZoom: 10,
+    // dZoom: 10,
 
     // Layout + Style  
-    containerBackgroundColor: 'white',
-    focusColor: '#576369', 
-    contextColor: '#9bb1ba', 
-    lockActiveColor: '#00496e', 
-    lockInactiveColor: 'grey', 
+    // containerBackgroundColor: 'white',
+    // focusColor: '#576369', 
+    // contextColor: '#9bb1ba', 
+    // lockActiveColor: '#00496e', 
+    // lockInactiveColor: 'grey', 
 
-    containerPadding: 14, 
-    controlTimelineHeight: 50, 
-    verticalAlignerHeight: 30, 
-    axesWidth: 40, 
-    trackHeight: 50, 
-    trackSvgOffsetTop: 10, 
-    trackSvgOffsetBottom: 3
+    // containerPadding: 14, 
+    // controlTimelineHeight: 50, 
+    // verticalAlignerHeight: 30, 
+    // axesWidth: 40, 
+    // trackHeight: 50, 
+    // trackSvgOffsetTop: 10, 
+    // trackSvgOffsetBottom: 3
 
 }; 
 

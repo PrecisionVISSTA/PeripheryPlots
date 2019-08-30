@@ -43,7 +43,7 @@ PeripheryPlots.defaultProps = {
     numContextsPerSide: 1, 
     contextWidthRatio: .2, 
 
-    containerBackgroundColor: 'white',
+    containerBackgroundColor: '#ffffff',
     focusColor: '#576369', 
     contextColor: '#9bb1ba', 
     lockActiveColor: '#00496e', 

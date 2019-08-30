@@ -18,6 +18,8 @@ This implementation requires the latest version of [NodeJS](https://nodejs.org/e
 
 A preprint describing the periphery plot data visualization approach in detail is available on arxiv: https://arxiv.org/abs/1906.07637.
 
+Winner of the **Best Short Paper award at IEEE VIS 2019**. 
+
 ## Component Configuration 
 
 The PeripheryPlots React component takes a single configuration object as input. Properties that are __bolded__ are required while all others are optional with sensible defaults. The React based [prop-types](https://www.npmjs.com/package/prop-types) library is used to validate the configuration object.  
@@ -31,30 +33,30 @@ The PeripheryPlots React component takes a single configuration object as input.
 | __`trackwiseUnits`__ | [ String OR Null, ... ] | Unit for each track. |
 | __`trackwiseNumAxisTicks`__ | [ Integer OR Null, ... ] | The number of ticks for each track axis. |
 | __`trackwiseAxisTickFormatters`__ | [ d3.format OR Null, ... ] | Tick formatter for each track axis. |
-| __`trackwiseEncodings`__ | [ [ React.Component, ... ], ... ] | Layered encoding specification for each track. |
+| __`trackwiseEncodings`__ | [ [ [ React.Component, ... ], ... ] ... ] | Layered encoding specification for each track. |
 | __`applyEncodingsUniformly`__ | Boolean | Determines the number of encoding specifications required for each track. |
-| `contextWidthRatio` | Float in range [0.0, 1.0] | Fraction of available space allocated to each context plot. |
-| `numContextsPerSide` | Integer+ | The number of context zones on each side of the focus zone. |
+| `contextWidthRatio` | Float in range [0.0, 1.0] <br> **default:** .2 | Fraction of available space (whithin tracks) allocated to each context plot. |
+| `numContextsPerSide` | Integer+ <br> **default:** 1 | The number of context zones on each side of the focus zone. |
 | __`timeExtentDomain`__ | [ Date, Date ] | A temporal range including all data observations across all data sources. |
 | __`timeDomains`__ | [ [ Date, Date ], ... ] | Temporal ranges corresponding to initially selected brush regions for the control timeline. |
 | __`tickInterval`__ | d3.CountableTimeInterval | The interval for tick placement for the control timeline axis. |
-| `dZoom` | Integer+ | Speed of track generated zoom events for control timeline. |
-| `containerBackgroundColor` | Valid input to d3.color constructor | Background color for the component container. |
-| `focusColor` | Valid input to d3.color constructor | Color of focus brush and focus plot borders. |
-| `contextColor` | Valid input to d3.color constructor | Color of context brush and context plot borders.|
-| `lockActiveColor` | Valid input to d3.color constructor | Color of control timeline locks when active. |
-| `lockInactiveColor` | Valid input to d3.color constructor | Color of control timeline locks when inactive. |
-| `containerPadding` | Integer+ | Component padding in pixels that surrounds tracks and control timeline. |
-| `controlTimelineHeight` | Integer+ | The height of the control timeline in pixels. |
-| `verticalAlignerHeight` | Integer+ | The height of the vertical alignment component in pixels. |
-| `axesWidth` | Integer+ | The width of the axis for each track in pixels. |
-| `trackHeight` | Integer+ | The width of each track in pixels. |
-| `trackSvgOffsetTop` | Integer+ | The offset from top of svg plot containers defining top bound on drawable space. |
-| `trackSvgOffsetBottom` | Integer+ | The offset from bottom of svg plot containers defining bottom bound on drawable space. |
+| `dZoom` | Integer+ <br> **default:** 5 | Speed of track generated zoom events for control timeline. |
+| `containerBackgroundColor` | Valid input to d3.color constructor <br> **default:** "#ffffff" | Background color for the component container. |
+| `focusColor` | Valid input to d3.color constructor <br> **default:** "#576369" | Color of focus brush and focus plot borders. |
+| `contextColor` | Valid input to d3.color constructor <br> **default:** "#9BB1BA" | Color of context brush and context plot borders.|
+| `lockActiveColor` | Valid input to d3.color constructor <br> **default:** "#00496E" | Color of control timeline locks when active. |
+| `lockInactiveColor` | Valid input to d3.color constructor <br> **default:** "Grey" | Color of control timeline locks when inactive. |
+| `containerPadding` | Integer+ <br> **default:** 10 | Component padding in pixels that surrounds tracks and control timeline. |
+| `controlTimelineHeight` | Integer+ <br> **default:** 50 | The height of the control timeline in pixels. |
+| `verticalAlignerHeight` | Integer+ <br> **default:** 30 | The height of the vertical alignment component in pixels. |
+| `axesWidth` | Integer+ <br> **default:** 40 | The width of the axis for each track in pixels. |
+| `trackHeight` | Integer+ <br> **default:** 50 | The width of each track in pixels. |
+| `trackSvgOffsetTop` | Integer+ <br> **default:** 10 | The offset from top of svg plot containers defining top bound on drawable space. |
+| `trackSvgOffsetBottom` | Integer+ <br> **default:** 5 | The offset from bottom of svg plot containers defining bottom bound on drawable space. |
 
 Some of the descriptions in the table above are sufficient, but some properties are more complex and must satisfy specific criteria to be considered valid.
 
-We describe these properties in further detail as they relate to the two core subcomponents of the parent PeripheryPlot component: 
+We describe these properties in further detail as they relate to the two core subcomponents of the PeripheryPlot framework: 
 
 * Tracks 
 * Control Timeline 
@@ -79,18 +81,15 @@ All properties that begin with the word 'trackwise' are arrays and they must hav
 > If specified, the unit is displayed alongside the track name (or rather, the valueKey used to index observations). 
 
 *`trackwiseEncodings`* 
-> Each track has is bound to an array of encodings. The individual elements in an encodings array can be 
-> * A React component
->   * A single view is bound to a single plot. 
-> * An array where each element is a React component 
->   * Multiple views are bound to a single plot. The views are rendered in the order they are specified, stacking on top of previously rendered views. 
->     * ex: [BarChart, AverageLine] would result in a bar chart with an average line rendered on top. You can see an example of this in the 'precipitation' track in the teaser image located near the top of the README. 
+> For each track we specify a collection of encoding schemas. The dimensions of `trackwiseEncodings` is determined by `applyContextEncodingsUniformly` and `numContextsPerSide`. 
+> * if `applyContextEncodingsUniformly` === true: 
+>   * `trackwiseEncodings[i]` is of the form:
+> <br> [ <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to all left contexts plots \*/ ], <br> &nbsp; &nbsp; [ /\* encoding schema for focus plot \*/ ], <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to all right contexts plots \*/ ] <br> ]
+> * if `applyContextEncodingsUniformly` === false:
+>   * `trackwiseEncodings[i]` is of the form: <br> [ <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to the `1st` left context plot \*/ ], <br> &nbsp; &nbsp; ... <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to the `numContextsPerSide-th` left context plot \*/ ], <br> &nbsp; &nbsp; [ /\* encoding schema for focus plot \*/ ], <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to the `1st` right context plot \*/ ], <br> &nbsp; &nbsp; ... <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to the `numContextsPerSide-th` right context plot \*/ ] <br> ]
 >
-> The value of `applyEncodingsUniformly` influences the length of the encoding specification for each track. 
-> * when `true`: 
->   * Each encoding array must have a length of 3. First element describes the encodings to be applied to all left contexts. The second element describes the encodings to apply to the focus. The third element describes the encodings to be applied to all right contexts. 
-> * when `false`: 
->   * Each encoding array must have a length equal to `(numContextsPerSide * 2) + 1`. Encodings are individually described for each focus and context plot. 
+> Each encoding schema, represented by `trackwiseEncodings[i][j]` is an array where each element is a React.Component (can be class, function, or any other kind). Each possible value of `trackwiseEncodings[i][j]` is bound to some plot within the interface (as described above). After this binding occurs, the elements of `trackwiseEncodings[i][j]` are rendered into the plot (svg) they are bound to in the order they are specified. 
+> * ex: if `trackwiseEncodings[i][j]` = [BarChart, AverageLine], then some plot within some track will be populated with a bar chart visualization with an average line annotation layered over top. You can see an example of this in the 'precipitation' track in the .gif demo at the top of this page. 
 
 ### Control Timeline
 
