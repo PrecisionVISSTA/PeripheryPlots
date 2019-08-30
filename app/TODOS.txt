@@ -2,6 +2,8 @@
 Still need to do: 
 
     Refactor existing encodings / document extensibility 
+
+    
     local install instructions update on github readme 
     .gif on readme from trevor's video 
     reach out to paper chairs of IEEE viz and ask about paper talk length 

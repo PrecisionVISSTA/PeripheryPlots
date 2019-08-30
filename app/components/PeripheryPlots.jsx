@@ -6,26 +6,29 @@ import * as d3 from "d3";
 
 function assert(condition, errorMsg) {
     if (!condition) throw new Error(errorMsg); 
-}
+};
 
 function isObjectAndNotNull(value) {
     return typeof value === 'object' && value !== null; 
-}
+};
 
 function errMsg(propName) {
     return `"${propName}" was not of the expected form`; 
-}
+};
+
+function isColor(props, propName) {
+    // Runs input value through d3 color constructor. If this works, color is valid 
+    d3.color(props[propName]);
+}; 
 
 function isPositiveNumber(props, propName) { 
     if (!(!isNaN(props[propName]) && props[propName] >= 0)) {
         return new Error(errMsg(propName));
     };
-}
-
+};
 
 export default function PeripheryPlots(props) {
     let config = { ...props }; 
-    debugger;
     return (
         <RootProvider>
             <PeripheryPlotsContent config={config}/>
@@ -33,25 +36,32 @@ export default function PeripheryPlots(props) {
     ); 
 }; 
 
+// Default values for optional properties 
 PeripheryPlots.defaultProps = {
 
+    dZoom: 5,
     numContextsPerSide: 1, 
     contextWidthRatio: .2, 
 
-    containerBackgroundColor: '#fff',
+    containerBackgroundColor: 'white',
+    focusColor: '#576369', 
+    contextColor: '#9bb1ba', 
+    lockActiveColor: '#00496e', 
+    lockInactiveColor: 'grey',
+
     containerPadding: 10, 
     controlTimelineHeight: 50, 
     verticalAlignerHeight: 30, 
     axesWidth: 40, 
     trackHeight: 50, 
     trackSvgOffsetTop: 10, 
-    trackSvgOffsetBottom: 0
+    trackSvgOffsetBottom: 5
 
 }
 
 PeripheryPlots.propTypes = {
 
-    // REQUIRED PROPERTIES 
+    // TRACKS 
 
     trackwiseObservations: 
         PropTypes.arrayOf(
@@ -75,6 +85,14 @@ PeripheryPlots.propTypes = {
         PropTypes.arrayOf(PropTypes.string)
         .isRequired, 
 
+    trackwiseNumAxisTicks: 
+        PropTypes.array
+        .isRequired,
+
+    trackwiseAxisTickFormatters: 
+        PropTypes.array
+        .isRequired, 
+
     trackwiseEncodings: 
         PropTypes.arrayOf(
             PropTypes.arrayOf(
@@ -83,38 +101,9 @@ PeripheryPlots.propTypes = {
         )
         .isRequired, 
 
-    trackwiseNumTicks: 
-        PropTypes.array, 
-
-    trackwiseAxisTickFormatters: 
-        PropTypes.array, 
-
-    tickInterval: function(props, propName) {
-        if (props[propName].toString() !== d3.timeDay.toString()) {
-            throw new Error(errMsg(propName)); 
-        }
-    }, 
-
-    timeExtentDomain: 
-        function (props, propName) {
-            let arr = props[propName]; 
-            if (!(  Array.isArray(arr) && 
-                    arr.length === 2 && 
-                    arr[0] instanceof Date && 
-                    arr[1] instanceof Date)) {
-                return new Error(errMsg(propName))
-            }
-        }, 
-
-    timeDomains: 
-        PropTypes.arrayOf(Date)
-        .isRequired, 
-
     applyContextEncodingsUniformly: 
         PropTypes.bool
         .isRequired, 
-
-    // OPTIONAL PROPERTIES 
 
     numContextsPerSide: 
         function(props, propName) {
@@ -131,11 +120,50 @@ PeripheryPlots.propTypes = {
             }
         },
 
-    containerBackgroundColor: 
+    // CONTROL TIMELINE 
+
+    tickInterval: 
+        function(props, propName) {
+            // Ensures input is a d3 time interval 
+            if (props[propName].toString() !== d3.timeDay.toString()) {
+                throw new Error(errMsg(propName)); 
+            }
+        }, 
+
+    timeExtentDomain: 
         function (props, propName) {
-            // Runs input value through d3 color constructor. If this works, color is valid 
-            d3.color(props[propName]);
-        },
+            let arr = props[propName]; 
+            if (!(  Array.isArray(arr) && 
+                    arr.length === 2 && 
+                    arr[0] instanceof Date && 
+                    arr[1] instanceof Date)) {
+                return new Error(errMsg(propName))
+            }
+        }, 
+
+    timeDomains: 
+        PropTypes.arrayOf(Date)
+        .isRequired, 
+
+    dZoom: 
+        isPositiveNumber, 
+
+    // OPTIONAL PROPERTIES 
+
+    containerBackgroundColor: 
+        isColor, 
+
+    focusColor: 
+        isColor, 
+
+    contextColor: 
+        isColor, 
+
+    lockActiveColor: 
+        isColor, 
+
+    lockInactiveColor: 
+        isColor, 
 
     containerPadding: 
         isPositiveNumber, 

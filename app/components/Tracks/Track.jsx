@@ -176,7 +176,8 @@ class Track extends React.Component {
             containerPadding, 
             focusWidth, 
             contextWidth, 
-            baseWidth
+            baseWidth, 
+            applyContextEncodingsUniformly
         } = this.props; 
 
         // utility functions 
@@ -212,44 +213,54 @@ class Track extends React.Component {
                                                              d3.extent(observations.map(o => o[valueKey]));
 
         // namespace for periphery plot specific properties 
-        // let pplot = {
-        //     timeKey,
-        //     valueKey,
-        //     timeDomain,
-        //     valueDomain,
-        //     observations,
-        //     scaleRangeToBox,
-        //     xRange,
-        //     yRange,
-        //     doFlip,
-        // }; 
-                        
+        let pplot = {
+            timeKey,
+            valueKey,
+            valueDomain,
+            observations
+        }; 
+        
         return (
         <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding }}>
 
+            {/* Track Label */}
             <div style={{ width: "100%", display: "block" }}>
                 <p className={'pplot-track-header-text'}>
                     {title.replace("_", ' ') + (unit ? ` (${unit})` : '')}
                 </p>
             </div>
 
-            {/* Value Axis */}
+            {/* Axis */}
             <svg 
             ref={ref => this.AXES_REF = ref} 
             style={{ width: axesWidth, height: trackHeight }}/>
 
             {/* Left Contexts */}
             {leftContextTimeDomains.map((timeDomain, i) => {
-                let LeftContextEncoding = leftContextEncodings[i]; 
-                let multipleEncodings = Array.isArray(LeftContextEncoding); 
+
+                let LeftContextEncoding = applyContextEncodingsUniformly ? leftContextEncodings[0] : leftContextEncodings[i]; 
                 let clipId = `left-clip-${i}`; 
+                let pplotLeft = Object.assign({}, pplot); 
+                pplotLeft = Object.assign(pplotLeft, { timeDomain, xRange: contextXRange, yRange: contextYRange, isLeft: true, scaleRangeToBox: contextScaleRangeToBox }); 
+
                 return (
                     <svg 
                     key={`left-${i}`}
                     clipPath={`url(#${clipId})`}
                     style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
 
-                        {/* Left context border */}
+                        {/* Clipping */}
+                        <defs>
+                            <clipPath id={clipId}>
+                                <rect 
+                                x={0} 
+                                y={trackSvgOffsetTop} 
+                                width={contextWidth} 
+                                height={tHeight}/>
+                            </clipPath>
+                        </defs>
+
+                        {/* Border */}
                         <rect 
                         x={0} 
                         y={trackSvgOffsetTop} 
@@ -258,45 +269,12 @@ class Track extends React.Component {
                         stroke={contextColor} 
                         fill='none'/>
 
-                        {/* Left context clip */}
-                        <clipPath id={clipId}>
-                            <rect 
-                            x={0} 
-                            y={trackSvgOffsetTop} 
-                            width={contextWidth} 
-                            height={tHeight}/>
-                        </clipPath>
-
-                        <g clipPath={`url(#${clipId})`}>
-                            {/* Left context visualization(s) */}
-                            {multipleEncodings ? 
-                                LeftContextEncoding.map((LayeredEncoding,j) => 
-                                    <LayeredEncoding
-                                    key={`left-${i}-${j}-inner`}
-                                    timeKey={timeKey}
-                                    valueKey={valueKey}
-                                    timeDomain={timeDomain}
-                                    valueDomain={valueDomain}
-                                    observations={leftContextObservations[i]}
-                                    scaleRangeToBox={contextScaleRangeToBox}
-                                    xRange={contextXRange}
-                                    yRange={contextYRange}
-                                    doFlip={true}/>
-                                ) 
-                                :
-                                <LeftContextEncoding
-                                key={`left-${i}-inner`}
-                                timeKey={timeKey}
-                                valueKey={valueKey}
-                                timeDomain={timeDomain}
-                                valueDomain={valueDomain}
-                                observations={leftContextObservations[i]}
-                                scaleRangeToBox={contextScaleRangeToBox}
-                                xRange={contextXRange}
-                                yRange={contextYRange}
-                                doFlip={true}/> 
-                            }
-                        </g>
+                        {/* Encodings */}
+                        {LeftContextEncoding.map((LayeredEncoding, j) => 
+                            <LayeredEncoding
+                            key={`left-${i}-${j}-inner`}
+                            pplot={pplotLeft}/>
+                        )}
 
                     </svg>
                 ); 
@@ -307,8 +285,8 @@ class Track extends React.Component {
             ref={ref => this.FOCUS_REF = ref}
             style={{ width: focusWidth, height: trackHeight, display: 'inline-block' }}>
 
+                {/* Clipping */}
                 <defs>
-                    {/* Focus clip */}
                     <clipPath id="focus-clip">
                         <rect 
                         x={0} 
@@ -318,7 +296,9 @@ class Track extends React.Component {
                     </clipPath>
                 </defs>
 
+                {/* Apply clipping to all elements within visualization space */}
                 <g clipPath={`url(#focus-clip)`}>
+
                     {/* Focus Border */}
                     <rect 
                     x={0} 
@@ -332,14 +312,7 @@ class Track extends React.Component {
                     {FocusEncoding.map((LayeredEncoding,j) => 
                         <LayeredEncoding
                         key={`focus-${j}`}
-                        timeKey={timeKey}
-                        valueKey={valueKey}
-                        timeDomain={focusTimeDomain}
-                        valueDomain={valueDomain}
-                        observations={focusObservations}
-                        scaleRangeToBox={focusScaleRangeToBox}
-                        xRange={focusXRange}
-                        yRange={focusYRange}/>
+                        pplot={Object.assign(Object.assign({}, pplot), { timeDomain: focusTimeDomain, xRange: focusXRange, yRange: focusYRange, scaleRangeToBox: focusScaleRangeToBox })}/>
                     )}
 
                     {/* Current time point hover bar */}
@@ -364,7 +337,7 @@ class Track extends React.Component {
 
                 </g>
 
-                {/* Current time tooltip (only visible when mouse in container) */}
+                {/* Current time tooltip (only visible when mouse in container) exists outside clip */}
                 <text
                 className="focus-time-text"
                 x={0}
@@ -380,15 +353,30 @@ class Track extends React.Component {
 
             {/* Right Contexts */}
             {rightContextTimeDomains.map((timeDomain, i) => {
-                let RightContextEncoding = rightContextEncodings[i]; 
-                let multipleEncodings = Array.isArray(RightContextEncoding); 
+                
+                let RightContextEncoding = applyContextEncodingsUniformly ? rightContextEncodings[0] : rightContextEncodings[i]; 
                 let clipId = `right-clip-${i}`; 
+                let pplotRight = Object.assign({}, pplot);
+                pplotRight = Object.assign(pplot, { timeDomain, xRange: contextXRange, yRange: contextYRange, scaleRangeToBox: contextScaleRangeToBox }); 
+                
                 return (
                     <svg 
                     key={`right-${i}`}
                     clipPath={`url(#${clipId})`}
                     style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
                         
+                        {/* Clipping */}
+                        <defs>
+                            <clipPath id={clipId}>
+                                <rect 
+                                x={0} 
+                                y={trackSvgOffsetTop} 
+                                width={contextWidth} 
+                                height={tHeight}/>
+                            </clipPath>
+                        </defs>
+                        
+                        {/* Border */}
                         <rect 
                         x={0} 
                         y={trackSvgOffsetTop} 
@@ -397,40 +385,13 @@ class Track extends React.Component {
                         stroke={contextColor} 
                         fill='none'/>
 
-                        <clipPath id={clipId}>
-                            <rect 
-                            x={0} 
-                            y={trackSvgOffsetTop} 
-                            width={contextWidth} 
-                            height={tHeight}/>
-                        </clipPath>
+                        {/* Encodings */}
+                        {RightContextEncoding.map((LayeredEncoding, j) => 
+                            <LayeredEncoding
+                            key={`right-${i}-${j}-inner`}
+                            pplot={pplotRight}/>
+                        )}       
 
-                        {/* Right context visualization(s) */}
-                        {multipleEncodings ? 
-                            RightContextEncoding.map((LayeredEncoding, j) => 
-                                <LayeredEncoding
-                                key={`right-${i}-${j}-inner`}
-                                timeKey={timeKey}
-                                valueKey={valueKey}
-                                timeDomain={timeDomain}
-                                valueDomain={valueDomain}
-                                observations={rightContextObservations[i]}
-                                scaleRangeToBox={contextScaleRangeToBox}
-                                xRange={contextXRange}
-                                yRange={contextYRange}/>
-                            ) 
-                            :
-                            <RightContextEncoding
-                            key={`right-${i}-inner`}
-                            timeKey={timeKey}
-                            valueKey={valueKey}
-                            timeDomain={timeDomain}
-                            valueDomain={valueDomain}
-                            observations={rightContextObservations[i]}
-                            scaleRangeToBox={contextScaleRangeToBox}
-                            xRange={contextXRange}
-                            yRange={contextYRange}/>
-                        }       
                     </svg>
                 );
             })}
@@ -455,7 +416,8 @@ const mapStateToProps = ({
     axesWidth, 
     numContextsPerSide, 
     baseWidth, 
-    dZoom
+    dZoom, 
+    applyContextEncodingsUniformly
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
@@ -471,7 +433,8 @@ const mapStateToProps = ({
     axesWidth, 
     numContextsPerSide, 
     baseWidth, 
-    dZoom
+    dZoom, 
+    applyContextEncodingsUniformly
 }); 
                         
 const mapDispatchToProps = dispatch => ({

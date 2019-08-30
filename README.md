@@ -24,16 +24,33 @@ The PeripheryPlots React component takes a single configuration object as input.
 
 | Property  | Type | Description |
 | ------------- | ------------- | ------------- |
-| `trackwiseObservations` | [ [ Object, ... ], ... ] | The set of temporal observations for each track. |
-| `trackwiseTimeKeys` | [ String, ... ] | The property used to extract the temporal attribute of an observation. |
-| `trackwiseValueKeys` | [ String, ... ] | The property used to extract the value attributre of an observation.  |
-| `trackwiseTypes` | [ String, ... ] | The type of data for each track. Can be "continuous" or "discrete". |
-| `trackwiseUnits` | [ String OR Null, ... ] | The corresponding unit (if one exists) for each tracks data source. |
-| `trackwiseEncodings` | [ React.Component OR [ React.Component, ... ], ... ] | The encoding specification for tracks. |
-| `applyEncodingsUniformly` | Boolean | Determines the number of encoding specifications required. |
-| `numContextsPerSide` | Integer | The number of context plots on each side of the focus plot. |
+| __`trackwiseObservations`__ | [ [ Object, ... ], ... ] | The set of temporal observations for each track. |
+| `trackwiseTimeKeys` | [ String, ... ] | Key used to index temporal attribute from observation objects. |
+| `trackwiseValueKeys` | [ String, ... ] | Key used to index value attribute from observation objects.  |
+| `trackwiseTypes` | [ String, ... ] | Data type for each track. Can be "continuous",  "discrete", or "other". |
+| `trackwiseUnits` | [ String OR Null, ... ] | Unit for each track. |
+| `trackwiseNumAxisTicks` | [ Integer OR Null, ... ] | The number of ticks for each track axis. |
+| `trackwiseAxisTickFormatters` | [ d3.format OR Null, ... ] | Tick formatter for each track axis. |
+| `trackwiseEncodings` | [ [ React.Component, ... ], ... ] | Layered encoding specification for each track. |
+| `applyEncodingsUniformly` | Boolean | Determines the number of encoding specifications required for each track. |
+| `contextWidthRatio` | Float in range [0.0, 1.0] | Fraction of available space allocated to each context plot. |
+| `numContextsPerSide` | Integer | The number of context zones on each side of the focus zone. |
 | `timeExtentDomain` | [ Date, Date ] | A temporal range including all data observations across all data sources. |
-| `timeDomains` | [ [ Date, Date ], ... ] | A set of temporal ranges which correspond to the initially selected brush regions in control component. |
+| `timeDomains` | [ [ Date, Date ], ... ] | Temporal ranges corresponding to initially selected brush regions for the control timeline. |
+| `tickInterval` | d3.CountableTimeInterval | The interval for tick placement for the control timeline axis. |
+| `dZoom` | Integer+ | Speed of track generated zoom events for control timeline. |
+| `containerBackgroundColor` | Valid input to d3.color constructor | Background color for the component container. |
+| `focusColor` | Valid input to d3.color constructor | Color of focus brush and focus plot borders. |
+| `contextColor` | Valid input to d3.color constructor | Color of context brush and context plot borders.|
+| `lockActiveColor` | Valid input to d3.color constructor | Color of control timeline locks when active. |
+| `lockInactiveColor` | Valid input to d3.color constructor | Color of control timeline locks when inactive. |
+| `containerPadding` | Integer+ | Component padding in pixels that surrounds tracks and control timeline. |
+| `controlTimelineHeight` | Integer+ | The height of the control timeline in pixels. |
+| `verticalAlignerHeight` | Integer+ | The height of the vertical alignment component in pixels. |
+| `axesWidth` | Integer+ | The width of the axis for each track in pixels. |
+| `trackHeight` | Integer+ | The width of each track in pixels. |
+| `trackSvgOffsetTop` | Integer+ | The offset from top of svg plot containers defining top bound on drawable space. |
+| `trackSvgOffsetBottom` | Integer+ | The offset from bottom of svg plot containers defining bottom bound on drawable space. |
 
 Some of the descriptions in the table above are sufficient, but some properties are more complex and must satisfy specific criteria to be considered valid.
 

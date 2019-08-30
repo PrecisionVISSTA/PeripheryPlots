@@ -1,38 +1,8 @@
 
 const DEFAULT_state = {
+
+    proposal: { id: -1 }
     
-    // Component logical properties (dynamic)
-    timeExtentDomain: [new Date("06/22/1997"), new Date("06/22/2020")], 
-    timeDomains: [
-        [new Date("06/22/1997"), new Date("06/22/2000")],
-        [new Date("06/23/2000"), new Date("06/22/2010")],
-        [new Date("06/23/2010"), new Date("06/22/2013")]
-    ], 
-    proposal: { id: -1 },  
-    dZoom: 4,    
-
-    // Computed dynamically at runtime 
-    baseWidth: null,       
-
-    // Required properties from user configuration 
-    numContextsPerSide: null, 
-    contextWidthRatio: null, 
-    tickInterval: null, 
-
-    // Appearance / layout properties with sensible defaults 
-    focusColor: '#515151', 
-    contextColor: '#aaaaaa',
-    lockActiveColor: 'black', 
-    lockInactiveColor: 'grey', 
-
-    containerPadding: 12, 
-    controlTimelineHeight: 60, 
-    verticalAlignerHeight: 30, 
-    axesWidth: 40, 
-    trackHeight: 60, 
-    trackSvgOffsetTop: 10, 
-    trackSvgOffsetBottom: 10
-
 };
 
 function computePlotDimensions(numContextsPerSide, contextWidthRatio, baseWidth, containerPadding, axesWidth) {
@@ -50,104 +20,112 @@ function computePlotDimensions(numContextsPerSide, contextWidthRatio, baseWidth,
     }; 
 } 
  
+const mutations = {
+
+    'CHANGE_timeExtentDomain': (state, action) => {
+        let { timeExtentDomain } = action; 
+        return { ...state, timeExtentDomain };
+    }, 
+    'CHANGE_timeDomains': (state, action) =>{
+        let { timeDomains } = action; 
+        return { ...state, timeDomains };
+    }, 
+    'CHANGE_numContextsPerSide': (state, action) =>{
+        let { numContextsPerSide } = action; 
+        let { focusWidth, contextWidth } = computePlotDimensions(numContextsPerSide, 
+                                                                 state.contextWidthRatio, 
+                                                                 state.baseWidth, 
+                                                                 state.containerPadding, 
+                                                                 state.axesWidth); 
+        return { ...state, numContextsPerSide, focusWidth, contextWidth };
+    }, 
+    'CHANGE_proposal ': (state, action) =>{
+        let { proposal  } = action; 
+        return { ...state, proposal };
+    }, 
+    'CHANGE_baseWidth': (state, action) =>{
+        let { baseWidth } = action; 
+        let { focusWidth, contextWidth } = computePlotDimensions(state.numContextsPerSide, 
+                                                                state.contextWidthRatio, 
+                                                                baseWidth, 
+                                                                state.containerPadding, 
+                                                                state.axesWidth);
+        return { ...state, baseWidth, focusWidth, contextWidth }; 
+    }, 
+    'CHANGE_contextWidthRatio': (state, action) =>{
+        let { contextWidthRatio } = action;
+        let { focusWidth, contextWidth } = computePlotDimensions(state.numContextsPerSide, 
+                                                                contextWidthRatio, 
+                                                                state.baseWidth, 
+                                                                state.containerPadding, 
+                                                                state.axesWidth);
+        return { ...state, contextWidthRatio, focusWidth, contextWidth }; 
+    },
+    'CHANGE_containerPadding': (state, action) => {
+        let { containerPadding } = action;
+        return { ...state, containerPadding }; 
+    },
+    'CHANGE_controlTimelineHeight': (state, action) => {
+        let { controlTimelineHeight } = action;
+        return { ...state, controlTimelineHeight }; 
+    },
+    'CHANGE_verticalAlignerHeight': (state, action) => {
+        let { verticalAlignerHeight } = action;
+        return { ...state, verticalAlignerHeight }; 
+    },
+    'CHANGE_axesWidth': (state, action) => {
+        let { axesWidth } = action;
+        return { ...state, axesWidth }; 
+    },
+    'CHANGE_trackHeight': (state, action) => {
+        let { trackHeight } = action;
+        return { ...state, trackHeight }; 
+    },
+    'CHANGE_trackSvgOffsetTop': (state, action) => {
+        let { trackSvgOffsetTop } = action;
+        return { ...state, trackSvgOffsetTop }; 
+    },
+    'CHANGE_trackSvgOffsetBottom': (state, action) => {
+        let { trackSvgOffsetBottom } = action;
+        return { ...state, trackSvgOffsetBottom }; 
+    }, 
+    'CHANGE_tickInterval': (state, action) => {
+        let { tickInterval } = action; 
+        return { ...state, tickInterval }; 
+    },
+    'CHANGE_focusColor': (state, action) => {
+        let { focusColor } = action; 
+        return { ...state, focusColor };
+    }, 
+    'CHANGE_contextColor': (state, action) => {
+        let { contextColor } = action; 
+        return { ...state, contextColor };
+    }, 
+    'CHANGE_lockActiveColor': (state, action) => {
+        let { lockActiveColor } = action; 
+        return { ...state, lockActiveColor };
+    }, 
+    'CHANGE_lockInactiveColor': (state, action) => {
+        let { lockInactiveColor } = action; 
+        return { ...state, lockInactiveColor };
+    },
+    'CHANGE_dZoom': (state, action) => {
+        let { dZoom } = action; 
+        return { ...state, dZoom };
+    },
+    'CHANGE_applyContextEncodingsUniformly': (state, action) => {
+        let { applyContextEncodingsUniformly } = action; 
+        return { ...state, applyContextEncodingsUniformly };
+    },
+};
+
 const reducer = (state = DEFAULT_state, action) => {
 
-    const mutations = {
-        'CHANGE_timeExtentDomain': () => {
-            let { timeExtentDomain } = action; 
-            return { ...state, timeExtentDomain };
-        }, 
-        'CHANGE_timeDomains': () => {
-            let { timeDomains } = action; 
-            return { ...state, timeDomains };
-        }, 
-        'CHANGE_numContextsPerSide': () => {
-            let { numContextsPerSide } = action; 
-            let { focusWidth, contextWidth } = computePlotDimensions(numContextsPerSide, 
-                                                                     state.contextWidthRatio, 
-                                                                     state.baseWidth, 
-                                                                     state.containerPadding, 
-                                                                     state.axesWidth); 
-            return { ...state, numContextsPerSide, focusWidth, contextWidth };
-        }, 
-        'CHANGE_proposal ': () => {
-            let { proposal  } = action; 
-            return { ...state, proposal };
-        }, 
-        'CHANGE_baseWidth': () => {
-            let { baseWidth } = action; 
-            let { focusWidth, contextWidth } = computePlotDimensions(state.numContextsPerSide, 
-                                                                    state.contextWidthRatio, 
-                                                                    baseWidth, 
-                                                                    state.containerPadding, 
-                                                                    state.axesWidth);
-            return { ...state, baseWidth, focusWidth, contextWidth }; 
-        }, 
-        'CHANGE_contextWidthRatio': () => {
-            let { contextWidthRatio } = action;
-            let { focusWidth, contextWidth } = computePlotDimensions(state.numContextsPerSide, 
-                                                                    contextWidthRatio, 
-                                                                    state.baseWidth, 
-                                                                    state.containerPadding, 
-                                                                    state.axesWidth);
-            return { ...state, contextWidthRatio, focusWidth, contextWidth }; 
-        },
-        'CHANGE_containerPadding': () => {
-            let { containerPadding } = action;
-            return { ...state, containerPadding }; 
-        },
-        'CHANGE_controlTimelineHeight': () => {
-            let { controlTimelineHeight } = action;
-            return { ...state, controlTimelineHeight }; 
-        },
-        'CHANGE_verticalAlignerHeight': () => {
-            let { verticalAlignerHeight } = action;
-            return { ...state, verticalAlignerHeight }; 
-        },
-        'CHANGE_axesWidth': () => {
-            let { axesWidth } = action;
-            return { ...state, axesWidth }; 
-        },
-        'CHANGE_trackHeight': () => {
-            let { trackHeight } = action;
-            return { ...state, trackHeight }; 
-        },
-        'CHANGE_trackSvgOffsetTop': () => {
-            let { trackSvgOffsetTop } = action;
-            return { ...state, trackSvgOffsetTop }; 
-        },
-        'CHANGE_trackSvgOffsetBottom': () => {
-            let { trackSvgOffsetBottom } = action;
-            return { ...state, trackSvgOffsetBottom }; 
-        }, 
-        'CHANGE_tickInterval': () => {
-            let { tickInterval } = action; 
-            return { ...state, tickInterval }; 
-        },
-        'CHANGE_focusColor': () => {
-            let { focusColor } = action; 
-            return { ...state, focusColor };
-        }, 
-        'CHANGE_contextColor': () => {
-            let { contextColor } = action; 
-            return { ...state, contextColor };
-        }, 
-        'CHANGE_lockActiveColor': () => {
-            let { lockActiveColor } = action; 
-            return { ...state, lockActiveColor };
-        }, 
-        'CHANGE_lockInactiveColor': () => {
-            let { lockInactiveColor } = action; 
-            return { ...state, lockInactiveColor };
-        },
-        'CHANGE_dZoom': () => {
-            let { dZoom } = action; 
-            return { ...state, dZoom };
-        },
-    };
-
+    // We opt for use of a mutator rather than a switch statement 
+    // due to weird javascript restrictions on declaring the same variable
+    // name across different cases. 
     let mutator = mutations[action.type]; 
-    return mutator === undefined ? state : mutator(); 
+    return mutator === undefined ? state : mutator(state, action); 
     
 };
 

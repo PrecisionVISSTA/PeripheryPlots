@@ -10,7 +10,8 @@ class AverageLine extends React.Component {
 
     render() {
 
-        let { valueKey, valueDomain, xRange, observations, scaleRangeToBox } = this.props; 
+        let { pplot } = this.props;
+        let { valueKey, valueDomain, xRange, observations, scaleRangeToBox } = pplot; 
         let { valueScale } = this.state; 
 
         let scales = scaleRangeToBox(null, valueScale); 

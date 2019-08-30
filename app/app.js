@@ -2,7 +2,7 @@ import React from "react";
 import * as d3 from "d3"; 
 import ReactDOM from "react-dom";
 import _ from "lodash"; 
-import WeatherData from "./seattle-weather.csv"; 
+import loadData from "./loadData"; 
 
 import PeripheryPlots, {
     LineGroup, 
@@ -19,35 +19,13 @@ import validateConfig from "./util/configValidation.js";
 
 import "./css/teststyles.css"; 
 
-let data = []; 
-let indexMap = {}; 
-let catKeys = ['weather']; 
-let floatKeys = ['precipitation', 'temp_max', 'temp_min', 'wind']; 
-for (let i = 0; i < WeatherData.length - 1; i++) {
-    let row = WeatherData[i]; 
-    if (i === 0) {
-        // Determine the index for each of the target keys to extract
-        for (let j = 0; j < row.length; j++) {
-            indexMap[row[j]] = j; 
-        }
-    } else {
-        let datarow = {}; 
-        for (let key of floatKeys) {
-            datarow[key] = parseFloat(row[indexMap[key]]); 
-        }
-        for (let key of catKeys) {
-            datarow[key] = row[indexMap[key]]; 
-        }
-        datarow.date = new Date(row[indexMap.date]); 
-        data.push(datarow); 
-    }
-}
 
+let data = loadData(); 
 let dateExtent = d3.extent(data.map(d => d.date)); 
 
 let config = {
 
-    // Parameters to construct tracks
+    // Tracks 
     trackwiseObservations: [data, data, data, data],
     trackwiseTimeKeys: ['date', 'date', 'date', 'date'], 
     trackwiseValueKeys: ['temp_max', 'precipitation', 'wind', 'weather'], 
@@ -71,36 +49,32 @@ let config = {
     ],
     applyContextEncodingsUniformly: true, 
     numContextsPerSide: 1, 
+    contextWidthRatio: .2,
 
-    // Parameters to construct control 
-    tickInterval: d3.timeMonth.every(6), 
+    // Control Timeline
+    tickInterval: d3.timeMonth.every(3), 
     timeExtentDomain: dateExtent,  
     timeDomains: [
         ['02/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
         ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
         ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)) 
     ], 
+    dZoom: 10,
 
-    // Layout / Style attributes 
-    contextWidthRatio: .2, 
-
-    // Optional attributes 
+    // Layout + Style  
     containerBackgroundColor: 'white',
     focusColor: '#576369', 
     contextColor: '#9bb1ba', 
     lockActiveColor: '#00496e', 
     lockInactiveColor: 'grey', 
-    
+
     containerPadding: 14, 
     controlTimelineHeight: 50, 
     verticalAlignerHeight: 30, 
     axesWidth: 40, 
     trackHeight: 50, 
     trackSvgOffsetTop: 10, 
-    trackSvgOffsetBottom: 3,
-
-    // Other 
-    dZoom: 10
+    trackSvgOffsetBottom: 3
 
 }; 
 

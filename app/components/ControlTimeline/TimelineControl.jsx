@@ -243,8 +243,6 @@ class TimelineControl extends React.Component {
 
     let lockClick = (lockId) => {
 
-        debugger; 
-
         // Determine the lock index of the clicked lock 
         let lockIndex = this.state.brushLockIds.indexOf(lockId); 
         assert(lockIndex >= 0, 'lock doesnt exist'); 

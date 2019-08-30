@@ -21,7 +21,8 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_contextColor, 
             ACTION_CHANGE_lockActiveColor, 
             ACTION_CHANGE_lockInactiveColor, 
-            ACTION_CHANGE_dZoom
+            ACTION_CHANGE_dZoom, 
+            ACTION_CHANGE_applyContextEncodingsUniformly
 
         } from "../../actions/actions"; 
 
@@ -53,17 +54,6 @@ function PeripheryPlotsContent(props) {
 
     useEffect(() => {
 
-        // Update global store with values from user configuration object 
-        props.ACTION_CHANGE_timeDomains(config.timeDomains); 
-        props.ACTION_CHANGE_timeExtentDomain(config.timeExtentDomain);  
-        props.ACTION_CHANGE_contextWidthRatio(config.contextWidthRatio); 
-        props.ACTION_CHANGE_numContextsPerSide(config.numContextsPerSide); 
-        props.ACTION_CHANGE_tickInterval(config.tickInterval); 
-        
-    }, []); 
-
-    useEffect(() => {
-
         // When we are able to measure dimensions of parent container, update global store 
         if (!isNaN(width)) {
             props.ACTION_CHANGE_baseWidth(width); 
@@ -74,14 +64,10 @@ function PeripheryPlotsContent(props) {
         
     }, [width]); 
 
-    let doRender = controlScale.range()[1] > 0 && baseWidth > 0; 
-
-    let containerBackgroundColor = config.containerBackgroundColor === undefined ? '#fff' : config.containerBackgroundColor; 
-
-    // Update store with optional properties anytime user changes configuration option
+    // Update store with these properties anytime config changes 
     useEffect(() => {
 
-        const optionalProperties = [
+        const updateProps = [
             'containerPadding', 
             'controlTimelineHeight', 
             'verticalAlignerHeight', 
@@ -93,17 +79,25 @@ function PeripheryPlotsContent(props) {
             'contextColor', 
             'lockActiveColor', 
             'lockInactiveColor', 
-            'dZoom'
+            'dZoom', 
+            'timeDomains', 
+            'timeExtentDomain', 
+            'contextWidthRatio', 
+            'numContextsPerSide', 
+            'tickInterval', 
+            'applyContextEncodingsUniformly'
         ]; 
 
-        for (let p of optionalProperties) {
-            let value = config[p]; 
-            if (value !== undefined) {
-                props[`ACTION_CHANGE_${p}`](value); 
+        for (let p of updateProps) {
+            if (config[p] !== undefined) {
+                props[`ACTION_CHANGE_${p}`](config[p]); 
             }
         }
 
     }, [config]); 
+
+    let doRender = controlScale.range()[1] > 0 && baseWidth > 0; 
+    let containerBackgroundColor = config.containerBackgroundColor === undefined ? '#fff' : config.containerBackgroundColor; 
 
     return (
     <div ref={ref} style={{ width: '100%', backgroundColor: containerBackgroundColor }}>
@@ -221,6 +215,9 @@ const mapDispatchToProps = dispatch => ({
 
     ACTION_CHANGE_dZoom: (dZoom) => 
     dispatch(ACTION_CHANGE_dZoom(dZoom)),
+
+    ACTION_CHANGE_applyContextEncodingsUniformly: (applyContextEncodingsUniformly) => 
+    dispatch(ACTION_CHANGE_applyContextEncodingsUniformly(applyContextEncodingsUniformly))
 
 }); 
 

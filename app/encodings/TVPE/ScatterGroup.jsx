@@ -10,7 +10,8 @@ class ScatterGroup extends React.Component {
 
     render() {
 
-        let { timeKey, valueKey, timeDomain, valueDomain, observations, scaleRangeToBox } = this.props; 
+        let { pplot } = this.props; 
+        let { timeKey, valueKey, timeDomain, valueDomain, observations, scaleRangeToBox } = pplot; 
         let { timeScale, valueScale } = this.state
 
         let scales = scaleRangeToBox(timeScale, valueScale); 

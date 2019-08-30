@@ -12,7 +12,8 @@ class QuantitativeTraceGroup extends React.Component {
 
     render() {
 
-        let { valueKey, valueDomain, yRange, xRange, observations, scaleRangeToBox, doFlip } = this.props; 
+        let { pplot } = this.props; 
+        let { valueKey, valueDomain, yRange, xRange, observations, scaleRangeToBox, isLeft } = pplot; 
         let { freqScale, valueScale } = this.state; 
 
         let scales = scaleRangeToBox(freqScale, valueScale); 
@@ -50,7 +51,7 @@ class QuantitativeTraceGroup extends React.Component {
         let ty = yRange[1]; 
 
         return (
-            <g transform={doFlip ? `translate(${xWidth + tx},${ty}) scale(-1,1) translate(${-tx},${-ty})` : ''}>
+            <g transform={isLeft ? `translate(${xWidth + tx},${ty}) scale(-1,1) translate(${-tx},${-ty})` : ''}>
                 {/* Bars */}
                 {bins.map(({ p, y0, y1 },i) => <rect
                                                 key={`${i}`}

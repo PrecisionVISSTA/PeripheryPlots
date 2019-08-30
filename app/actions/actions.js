@@ -132,4 +132,9 @@ export function ACTION_CHANGE_dZoom (dZoom) {
     }; 
 };
 
-
+export function ACTION_CHANGE_applyContextEncodingsUniformly (applyContextEncodingsUniformly) {
+    return {
+        type: 'CHANGE_applyContextEncodingsUniformly',
+        applyContextEncodingsUniformly
+    }; 
+};
