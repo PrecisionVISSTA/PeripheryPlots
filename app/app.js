@@ -97,7 +97,10 @@ let config = {
     axesWidth: 40, 
     trackHeight: 50, 
     trackSvgOffsetTop: 10, 
-    trackSvgOffsetBottom: 3
+    trackSvgOffsetBottom: 3,
+
+    // Other 
+    dZoom: 10
 
 }; 
 

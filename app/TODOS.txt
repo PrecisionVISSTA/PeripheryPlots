@@ -1,11 +1,9 @@
 
 Still need to do: 
+
     zoom / pan 'speed' (big screens its slow to expand / shrink)
-    Label formatting / optional inclusion? 
     Refactor existing encodings / document extensibility 
-    
-    UI labels styling via css classes 
-    
+        
     local install instructions update on github readme 
     .gif on readme from trevor's video 
     reach out to paper chairs of IEEE viz and ask about paper talk length 

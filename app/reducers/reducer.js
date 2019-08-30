@@ -8,7 +8,8 @@ const DEFAULT_state = {
         [new Date("06/23/2000"), new Date("06/22/2010")],
         [new Date("06/23/2010"), new Date("06/22/2013")]
     ], 
-    proposal: { id: -1 },     
+    proposal: { id: -1 },  
+    dZoom: 4,    
 
     // Computed dynamically at runtime 
     baseWidth: null,       
@@ -138,6 +139,10 @@ const reducer = (state = DEFAULT_state, action) => {
         'CHANGE_lockInactiveColor': () => {
             let { lockInactiveColor } = action; 
             return { ...state, lockInactiveColor };
+        },
+        'CHANGE_dZoom': () => {
+            let { dZoom } = action; 
+            return { ...state, dZoom };
         },
     };
 

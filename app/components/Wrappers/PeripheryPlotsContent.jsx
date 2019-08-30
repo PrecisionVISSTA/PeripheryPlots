@@ -20,7 +20,8 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_focusColor, 
             ACTION_CHANGE_contextColor, 
             ACTION_CHANGE_lockActiveColor, 
-            ACTION_CHANGE_lockInactiveColor
+            ACTION_CHANGE_lockInactiveColor, 
+            ACTION_CHANGE_dZoom
 
         } from "../../actions/actions"; 
 
@@ -91,7 +92,8 @@ function PeripheryPlotsContent(props) {
             'focusColor', 
             'contextColor', 
             'lockActiveColor', 
-            'lockInactiveColor'
+            'lockInactiveColor', 
+            'dZoom'
         ]; 
 
         for (let p of optionalProperties) {
@@ -216,6 +218,9 @@ const mapDispatchToProps = dispatch => ({
 
     ACTION_CHANGE_lockInactiveColor: (lockInactiveColor) => 
     dispatch(ACTION_CHANGE_lockInactiveColor(lockInactiveColor)),
+
+    ACTION_CHANGE_dZoom: (dZoom) => 
+    dispatch(ACTION_CHANGE_dZoom(dZoom)),
 
 }); 
 

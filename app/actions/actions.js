@@ -125,4 +125,11 @@ export function ACTION_CHANGE_lockInactiveColor (lockInactiveColor) {
     }; 
 };
 
+export function ACTION_CHANGE_dZoom (dZoom) {
+    return {
+        type: 'CHANGE_dZoom',
+        dZoom
+    }; 
+};
+
 

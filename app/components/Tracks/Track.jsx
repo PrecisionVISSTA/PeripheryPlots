@@ -27,9 +27,9 @@ class Track extends React.Component {
             return;
         }
 
+        let { dZoom } = this.props; 
         let { lastK, lastX, proposalId } = this.state; 
         let { k, x } = d3.zoomTransform(d3.select(this.ZOOM_REF).node());
-        let dZoom = 2; 
         let isPan = lastK === k;      
         let zoomDir = k > lastK ? -1 : 1; 
         let newProposalId = proposalId + 1; 
@@ -228,7 +228,7 @@ class Track extends React.Component {
         <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding }}>
 
             <div style={{ width: "100%", display: "block" }}>
-                <p className={'pplot-track-header-text'} style={{ marginTop: 3, marginBottom: 3 }}>
+                <p className={'pplot-track-header-text'}>
                     {title.replace("_", ' ') + (unit ? ` (${unit})` : '')}
                 </p>
             </div>
@@ -246,13 +246,8 @@ class Track extends React.Component {
                 return (
                     <svg 
                     key={`left-${i}`}
-                    
+                    clipPath={`url(#${clipId})`}
                     style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
-                        {/* Dates below chart */}
-                        {/* <g transform={`translate(0,${contextYRange[0] + 5})`}>
-                            <text 
-                            textAnchor="middle">{leftDates[i]}</text>
-                        </g> */}
 
                         {/* Left context border */}
                         <rect 
@@ -393,6 +388,7 @@ class Track extends React.Component {
                     key={`right-${i}`}
                     clipPath={`url(#${clipId})`}
                     style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
+                        
                         <rect 
                         x={0} 
                         y={trackSvgOffsetTop} 
@@ -458,7 +454,8 @@ const mapStateToProps = ({
     trackSvgOffsetBottom, 
     axesWidth, 
     numContextsPerSide, 
-    baseWidth
+    baseWidth, 
+    dZoom
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
@@ -473,7 +470,8 @@ const mapStateToProps = ({
     trackSvgOffsetBottom, 
     axesWidth, 
     numContextsPerSide, 
-    baseWidth
+    baseWidth, 
+    dZoom
 }); 
                         
 const mapDispatchToProps = dispatch => ({
