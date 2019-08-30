@@ -272,6 +272,7 @@ class TimelineControl extends React.Component {
             .attr('transform', `translate(${x - LOCK_WIDTH / 2},0)`)
             .attr('fill', lockInactiveColor)
             .attr('rx', LOCK_HEIGHT / 4)
+            .style("cursor", "pointer")
             .on('click', _.partial(lockClick, lockId)); 
             
     }
@@ -356,7 +357,7 @@ class TimelineControl extends React.Component {
                 .attr("class", (d) => `handle--custom ${d.type === 'w' ? 'handle-left' : 'handle-right'}`)
                 .attr("fill", "#009688")
                 .attr("fill-opacity", 0.8)
-                .attr("cursor", "ew-resize");
+                .style("cursor", "ew-resize");
 
       // Disable existing brushes. Pointer events only active on custom brushes 
       brushG.select('.handle--e').style('pointer-events', 'none')
