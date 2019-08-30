@@ -31,7 +31,7 @@ The PeripheryPlots React component takes a single configuration object as input.
 | __`trackwiseValueKeys`__ | [ String, ... ] | Key used to index value attribute from observation objects.  |
 | __`trackwiseTypes`__ | [ String, ... ] | Data type for each track. Can be "continuous",  "discrete", or "other". |
 | __`trackwiseUnits`__ | [ String OR Null, ... ] | Unit for each track. |
-| __`trackwiseNumAxisTicks`__ | [ Integer OR Null, ... ] | The number of ticks for each track axis. |
+| __`trackwiseNumAxisTicks`__ | [ Integer+ OR Null, ... ] | The number of ticks for each track axis. |
 | __`trackwiseAxisTickFormatters`__ | [ d3.format OR Null, ... ] | Tick formatter for each track axis. |
 | __`trackwiseEncodings`__ | [ [ [ React.Component, ... ], ... ] ... ] | Layered encoding specification for each track. |
 | __`applyEncodingsUniformly`__ | Boolean | Determines the number of encoding specifications required for each track. |
@@ -39,13 +39,13 @@ The PeripheryPlots React component takes a single configuration object as input.
 | `numContextsPerSide` | Integer+ <br> **default:** 1 | The number of context zones on each side of the focus zone. |
 | __`timeExtentDomain`__ | [ Date, Date ] | A temporal range including all data observations across all data sources. |
 | __`timeDomains`__ | [ [ Date, Date ], ... ] | Temporal ranges corresponding to initially selected brush regions for the control timeline. |
-| __`tickInterval`__ | d3.CountableTimeInterval | The interval for tick placement for the control timeline axis. |
-| `dZoom` | Integer+ <br> **default:** 5 | Speed of track generated zoom events for control timeline. |
-| `containerBackgroundColor` | Valid input to d3.color constructor <br> **default:** "#ffffff" | Background color for the component container. |
-| `focusColor` | Valid input to d3.color constructor <br> **default:** "#576369" | Color of focus brush and focus plot borders. |
-| `contextColor` | Valid input to d3.color constructor <br> **default:** "#9BB1BA" | Color of context brush and context plot borders.|
-| `lockActiveColor` | Valid input to d3.color constructor <br> **default:** "#00496E" | Color of control timeline locks when active. |
-| `lockInactiveColor` | Valid input to d3.color constructor <br> **default:** "Grey" | Color of control timeline locks when inactive. |
+| __`tickInterval`__ | [d3.interval](https://github.com/d3/d3-time) | The interval for tick placement for the control timeline axis. |
+| `dZoom` | Integer+ <br> **default:** 5 | Speed of track generated zoom events for control timeline. For wide screens, it may be necessary to increase this value |
+| `containerBackgroundColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "#ffffff" | Background color for the component container. |
+| `focusColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "#576369" | Color of focus brush and focus plot borders. |
+| `contextColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "#9BB1BA" | Color of context brush and context plot borders.|
+| `lockActiveColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "#00496E" | Color of control timeline locks when active. |
+| `lockInactiveColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "Grey" | Color of control timeline locks when inactive. |
 | `containerPadding` | Integer+ <br> **default:** 10 | Component padding in pixels that surrounds tracks and control timeline. |
 | `controlTimelineHeight` | Integer+ <br> **default:** 50 | The height of the control timeline in pixels. |
 | `verticalAlignerHeight` | Integer+ <br> **default:** 30 | The height of the vertical alignment component in pixels. |
@@ -56,7 +56,7 @@ The PeripheryPlots React component takes a single configuration object as input.
 
 Some of the descriptions in the table above are sufficient, but some properties are more complex and must satisfy specific criteria to be considered valid.
 
-We describe these properties in further detail as they relate to the two core subcomponents of the PeripheryPlot framework: 
+We describe these properties in further detail as they relate to the two core subcomponents of the PeripheryPlots framework: 
 
 * Tracks 
 * Control Timeline 
@@ -102,3 +102,47 @@ The ith brush (from left to right) in the control timeline determines the tempor
 
 *`timeDomains`*
 > The initial temporal ranges of analysis. There should be `(numContextsPerSide * 2) + 1` timeDomains specified. There should be no temporal distance between two adjacent temporal ranges (i.e. where `timeDomains[i]` ends, `timeDomains[i+1]` should begin). 
+
+
+## Component Styling via CSS
+
+Many of the internal style properties for the component must be specified through the configuration object to ensure only certain style properties of sub-components are changed. 
+
+One area where this is not as much of a problem is styling the text that appears within the component. We have given the text elements within the component special class names to allow for custom styling via CSS. 
+
+
+| Class | Description |
+| ------------- | ------------- |
+| `pplot-control-timeline-text` | Control timeline axis labels. |
+| `pplot-track-header-text` | Header text for each track. |
+| `pplot-track-axis-text` | Axis text for each track. |
+
+## Creating Custom Encodings 
+
+You can create your own custom encodings for use with the PeripheryPlots component. Simply write a React component, import it, and include it somewhere in `trackwiseEncodings`. All components in `trackwiseEncodings` will recieve a object called `pplot` which contains a number of properties that can be used to plot data within a corresponding plot. 
+
+| Property | Type | Description |
+| ------------- | ------------- | ------------- |
+| `observations` | [ Object, ... ] | all observations within `timeDomain`. |
+| `timeKey` | String | The temporal index into each individual observation object. | 
+| `valueKey` | String | The value index into each individual observation object. |
+| `timeDomain` | [Date, Date] | The temporal range for the plot. | 
+| `valueDomain` | [ Number, Number ] OR [ Object, ... ] OR Null | Range of possible values across all observations. |
+| `xRange` | [ Number, Number ] | Plottable range in x dimension. | 
+| `yRange` | [ Number, Number ] | Plottable range in y dimension. |
+| `scaleRangeToBox` | Function | Binds input d3.scale objects to plottable ranges (x and/or y). | 
+| `isLeft` | Boolean | Whether or not the encoding is bound to a left context plot. |
+| `isFocus` | Boolean | Whether or not the encoding is bound to focus plot. |
+
+We describe some of these properties in more detail below. 
+
+*`valueDomain`*
+> The value of `valueDomain` depends on the type of the current track (specified in `trackwiseTypes` in the configuration object)
+> * if `type` === "continuous": 
+>   * `valueDomain` is of the form [ Number, Number ] and represents the minimum and maximum numerical values seen across all observations. 
+> * if `type` === "discrete": 
+>   * `valueDomain` is of the form [ Object, ... ] and represents all unique values seen across all observations. 
+> * if `type` === "other": 
+>   * `valueDomain` is Null. 
+
+*`scaleRangeToBox`*

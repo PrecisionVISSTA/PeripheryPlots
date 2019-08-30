@@ -177,7 +177,8 @@ class Track extends React.Component {
             focusWidth, 
             contextWidth, 
             baseWidth, 
-            applyContextEncodingsUniformly
+            applyContextEncodingsUniformly, 
+            type 
         } = this.props; 
 
         // utility functions 
@@ -194,8 +195,6 @@ class Track extends React.Component {
         let FocusEncoding = encodings[numContextsPerSide]; 
         let rightContextEncodings = encodings.slice(numContextsPerSide + 1, encodings.length); 
 
-        let multipleFocusEncodings = Array.isArray(FocusEncoding); 
-
         // partitioned observations
         let leftContextObservations = leftContextTimeDomains.map(observationsInDomain);
         let focusObservations = observationsInDomain(focusTimeDomain); 
@@ -209,8 +208,9 @@ class Track extends React.Component {
         let focusScaleRangeToBox = _.partial(scaleRangeToBox, focusXRange, focusYRange); 
 
         let tHeight = trackHeight - trackSvgOffsetTop - trackSvgOffsetBottom; 
-        let valueDomain = isNaN(observations[0][valueKey]) ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
-                                                             d3.extent(observations.map(o => o[valueKey]));
+        let valueDomain = type === 'continuous' ? d3.extent(observations.map(o => o[valueKey])) : 
+                            type === 'discrete' ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
+                                                  null; 
 
         // namespace for periphery plot specific properties 
         let pplot = {
@@ -312,7 +312,7 @@ class Track extends React.Component {
                     {FocusEncoding.map((LayeredEncoding,j) => 
                         <LayeredEncoding
                         key={`focus-${j}`}
-                        pplot={Object.assign(Object.assign({}, pplot), { observations: focusObservations, timeDomain: focusTimeDomain, xRange: focusXRange, yRange: focusYRange, scaleRangeToBox: focusScaleRangeToBox })}/>
+                        pplot={Object.assign(Object.assign({}, pplot), { observations: focusObservations, timeDomain: focusTimeDomain, xRange: focusXRange, yRange: focusYRange, scaleRangeToBox: focusScaleRangeToBox, isFocus: true })}/>
                     )}
 
                     {/* Current time point hover bar */}
@@ -356,7 +356,7 @@ class Track extends React.Component {
                 
                 let RightContextEncoding = applyContextEncodingsUniformly ? rightContextEncodings[0] : rightContextEncodings[i]; 
                 let clipId = `right-clip-${i}`; 
-                let observations = leftContextObservations[i]; 
+                let observations = rightContextObservations[i]; 
                 let pplotRight = Object.assign({}, pplot);
                 pplotRight = Object.assign(pplot, { observations, timeDomain, xRange: contextXRange, yRange: contextYRange, scaleRangeToBox: contextScaleRangeToBox }); 
                 

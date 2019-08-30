@@ -50,7 +50,7 @@ let config = {
     applyContextEncodingsUniformly: true,
 
     // Control Timeline
-    tickInterval: d3.timeMonth.every(3), 
+    tickInterval: d3.timeMonth, 
     timeExtentDomain: dateExtent,  
     timeDomains: [
         ['02/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
