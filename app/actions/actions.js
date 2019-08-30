@@ -95,4 +95,34 @@ export function ACTION_CHANGE_tickInterval (tickInterval) {
         type: 'CHANGE_tickInterval',
         tickInterval
     }; 
-}
+};
+
+export function ACTION_CHANGE_focusColor (focusColor) {
+    return {
+        type: 'CHANGE_focusColor',
+        focusColor
+    }; 
+};
+
+export function ACTION_CHANGE_contextColor (contextColor) {
+    return {
+        type: 'CHANGE_contextColor',
+        contextColor
+    }; 
+};
+
+export function ACTION_CHANGE_lockActiveColor (lockActiveColor) {
+    return {
+        type: 'CHANGE_lockActiveColor',
+        lockActiveColor
+    }; 
+};
+
+export function ACTION_CHANGE_lockInactiveColor (lockInactiveColor) {
+    return {
+        type: 'CHANGE_lockInactiveColor',
+        lockInactiveColor
+    }; 
+};
+
+

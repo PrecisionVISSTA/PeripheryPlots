@@ -30,6 +30,10 @@ module.exports = {
         use: [
           'csv-loader'
         ]
+      },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
       }
     ]
   }, 

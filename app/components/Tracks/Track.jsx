@@ -85,7 +85,9 @@ class Track extends React.Component {
                 scale.domain(valueDomain)
                      .range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop])
             ); 
-            d3.select(this.AXES_REF).call(axis);
+            d3.select(this.AXES_REF)
+                .call(axis)
+                    .selectAll('text').classed('pplot-track-axis-text', true);
         }
          
     }
@@ -226,7 +228,7 @@ class Track extends React.Component {
         <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding }}>
 
             <div style={{ width: "100%", display: "block" }}>
-                <p style={{ fontFamily: 'helvetica', fontSize: 12, fontWeight: 'bold', marginTop: 3, marginBottom: 3 }}>
+                <p className={'pplot-track-header-text'} style={{ marginTop: 3, marginBottom: 3 }}>
                     {title.replace("_", ' ') + (unit ? ` (${unit})` : '')}
                 </p>
             </div>

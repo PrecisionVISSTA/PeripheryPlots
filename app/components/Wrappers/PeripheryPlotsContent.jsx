@@ -16,7 +16,12 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_trackHeight, 
             ACTION_CHANGE_trackSvgOffsetTop, 
             ACTION_CHANGE_trackSvgOffsetBottom, 
-            ACTION_CHANGE_tickInterval
+            ACTION_CHANGE_tickInterval, 
+            ACTION_CHANGE_focusColor, 
+            ACTION_CHANGE_contextColor, 
+            ACTION_CHANGE_lockActiveColor, 
+            ACTION_CHANGE_lockInactiveColor
+
         } from "../../actions/actions"; 
 
 import TimelineControl from "../ControlTimeline/TimelineControl.jsx"; 
@@ -82,7 +87,11 @@ function PeripheryPlotsContent(props) {
             'axesWidth', 
             'trackHeight', 
             'trackSvgOffsetTop', 
-            'trackSvgOffsetBottom'
+            'trackSvgOffsetBottom', 
+            'focusColor', 
+            'contextColor', 
+            'lockActiveColor', 
+            'lockInactiveColor'
         ]; 
 
         for (let p of optionalProperties) {
@@ -194,7 +203,19 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ACTION_CHANGE_trackSvgOffsetBottom(trackSvgOffsetBottom)), 
 
     ACTION_CHANGE_tickInterval: (tickInterval) => 
-    dispatch(ACTION_CHANGE_tickInterval(tickInterval))
+    dispatch(ACTION_CHANGE_tickInterval(tickInterval)),
+
+    ACTION_CHANGE_focusColor: (focusColor) => 
+    dispatch(ACTION_CHANGE_focusColor(focusColor)),
+
+    ACTION_CHANGE_contextColor: (contextColor) => 
+    dispatch(ACTION_CHANGE_contextColor(contextColor)),
+
+    ACTION_CHANGE_lockActiveColor: (lockActiveColor) => 
+    dispatch(ACTION_CHANGE_lockActiveColor(lockActiveColor)),
+
+    ACTION_CHANGE_lockInactiveColor: (lockInactiveColor) => 
+    dispatch(ACTION_CHANGE_lockInactiveColor(lockInactiveColor)),
 
 }); 
 

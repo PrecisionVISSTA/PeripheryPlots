@@ -19,9 +19,7 @@ import { ACTION_CHANGE_timeDomains,
 const {
   MARGIN,
   LOCK_WIDTH, 
-  LOCK_HEIGHT, 
-  LOCK_ACTIVE_COLOR, 
-  LOCK_INACTIVE_COLOR, 
+  LOCK_HEIGHT,  
   HANDLE_WIDTH, 
   HANDLE_HEIGHT, 
   MIN_CONTEXT_WIDTH, 
@@ -208,7 +206,7 @@ class TimelineControl extends React.Component {
 
   componentDidMount() {
     // Code to create the d3 element, using the root container 
-    let { width, height, focusColor, contextColor, containerPadding } = this.props; 
+    let { width, height, focusColor, contextColor, containerPadding, lockActiveColor, lockInactiveColor } = this.props; 
     
     let root = d3.select(this.ROOT); 
 
@@ -256,7 +254,7 @@ class TimelineControl extends React.Component {
         // Apply an animation to the lock to indicate the change 
         d3.select(`#${lockId}`)
           .transition(d3.transition().duration(300).ease(d3.easeLinear))
-          .attr('fill', brushLocks[lockIndex] ? LOCK_ACTIVE_COLOR : LOCK_INACTIVE_COLOR); 
+          .attr('fill', brushLocks[lockIndex] ? lockActiveColor : lockInactiveColor); 
     }
 
     let addLock = (x, y, lockId) => {
@@ -269,7 +267,7 @@ class TimelineControl extends React.Component {
             .attr('width', LOCK_WIDTH)
             .attr('height', LOCK_HEIGHT)
             .attr('transform', `translate(${x - LOCK_WIDTH / 2},0)`)
-            .attr('fill', LOCK_INACTIVE_COLOR)
+            .attr('fill', lockInactiveColor)
             .attr('rx', LOCK_HEIGHT / 4)
             .on('click', _.partial(lockClick, lockId)); 
             
@@ -395,7 +393,7 @@ class TimelineControl extends React.Component {
             .attr('class', 'control-axis')
             .call(axisGenerator) 
               .selectAll('text')
-              .attr('font-size', 8);
+              .classed('pplot-control-timeline-text', true);
 
   }
 

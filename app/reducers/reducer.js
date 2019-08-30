@@ -21,6 +21,9 @@ const DEFAULT_state = {
     // Appearance / layout properties with sensible defaults 
     focusColor: '#515151', 
     contextColor: '#aaaaaa',
+    lockActiveColor: 'black', 
+    lockInactiveColor: 'grey', 
+
     containerPadding: 12, 
     controlTimelineHeight: 60, 
     verticalAlignerHeight: 30, 
@@ -44,10 +47,8 @@ function computePlotDimensions(numContextsPerSide, contextWidthRatio, baseWidth,
         contextWidth, 
         focusWidth
     }; 
-}
-
+} 
  
-
 const reducer = (state = DEFAULT_state, action) => {
 
     const mutations = {
@@ -121,7 +122,23 @@ const reducer = (state = DEFAULT_state, action) => {
         'CHANGE_tickInterval': () => {
             let { tickInterval } = action; 
             return { ...state, tickInterval }; 
-        }
+        },
+        'CHANGE_focusColor': () => {
+            let { focusColor } = action; 
+            return { ...state, focusColor };
+        }, 
+        'CHANGE_contextColor': () => {
+            let { contextColor } = action; 
+            return { ...state, contextColor };
+        }, 
+        'CHANGE_lockActiveColor': () => {
+            let { lockActiveColor } = action; 
+            return { ...state, lockActiveColor };
+        }, 
+        'CHANGE_lockInactiveColor': () => {
+            let { lockInactiveColor } = action; 
+            return { ...state, lockInactiveColor };
+        },
     };
 
     let mutator = mutations[action.type]; 

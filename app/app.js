@@ -15,8 +15,9 @@ import PeripheryPlots, {
     AverageLine
 } from "./components/Wrappers/Root.js"; 
 
-
 import validateConfig from "./util/configValidation.js"; 
+
+import "./css/teststyles.css"; 
 
 let data = []; 
 let indexMap = {}; 
@@ -81,11 +82,16 @@ let config = {
     ], 
 
     // Layout / Style attributes 
-    contextWidthRatio: .25, 
+    contextWidthRatio: .2, 
 
     // Optional attributes 
-    containerBackgroundColor: '#fff',
-    containerPadding: 10, 
+    containerBackgroundColor: 'white',
+    focusColor: '#576369', 
+    contextColor: '#9bb1ba', 
+    lockActiveColor: 'red', 
+    lockInactiveColor: 'green', 
+    
+    containerPadding: 14, 
     controlTimelineHeight: 50, 
     verticalAlignerHeight: 30, 
     axesWidth: 40, 
