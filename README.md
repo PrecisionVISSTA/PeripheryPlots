@@ -20,24 +20,24 @@ A preprint describing the periphery plot data visualization approach in detail i
 
 ## Component Configuration 
 
-The PeripheryPlots React component takes a single configuration object as input. This object encapsulates the data model and initial state of the componet. 
+The PeripheryPlots React component takes a single configuration object as input. Properties that are __bolded__ are required while all others are optional with sensible defaults. The React based [prop-types](https://www.npmjs.com/package/prop-types) library is used to validate the configuration object.  
 
 | Property  | Type | Description |
 | ------------- | ------------- | ------------- |
 | __`trackwiseObservations`__ | [ [ Object, ... ], ... ] | The set of temporal observations for each track. |
-| `trackwiseTimeKeys` | [ String, ... ] | Key used to index temporal attribute from observation objects. |
-| `trackwiseValueKeys` | [ String, ... ] | Key used to index value attribute from observation objects.  |
-| `trackwiseTypes` | [ String, ... ] | Data type for each track. Can be "continuous",  "discrete", or "other". |
-| `trackwiseUnits` | [ String OR Null, ... ] | Unit for each track. |
-| `trackwiseNumAxisTicks` | [ Integer OR Null, ... ] | The number of ticks for each track axis. |
-| `trackwiseAxisTickFormatters` | [ d3.format OR Null, ... ] | Tick formatter for each track axis. |
-| `trackwiseEncodings` | [ [ React.Component, ... ], ... ] | Layered encoding specification for each track. |
-| `applyEncodingsUniformly` | Boolean | Determines the number of encoding specifications required for each track. |
+| __`trackwiseTimeKeys`__ | [ String, ... ] | Key used to index temporal attribute from observation objects. |
+| __`trackwiseValueKeys`__ | [ String, ... ] | Key used to index value attribute from observation objects.  |
+| __`trackwiseTypes`__ | [ String, ... ] | Data type for each track. Can be "continuous",  "discrete", or "other". |
+| __`trackwiseUnits`__ | [ String OR Null, ... ] | Unit for each track. |
+| __`trackwiseNumAxisTicks`__ | [ Integer OR Null, ... ] | The number of ticks for each track axis. |
+| __`trackwiseAxisTickFormatters`__ | [ d3.format OR Null, ... ] | Tick formatter for each track axis. |
+| __`trackwiseEncodings`__ | [ [ React.Component, ... ], ... ] | Layered encoding specification for each track. |
+| __`applyEncodingsUniformly`__ | Boolean | Determines the number of encoding specifications required for each track. |
 | `contextWidthRatio` | Float in range [0.0, 1.0] | Fraction of available space allocated to each context plot. |
-| `numContextsPerSide` | Integer | The number of context zones on each side of the focus zone. |
-| `timeExtentDomain` | [ Date, Date ] | A temporal range including all data observations across all data sources. |
-| `timeDomains` | [ [ Date, Date ], ... ] | Temporal ranges corresponding to initially selected brush regions for the control timeline. |
-| `tickInterval` | d3.CountableTimeInterval | The interval for tick placement for the control timeline axis. |
+| `numContextsPerSide` | Integer+ | The number of context zones on each side of the focus zone. |
+| __`timeExtentDomain`__ | [ Date, Date ] | A temporal range including all data observations across all data sources. |
+| __`timeDomains`__ | [ [ Date, Date ], ... ] | Temporal ranges corresponding to initially selected brush regions for the control timeline. |
+| __`tickInterval`__ | d3.CountableTimeInterval | The interval for tick placement for the control timeline axis. |
 | `dZoom` | Integer+ | Speed of track generated zoom events for control timeline. |
 | `containerBackgroundColor` | Valid input to d3.color constructor | Background color for the component container. |
 | `focusColor` | Valid input to d3.color constructor | Color of focus brush and focus plot borders. |
@@ -69,12 +69,14 @@ All properties that begin with the word 'trackwise' are arrays and they must hav
 > Each individual set of observations is an array of objects. Each object is a temporal observation with a temporal attribute and one or more value attributes. 
 
 *`trackwiseTypes`*
-> We broadly group data into two main classes:
+> We broadly group data into three classes:
 <br>* Continuous (assumed to be numeric)
 <br>* Discrete (can be numeric or of some other form)
+<br>* Other
+> These enumerative types are used to determine what type of axis is used for each track. 
 
 *`trackwiseUnits`* 
-> This information is used to display optional labels.
+> If specified, the unit is displayed alongside the track name (or rather, the valueKey used to index observations). 
 
 *`trackwiseEncodings`* 
 > Each track has is bound to an array of encodings. The individual elements in an encodings array can be 

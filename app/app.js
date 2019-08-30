@@ -47,9 +47,7 @@ let config = {
             [NominalTraceGroup], [EventGroup], [NominalTraceGroup]
         ]
     ],
-    applyContextEncodingsUniformly: true, 
-    numContextsPerSide: 1, 
-    contextWidthRatio: .2,
+    applyContextEncodingsUniformly: true,
 
     // Control Timeline
     tickInterval: d3.timeMonth.every(3), 
@@ -78,7 +76,7 @@ let config = {
 
 }; 
 
-validateConfig(config); 
+// validateConfig(config); 
 
 ReactDOM.render(
     <PeripheryPlots {...config}/>, 

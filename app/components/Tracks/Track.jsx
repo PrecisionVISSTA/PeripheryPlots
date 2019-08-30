@@ -216,8 +216,7 @@ class Track extends React.Component {
         let pplot = {
             timeKey,
             valueKey,
-            valueDomain,
-            observations
+            valueDomain
         }; 
         
         return (
@@ -241,7 +240,8 @@ class Track extends React.Component {
                 let LeftContextEncoding = applyContextEncodingsUniformly ? leftContextEncodings[0] : leftContextEncodings[i]; 
                 let clipId = `left-clip-${i}`; 
                 let pplotLeft = Object.assign({}, pplot); 
-                pplotLeft = Object.assign(pplotLeft, { timeDomain, xRange: contextXRange, yRange: contextYRange, isLeft: true, scaleRangeToBox: contextScaleRangeToBox }); 
+                let observations = leftContextObservations[i]; 
+                pplotLeft = Object.assign(pplotLeft, { observations, timeDomain, xRange: contextXRange, yRange: contextYRange, isLeft: true, scaleRangeToBox: contextScaleRangeToBox }); 
 
                 return (
                     <svg 
@@ -312,7 +312,7 @@ class Track extends React.Component {
                     {FocusEncoding.map((LayeredEncoding,j) => 
                         <LayeredEncoding
                         key={`focus-${j}`}
-                        pplot={Object.assign(Object.assign({}, pplot), { timeDomain: focusTimeDomain, xRange: focusXRange, yRange: focusYRange, scaleRangeToBox: focusScaleRangeToBox })}/>
+                        pplot={Object.assign(Object.assign({}, pplot), { observations: focusObservations, timeDomain: focusTimeDomain, xRange: focusXRange, yRange: focusYRange, scaleRangeToBox: focusScaleRangeToBox })}/>
                     )}
 
                     {/* Current time point hover bar */}
@@ -356,8 +356,9 @@ class Track extends React.Component {
                 
                 let RightContextEncoding = applyContextEncodingsUniformly ? rightContextEncodings[0] : rightContextEncodings[i]; 
                 let clipId = `right-clip-${i}`; 
+                let observations = leftContextObservations[i]; 
                 let pplotRight = Object.assign({}, pplot);
-                pplotRight = Object.assign(pplot, { timeDomain, xRange: contextXRange, yRange: contextYRange, scaleRangeToBox: contextScaleRangeToBox }); 
+                pplotRight = Object.assign(pplot, { observations, timeDomain, xRange: contextXRange, yRange: contextYRange, scaleRangeToBox: contextScaleRangeToBox }); 
                 
                 return (
                     <svg 
