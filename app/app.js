@@ -12,10 +12,10 @@ import PeripheryPlots, {
     MovingAverageEnvelopeGroup,
     QuantitativeTraceGroup,
     NominalTraceGroup,
-    AverageLine
+    AverageLineGroup
 } from "./components/Wrappers/Root.js"; 
 
-import validateConfig from "./util/configValidation.js"; 
+// import validateConfig from "./util/configValidation.js"; 
 
 import "./css/teststyles.css"; 
 
@@ -25,7 +25,6 @@ let dateExtent = d3.extent(data.map(d => d.date));
 
 let config = {
 
-    // Tracks 
     trackwiseObservations: [data, data, data, data],
     trackwiseTimeKeys: ['date', 'date', 'date', 'date'], 
     trackwiseValueKeys: ['temp_max', 'precipitation', 'wind', 'weather'], 
@@ -35,21 +34,19 @@ let config = {
     trackwiseAxisTickFormatters: [d3.format(",.1f"), null, d3.format(",.1f"), null], 
     trackwiseEncodings: [
         [
-            [QuantitativeTraceGroup, AverageLine], [LineGroup, AverageLine], [QuantitativeTraceGroup, AverageLine]
+            [QuantitativeTraceGroup, AverageLineGroup], [LineGroup, AverageLineGroup], [QuantitativeTraceGroup, AverageLineGroup]
         ], 
         [
-            [BarGroup, AverageLine], [BarGroup, AverageLine], [BarGroup, AverageLine]
+            [BarGroup, AverageLineGroup], [BarGroup, AverageLineGroup], [BarGroup, AverageLineGroup]
         ], 
         [
-            [ScatterGroup, AverageLine], [LineGroup, AverageLine], [ScatterGroup, AverageLine]
+            [ScatterGroup, AverageLineGroup], [LineGroup, AverageLineGroup], [ScatterGroup, AverageLineGroup]
         ], 
         [
             [NominalTraceGroup], [EventGroup], [NominalTraceGroup]
         ]
     ],
     applyContextEncodingsUniformly: true,
-
-    // Control Timeline
     tickInterval: d3.timeMonth, 
     timeExtentDomain: dateExtent,  
     timeDomains: [
@@ -57,15 +54,13 @@ let config = {
         ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
         ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)) 
     ], 
-    // dZoom: 10,
 
-    // Layout + Style  
+    // dZoom: 10,
     // containerBackgroundColor: 'white',
     // focusColor: '#576369', 
     // contextColor: '#9bb1ba', 
     // lockActiveColor: '#00496e', 
     // lockInactiveColor: 'grey', 
-
     // containerPadding: 14, 
     // controlTimelineHeight: 50, 
     // verticalAlignerHeight: 30, 
@@ -75,8 +70,6 @@ let config = {
     // trackSvgOffsetBottom: 3
 
 }; 
-
-// validateConfig(config); 
 
 ReactDOM.render(
     <PeripheryPlots {...config}/>, 

@@ -89,7 +89,7 @@ All properties that begin with the word 'trackwise' are arrays and they must hav
 >   * `trackwiseEncodings[i]` is of the form: <br> [ <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to the `1st` left context plot \*/ ], <br> &nbsp; &nbsp; ... <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to the `numContextsPerSide-th` left context plot \*/ ], <br> &nbsp; &nbsp; [ /\* encoding schema for focus plot \*/ ], <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to the `1st` right context plot \*/ ], <br> &nbsp; &nbsp; ... <br> &nbsp; &nbsp; [ /\* encoding schema to be applied to the `numContextsPerSide-th` right context plot \*/ ] <br> ]
 >
 > Each encoding schema, represented by `trackwiseEncodings[i][j]` is an array where each element is a React.Component (can be class, function, or any other kind). Each possible value of `trackwiseEncodings[i][j]` is bound to some plot within the interface (as described above). After this binding occurs, the elements of `trackwiseEncodings[i][j]` are rendered into the plot (svg) they are bound to in the order they are specified. 
-> * ex: if `trackwiseEncodings[i][j]` = [BarChart, AverageLine], then some plot within some track will be populated with a bar chart visualization with an average line annotation layered over top. You can see an example of this in the 'precipitation' track in the .gif demo at the top of this page. 
+> * ex: if `trackwiseEncodings[i][j]` = [BarChart, AverageLineGroup], then some plot within some track will be populated with a bar chart visualization with an average line annotation layered over top. You can see an example of this in the 'precipitation' track in the .gif demo at the top of this page. 
 
 ### Control Timeline
 
@@ -130,7 +130,7 @@ You can create your own custom encodings for use with the PeripheryPlots compone
 | `valueDomain` | [ Number, Number ] OR [ Object, ... ] OR Null | Range of possible values across all observations. |
 | `xRange` | [ Number, Number ] | Plottable range in x dimension. | 
 | `yRange` | [ Number, Number ] | Plottable range in y dimension. |
-| `scaleRangeToBox` | Function | Binds input d3.scale objects to plottable ranges (x and/or y). | 
+| `scaleRangeToBox` | Function ([d3.scale](https://github.com/d3/d3-scale), [d3.scale](https://github.com/d3/d3-scale)) | Binds input d3.scale objects to plottable ranges (x and/or y). | 
 | `isLeft` | Boolean | Whether or not the encoding is bound to a left context plot. |
 | `isFocus` | Boolean | Whether or not the encoding is bound to focus plot. |
 
@@ -146,3 +146,34 @@ We describe some of these properties in more detail below.
 >   * `valueDomain` is Null. 
 
 *`scaleRangeToBox`*
+> a function that takes two [d3.scale](https://github.com/d3/d3-scale) objects as input. Sets the range of the first scale to the `xRange` and sets the range of the second scale to `yRange`. Either scale input can be omitted (Null value) if the encoding only requires a single scale to have its range set. 
+>
+>This can be done manually by the programmer but since the operation is so common we still provide this utility function. 
+
+*`isLeft`* and *`isFocus`* 
+> These two Boolean values can be used to determine what kind of plot the encoding is bound to. There are sometimes cases where this information is useful. 
+>
+> For example, when using either the QuantitativeTracePlot or NominalTracePlot encodings that come packaged with the framework, we often want to flip the encoding about the y axis to preserve symmetry relative to the focus plot. You can see an example of this in the 'temp max' and 'weather' tracks in the gif demo at the top of this page. 
+
+*`yRange`* and *`yRange`*
+> It's important to note that both *`yRange`* and *`yRange`* are monotonically increasing ranges (i.e. range[1] > range[0]). As is typical in computer graphics, the y-coordinate system begins from the top of the container and extends towards the bottom of the container as the y-coordinate increases. If you want your custom encoding to use a coordinate system where (0, 0) is in the lower left corner of the plot and (width, height) is in the upper right hand corner of the plot, you can flip the yRange before setting it as the range for your scale. 
+
+## Default Encodings 
+
+The PeripheryPlots framework has a number of encodings implemented by default. 
+
+**BarGroup** - Quantitative bar chart. 
+
+**EventGroup** - Categorical event timeline where each event is a rectangle. Rectangles are colored by event type. 
+
+**LineGroup** - Quantitative line chart. 
+
+**MovingAverageEnvelopeGroup** - Envelope computed using 10 day moving average. 
+
+**ScatterGroup** - Quantitative scatter chart. 
+
+**AverageLineGroup** - Average line annotation. 
+
+**NominalTraceGroup** - Categorical sideways histogram. 
+
+**QuantitativeTraceGroup** - Quantitative sideways histogram. 

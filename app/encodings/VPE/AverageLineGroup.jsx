@@ -1,7 +1,7 @@
 import React from "react";
 import * as d3 from "d3"; 
 
-class AverageLine extends React.Component {
+class AverageLineGroup extends React.Component {
 
     state = {
         valueScale: d3.scaleLinear(), 
@@ -31,5 +31,5 @@ class AverageLine extends React.Component {
 
 }
 
-export default AverageLine; 
+export default AverageLineGroup; 
 
