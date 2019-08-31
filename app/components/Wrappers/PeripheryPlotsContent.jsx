@@ -22,7 +22,8 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_lockActiveColor, 
             ACTION_CHANGE_lockInactiveColor, 
             ACTION_CHANGE_dZoom, 
-            ACTION_CHANGE_applyContextEncodingsUniformly
+            ACTION_CHANGE_applyContextEncodingsUniformly, 
+            ACTION_CHANGE_formatTrackHeader
 
         } from "../../actions/actions"; 
 
@@ -85,7 +86,8 @@ function PeripheryPlotsContent(props) {
             'contextWidthRatio', 
             'numContextsPerSide', 
             'tickInterval', 
-            'applyContextEncodingsUniformly'
+            'applyContextEncodingsUniformly', 
+            'formatTrackHeader'
         ]; 
 
         for (let p of updateProps) {
@@ -129,7 +131,6 @@ function PeripheryPlotsContent(props) {
                         id={`track-${i}`}
                         key={`track-${i}`}
                         type={type}
-                        title={valueKey}
                         unit={unit}
                         numAxisTicks={numAxisTicks}
                         axisTickFormatter={axisTickFormatter}
@@ -214,10 +215,13 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ACTION_CHANGE_lockInactiveColor(lockInactiveColor)),
 
     ACTION_CHANGE_dZoom: (dZoom) => 
-    dispatch(ACTION_CHANGE_dZoom(dZoom)),
+    dispatch(ACTION_CHANGE_dZoom(dZoom)),    
 
     ACTION_CHANGE_applyContextEncodingsUniformly: (applyContextEncodingsUniformly) => 
-    dispatch(ACTION_CHANGE_applyContextEncodingsUniformly(applyContextEncodingsUniformly))
+    dispatch(ACTION_CHANGE_applyContextEncodingsUniformly(applyContextEncodingsUniformly)),
+
+    ACTION_CHANGE_formatTrackHeader: (formatTrackHeader) => 
+    dispatch(ACTION_CHANGE_formatTrackHeader(formatTrackHeader)),
 
 }); 
 

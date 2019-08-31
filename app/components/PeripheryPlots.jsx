@@ -55,7 +55,11 @@ PeripheryPlots.defaultProps = {
     axesWidth: 40, 
     trackHeight: 50, 
     trackSvgOffsetTop: 10, 
-    trackSvgOffsetBottom: 5
+    trackSvgOffsetBottom: 5, 
+
+    formatTrackHeader: (valueKey, unit) => {
+        return valueKey.replace("_", ' ') + (unit ? ` (${unit})` : ''); 
+    }
 
 }
 
@@ -185,5 +189,8 @@ PeripheryPlots.propTypes = {
     
     trackSvgOffsetBottom: 
         isPositiveNumber, 
+
+    formatTrackHeader:
+        PropTypes.func
       
 }

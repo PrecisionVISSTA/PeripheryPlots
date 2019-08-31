@@ -53,6 +53,8 @@ The PeripheryPlots React component takes a single configuration object as input.
 | `trackHeight` | Integer+ <br> **default:** 50 | The width of each track in pixels. |
 | `trackSvgOffsetTop` | Integer+ <br> **default:** 10 | The offset from top of svg plot containers defining top bound on drawable space. |
 | `trackSvgOffsetBottom` | Integer+ <br> **default:** 5 | The offset from bottom of svg plot containers defining bottom bound on drawable space. |
+| `trackSvgOffsetBottom` | Integer+ <br> **default:** 5 | The offset from bottom of svg plot containers defining bottom bound on drawable space. |
+| `formatTrackHeader` | Function(`valueKey`, `unit`) <br> **default:** removes underscores and adds a space between valueKey and unit. | Function to format header string for each track receiving `valueKey` and `unit` as inputs | 
 
 Some of the descriptions in the table above are sufficient, but some properties are more complex and must satisfy specific criteria to be considered valid.
 

@@ -138,3 +138,10 @@ export function ACTION_CHANGE_applyContextEncodingsUniformly (applyContextEncodi
         applyContextEncodingsUniformly
     }; 
 };
+
+export function ACTION_CHANGE_formatTrackHeader (formatTrackHeader) {
+    return {
+        type: 'CHANGE_formatTrackHeader',
+        formatTrackHeader
+    }; 
+};

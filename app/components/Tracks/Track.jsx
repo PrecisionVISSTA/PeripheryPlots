@@ -159,7 +159,6 @@ class Track extends React.Component {
     render() {
 
         let { 
-            title, 
             unit, 
             observations, 
             timeKey, 
@@ -178,7 +177,8 @@ class Track extends React.Component {
             contextWidth, 
             baseWidth, 
             applyContextEncodingsUniformly, 
-            type 
+            type, 
+            formatTrackHeader
         } = this.props; 
 
         // utility functions 
@@ -217,7 +217,7 @@ class Track extends React.Component {
             timeKey,
             valueKey,
             valueDomain
-        }; 
+        };
         
         return (
         <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding }}>
@@ -225,7 +225,7 @@ class Track extends React.Component {
             {/* Track Label */}
             <div style={{ width: "100%", display: "block" }}>
                 <p className={'pplot-track-header-text'}>
-                    {title.replace("_", ' ') + (unit ? ` (${unit})` : '')}
+                    {formatTrackHeader(valueKey, unit)}
                 </p>
             </div>
 
@@ -418,7 +418,8 @@ const mapStateToProps = ({
     numContextsPerSide, 
     baseWidth, 
     dZoom, 
-    applyContextEncodingsUniformly
+    applyContextEncodingsUniformly, 
+    formatTrackHeader
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
@@ -435,7 +436,8 @@ const mapStateToProps = ({
     numContextsPerSide, 
     baseWidth, 
     dZoom, 
-    applyContextEncodingsUniformly
+    applyContextEncodingsUniformly,
+    formatTrackHeader
 }); 
                         
 const mapDispatchToProps = dispatch => ({

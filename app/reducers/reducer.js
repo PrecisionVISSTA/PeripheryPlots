@@ -117,6 +117,12 @@ const mutations = {
         let { applyContextEncodingsUniformly } = action; 
         return { ...state, applyContextEncodingsUniformly };
     },
+    'CHANGE_formatTrackHeader': (state, action) => {
+        let { formatTrackHeader } = action; 
+        return { ...state, formatTrackHeader };
+    },
+
+    
 };
 
 const reducer = (state = DEFAULT_state, action) => {
