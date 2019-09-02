@@ -1,12 +1,13 @@
 import React from "react";
-import * as d3 from "d3"; 
+import { scaleBand, scaleLinear } from 'd3-scale'; 
+import { schemeCategory10 } from 'd3-scale-chromatic'; 
 
 class NominalTraceGroup extends React.Component {
 
     state = {
-        valueScale: d3.scaleBand(), 
-        freqScale: d3.scaleLinear(), 
-        colors: d3.schemeCategory10
+        valueScale: scaleBand(), 
+        freqScale: scaleLinear(), 
+        colors: schemeCategory10
     }
 
     render() {

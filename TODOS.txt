@@ -1,0 +1,7 @@
+
+Still need to do: 
+
+
+    Get package published to npm, test out install locally 
+    Include local install instructions in README
+    .gif on readme from trevor's video 

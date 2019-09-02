@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import * as d3 from "d3"; 
+import { scaleTime } from 'd3-scale';  
 import useDimensions from "react-use-dimensions";
 import { connect } from "react-redux"; 
 import _ from "lodash"; 
@@ -27,9 +27,9 @@ import {    ACTION_CHANGE_timeDomains,
 
         } from "../../actions/actions"; 
 
-import TimelineControl from "../ControlTimeline/TimelineControl.jsx"; 
-import Track from "../Tracks/Track.jsx"; 
-import ControlToTrackAligner from "../Aligner/ControlToTrackAligner.jsx";
+import TimelineControl from "../ControlTimeline/TimelineControl"; 
+import Track from "../Tracks/Track"; 
+import ControlToTrackAligner from "../Aligner/ControlToTrackAligner";
 
 function PeripheryPlotsContent(props) {
 
@@ -50,7 +50,7 @@ function PeripheryPlotsContent(props) {
         trackwiseAxisTickFormatters
     } = config;
 
-    const [controlScale, setControlScale] = useState(() => d3.scaleTime()); 
+    const [controlScale, setControlScale] = useState(() => scaleTime()); 
     const [ref, { width }] = useDimensions();
 
     useEffect(() => {

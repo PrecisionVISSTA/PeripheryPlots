@@ -1,9 +1,12 @@
 import React from "react";
 import { connect } from "react-redux"; 
-import * as d3 from 'd3';
-import { event as d3event } from 'd3';
+import { select, selectAll, event as d3event } from 'd3-selection'; 
+import { scaleTime } from 'd3-scale'; 
+import { axisBottom } from 'd3-axis'; 
+import { brushX, brushSelection } from 'd3-brush'; 
+import { transition } from 'd3-transition'; 
+import { easeLinear } from 'd3-ease'; 
 import _ from "lodash"; 
-import { assert } from "chai"; 
 
 import  { computeActionFromSelectionTransition, 
           functionFromAction, 
@@ -28,6 +31,12 @@ const {
 
 const tupdif = tup => tup[1] - tup[0]; 
 
+function assert(condition, errMsg) {
+  if (!condition) {
+    throw new Error(errMsg);
+  }
+}
+
 class TimelineControl extends React.Component {
 
   state = {
@@ -38,8 +47,8 @@ class TimelineControl extends React.Component {
     numBrushes: 0,      // The total number of brushes 
     brushHeight: 0,     // The vertical height of the brush 
     brushRanges: [],    // The current selected regions for all brushes in pixel space 
-    timelineScale: d3.scaleTime(), 
-    timelineAxis: d3.axisBottom() 
+    timelineScale: scaleTime(), 
+    timelineAxis: axisBottom() 
   }
 
   constructor(props) {
@@ -47,9 +56,6 @@ class TimelineControl extends React.Component {
     super(props); 
 
     let { height, timeDomains } = this.props; 
-    
-    // 1 focus + equal number of contexts on both sides 
-    assert(timeDomains.length % 2 === 1);
 
     // Infer the number of brushes 
     this.state.numBrushes = timeDomains.length; 
@@ -63,7 +69,7 @@ class TimelineControl extends React.Component {
     this.state.brushRanges = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 
 
     // Initialize the brushes 
-    this.state.brushes = brushIndexList.map(i => d3.brushX()); 
+    this.state.brushes = brushIndexList.map(i => brushX()); 
 
     // Initialize a collection of ids for the brushes 
     this.state.brushIds = brushIndexList.map(i => `brush-${i}`); 
@@ -141,13 +147,13 @@ class TimelineControl extends React.Component {
       let { timelineScale, timelineAxis } = nextState; 
 
       // Update the control axis 
-      d3.select('#axis-svg').attr('width', axisSvgWidth); 
+      select('#axis-svg').attr('width', axisSvgWidth); 
       let [cr0, cr1] = controlScale.range(); 
       timelineScale.range([cr0 + containerPadding, cr1 - containerPadding]);
-      d3.selectAll('.control-axis').call(timelineAxis); 
+      selectAll('.control-axis').call(timelineAxis); 
 
       // Update the brushes 
-      d3.select('#brush-svg').attr('width', brushSvgWidth); 
+      select('#brush-svg').attr('width', brushSvgWidth); 
       
       // Pixel ranges for each brush 
       let brushRanges = nextProps.timeDomains.map(domain => domain.map(nextProps.controlScale)); 
@@ -156,7 +162,7 @@ class TimelineControl extends React.Component {
       for (let i = 0; i < nextState.numBrushes; i++) {
         let clipId = nextState.clipIds[i]; 
         let brushSelection = brushRanges[i]; 
-        d3.select(`#${clipId}`)
+        select(`#${clipId}`)
           .attr('width', `${brushSelection[1] - brushSelection[0]}`)
           .attr('transform', `translate(${brushSelection[0]}, 0)`);
       }
@@ -168,7 +174,7 @@ class TimelineControl extends React.Component {
         let brushFn = nextState.brushes[i]; 
         let brushId = nextState.brushIds[i]; 
         let brushSelection = brushRanges[i]; 
-        let brush = d3.select(`#${brushId}`); 
+        let brush = select(`#${brushId}`); 
         brush.call(brushFn.move, brushSelection); 
 
         // move handles 
@@ -180,11 +186,11 @@ class TimelineControl extends React.Component {
       for (let i = 0, li = 0; i < this.state.numBrushes; i++) {
         let brushSelection = brushRanges[i]; 
         if (i === 0) {
-          d3.select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[0] - LOCK_WIDTH / 2}, 0)`); 
-          d3.select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[1]- LOCK_WIDTH / 2}, 0)`); 
+          select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[0] - LOCK_WIDTH / 2}, 0)`); 
+          select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[1]- LOCK_WIDTH / 2}, 0)`); 
         }
         else {
-          d3.select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[1]- LOCK_WIDTH / 2}, 0)`);  
+          select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[1]- LOCK_WIDTH / 2}, 0)`);  
         }
       }
 
@@ -208,7 +214,7 @@ class TimelineControl extends React.Component {
     // Code to create the d3 element, using the root container 
     let { width, height, focusColor, contextColor, containerPadding, lockActiveColor, lockInactiveColor } = this.props; 
     
-    let root = d3.select(this.ROOT); 
+    let root = select(this.ROOT); 
 
     let { brushSvgWidth } = this.computeBrushAndAxisSvgWidths(width, containerPadding); 
     
@@ -253,8 +259,8 @@ class TimelineControl extends React.Component {
         this.setState({ brushLocks }); 
         
         // Apply an animation to the lock to indicate the change 
-        d3.select(`#${lockId}`)
-          .transition(d3.transition().duration(300).ease(d3.easeLinear))
+        select(`#${lockId}`)
+          .transition(transition().duration(300).ease(easeLinear))
           .attr('fill', brushLocks[lockIndex] ? lockActiveColor : lockInactiveColor); 
     }
 
@@ -369,7 +375,7 @@ class TimelineControl extends React.Component {
 
   appendTimeline = () => {
 
-    let root = d3.select(this.ROOT); 
+    let root = select(this.ROOT); 
     let { controlScale, containerPadding, height, width, tickInterval } = this.props; 
     let { timelineScale, timelineAxis } = this.state; 
     let { axisSvgWidth } = this.computeBrushAndAxisSvgWidths(width, containerPadding); 
@@ -402,7 +408,7 @@ class TimelineControl extends React.Component {
   _updateBrushSelections = (newSelections) => {
     for (let i = 0; i < this.state.numBrushes; i++) {
       // if (!_.isEqual(oldSelections[i], newSelections[i])) {
-        d3.select(`#${this.state.brushIds[i]}`)
+        select(`#${this.state.brushIds[i]}`)
           .call(this.state.brushes[i].move, newSelections[i]); 
       // }
     }
@@ -411,28 +417,28 @@ class TimelineControl extends React.Component {
   _updateBrushExtras(newSelections) {
 
     // update left handles 
-    let leftHandles = d3.selectAll(".handle-left"); 
+    let leftHandles = selectAll(".handle-left"); 
     let leftNodes = leftHandles.nodes(); 
     _.sortBy(leftNodes.map(node => parseInt(node.attributes.nodeValue))
                       .map((pos,hi) => ({ pos, hi })), 
              obj => obj.pos)
     .map(({ hi }) => hi)
-    .map((hi, bi) => d3.select(leftNodes[hi])
+    .map((hi, bi) => select(leftNodes[hi])
                        .attr('transform', `translate(${newSelections[bi][0]},0)`)); 
 
     // update right handles 
-    let rightHandles = d3.selectAll(".handle-right"); 
+    let rightHandles = selectAll(".handle-right"); 
     let rightNodes = rightHandles.nodes(); 
     _.sortBy(rightNodes.map(node => parseInt(node.attributes.nodeValue))
                         .map((pos,hi) => ({ pos, hi })), 
              obj => obj.pos)
     .map(({ hi }) => hi)
-    .map((hi, bi) => d3.select(rightNodes[hi])
+    .map((hi, bi) => select(rightNodes[hi])
                        .attr('transform', `translate(${newSelections[bi][1] - HANDLE_WIDTH}, 0)`)); 
 
     // update clip positions 
     _.range(0, this.state.numBrushes).map(i => 
-      d3.select(`#${this.state.clipIds[i]} > rect`)
+      select(`#${this.state.clipIds[i]} > rect`)
         .attr('transform', `translate(${parseInt(newSelections[i][0])}, 0)`)
         .attr('width', tupdif(newSelections[i]))
     )
@@ -440,10 +446,10 @@ class TimelineControl extends React.Component {
     // update lock positions
     for (let i = 0; i < this.state.numBrushes; i++) {
       if (i === 0) {
-        d3.select(`#${this.state.brushLockIds[i]}`).attr('transform', `translate(${newSelections[i][0] - LOCK_WIDTH / 2},0)`);  
-        d3.select(`#${this.state.brushLockIds[i+1]}`).attr('transform', `translate(${newSelections[i][1] - LOCK_WIDTH / 2},0)`);
+        select(`#${this.state.brushLockIds[i]}`).attr('transform', `translate(${newSelections[i][0] - LOCK_WIDTH / 2},0)`);  
+        select(`#${this.state.brushLockIds[i+1]}`).attr('transform', `translate(${newSelections[i][1] - LOCK_WIDTH / 2},0)`);
       } else {
-        d3.select(`#${this.state.brushLockIds[i+1]}`).attr('transform', `translate(${newSelections[i][1] - LOCK_WIDTH / 2},0)`);
+        select(`#${this.state.brushLockIds[i+1]}`).attr('transform', `translate(${newSelections[i][1] - LOCK_WIDTH / 2},0)`);
       }
     }
     
@@ -552,8 +558,8 @@ class TimelineControl extends React.Component {
     // Returns an array of two element lists, each representing the current selected pixel 
     // region of all of the brushes 
     this.state.brushIds
-        .map(id => d3.select(`#${id}`).node())
-        .map(d3.brushSelection)
+        .map(id => select(`#${id}`).node())
+        .map(brushSelection)
   )
 
   computeAndPerformAction = (index, currentSelections) => this.updateAll(this.computeAction(index, currentSelections))
@@ -563,7 +569,7 @@ class TimelineControl extends React.Component {
   isUserGeneratedBrushEvent = (index) => !(
     // Ensure the current event was a user brush interaction 
     // We do not perform updates on zooms of via calls to brush.move 
-    (!d3.select(`#${this.state.brushIds[index]}`).node()) || 
+    (!select(`#${this.state.brushIds[index]}`).node()) || 
     (!d3event.sourceEvent) ||
     (d3event.sourceEvent && d3event.sourceEvent.type === 'brush') || 
     (d3event.sourceEvent && d3event.sourceEvent.type === 'zoom')

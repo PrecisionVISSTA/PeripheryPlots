@@ -4,15 +4,27 @@ Patterns in temporal data are often across different scales, such as days, weeks
 
 ![](peripheryplots-preview.png)
 
-## Running the Demo
+## How to Use
 
-This implementation requires the latest version of [NodeJS](https://nodejs.org/en/) to install package dependencies and to run the demo.
+1. Live [demo](https://precisionvissta.github.io/PeripheryPlots/) of the app visualizing a sample dataset of weather in seattle over multiple years. 
 
-  1. Clone the repo.
-  1. Enter the directory `PeripheryPlots`.
-  1. Install package dependencies by running `npm install`.
-  1. Build and launch the app via `npm start`.
-  1. Open _http://localhost:8080_ in your web browser.
+2. Local install from github:
+> Requires the latest version of [NodeJS](https://nodejs.org/en/).
+>
+> 1. `git clone https://github.com/PrecisionVISSTA/PeripheryPlots.git`
+> 2. `cd PeripheryPlots`
+> 3. `npm i`
+> 4. `npm i react react-dom`
+>     * These are [peer dependencies](https://nodejs.org/es/blog/npm/peer-dependencies/)
+> 5. `npm start`
+>     * App is now using webpack-dev-server running at _http://localhost:8080_
+
+3. Install into an existing project via npm: 
+> Requires the latest version of [NodeJS](https://nodejs.org/en/).
+> 
+> 1. npm i periphery-plots
+> 2. npm i react react-dom 
+>     * Only complete step 2 if you do not already have react and react-dom in your project. 
 
 ## Preprint
 

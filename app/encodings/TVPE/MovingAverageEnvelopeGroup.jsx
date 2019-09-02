@@ -1,5 +1,7 @@
 import React from "react"; 
-import * as d3 from "d3"; 
+import { scaleLinear, scaleTime } from 'd3-scale'; 
+import { area, curveBasis } from 'd3-shape'; 
+import { extent } from 'd3-array'; 
 
 const WINDOW_SIZE_MS = 86400 * 1000 * 10; 
 const WINDOW_SLIDE_MS = 86400 * 1000 * 2; 
@@ -8,10 +10,9 @@ const ENVELOPE_PADDING = 0;
 class MovingAverageEnvelopeGroup extends React.Component {
 
     state = {
-        timeScale: d3.scaleTime(), 
-        valueScale: d3.scaleLinear(), 
-        area: d3.area()
-                .curve(d3.curveBasis)        
+        timeScale: scaleTime(), 
+        valueScale: scaleLinear(), 
+        area: area().curve(curveBasis)        
     }
 
     computeEnvelope(observations, timeKey, valueKey) {
@@ -19,7 +20,7 @@ class MovingAverageEnvelopeGroup extends React.Component {
         let dates = observations.map(d => d[timeKey]).map(d => d.valueOf()); 
         let values = observations.map(d => d[valueKey]); 
         
-        let [min_ms, max_ms] = d3.extent(dates).map(d => d.valueOf()); 
+        let [min_ms, max_ms] = extent(dates).map(d => d.valueOf()); 
         let envelope = []; 
         let wsstart = min_ms; 
         let wsend = min_ms + WINDOW_SIZE_MS; 
@@ -34,7 +35,7 @@ class MovingAverageEnvelopeGroup extends React.Component {
                 while (dates[di] <= we) wvalues.push(values[di++]); 
                 let date = ws + WINDOW_SIZE_MS / 2;
                 if (wvalues.length > 0) {
-                    let [lower, upper] = d3.extent(wvalues);
+                    let [lower, upper] = extent(wvalues);
                     envelope.push({ date: new Date(date), 
                                     lower: lower * (1 - ENVELOPE_PADDING), 
                                     upper: upper * (1 + ENVELOPE_PADDING) }); 

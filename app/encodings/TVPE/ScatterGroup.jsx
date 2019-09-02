@@ -1,11 +1,11 @@
 import React from "react";
-import * as d3 from "d3"; 
+import { scaleLinear, scaleTime } from 'd3-scale'; 
 
 class ScatterGroup extends React.Component {
 
     state = {
-        timeScale: d3.scaleTime(), 
-        valueScale: d3.scaleLinear()
+        timeScale: scaleTime(), 
+        valueScale: scaleLinear()
     }
 
     render() {

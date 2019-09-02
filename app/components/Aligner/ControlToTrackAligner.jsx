@@ -1,5 +1,5 @@
 import React from "react"; 
-import * as d3 from "d3"; 
+import { scaleLinear } from "d3-scale"; 
 import { connect } from "react-redux"; 
 
 const lineStyle = {
@@ -10,7 +10,7 @@ const lineStyle = {
 class ControlToTrackAligner extends React.Component {
 
     state = {
-        alignerScale: d3.scaleLinear()
+        alignerScale: scaleLinear()
     }
 
     render() {

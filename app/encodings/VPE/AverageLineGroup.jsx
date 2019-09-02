@@ -1,10 +1,11 @@
 import React from "react";
-import * as d3 from "d3"; 
+import { scaleLinear } from 'd3-scale'; 
+import { mean } from 'd3-array'; 
 
 class AverageLineGroup extends React.Component {
 
     state = {
-        valueScale: d3.scaleLinear(), 
+        valueScale: scaleLinear(), 
 
     }
 
@@ -18,8 +19,7 @@ class AverageLineGroup extends React.Component {
         valueScale = scales.yScale; 
         valueScale.domain([valueDomain[0], valueDomain[1]]); 
 
-        let mean = d3.mean(observations.map(o => o[valueKey])); 
-        let y = valueScale(mean); 
+        let y = valueScale(mean(observations.map(o => o[valueKey]))); 
 
         return (
             <g>

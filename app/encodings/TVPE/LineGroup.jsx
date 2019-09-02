@@ -1,13 +1,13 @@
 import React from "react";
-import * as d3 from "d3"; 
+import { line, curveMonotoneX } from 'd3-shape'; 
+import { scaleLinear, scaleTime } from 'd3-scale'; 
 
 class LineGroup extends React.Component {
 
     state = {
-        line: d3.line()
-                .curve(d3.curveMonotoneX), 
-        timeScale: d3.scaleTime(), 
-        valueScale: d3.scaleLinear()
+        line: line().curve(curveMonotoneX), 
+        timeScale: scaleTime(), 
+        valueScale: scaleLinear()
     }
 
     render() {

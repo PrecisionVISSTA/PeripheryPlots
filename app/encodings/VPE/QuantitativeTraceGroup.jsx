@@ -1,13 +1,13 @@
 import React from "react";
-import * as d3 from "d3"; 
+import { scaleLinear } from 'd3-scale'; 
 
 const NUM_BINS = 8; 
 
 class QuantitativeTraceGroup extends React.Component {
 
     state = {
-        valueScale: d3.scaleLinear(), 
-        freqScale: d3.scaleLinear()
+        valueScale: scaleLinear(), 
+        freqScale: scaleLinear()
     }
 
     render() {

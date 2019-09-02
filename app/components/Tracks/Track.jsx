@@ -1,6 +1,11 @@
 import React from "react"; 
-import * as d3 from "d3"; 
 import _ from "lodash"; 
+import { axisRight } from 'd3-axis'; 
+import { scaleLinear, scaleBand, scaleTime } from 'd3-scale'; 
+import { select, selectAll, mouse, event as currentEvent } from 'd3-selection'; 
+import { zoom, zoomTransform } from 'd3-zoom'; 
+import { extent } from 'd3-array'; 
+import { timeFormat } from 'd3-time-format'; 
 import { connect } from "react-redux";
 import { scaleRangeToBox } from "../../util/util"; 
 
@@ -9,13 +14,13 @@ import { ACTION_CHANGE_proposal } from "../../actions/actions";
 class Track extends React.Component {
 
     state = {
-        axis: d3.axisRight(), 
-        quantitativeScale: d3.scaleLinear(), 
-        categoricalScale: d3.scaleBand(), 
-        timeScale: d3.scaleTime(), 
-        zoom: d3.zoom(), 
+        axis: axisRight(), 
+        quantitativeScale: scaleLinear(), 
+        categoricalScale: scaleBand(), 
+        timeScale: scaleTime(), 
+        zoom: zoom(), 
+        formatter: timeFormat('%B %d, %Y'), 
         zoomsInitialized: false, 
-        formatter: d3.timeFormat('%B %d, %Y'), 
         proposalId: 0, 
         lastK: 1, 
         lastX: 0
@@ -23,13 +28,13 @@ class Track extends React.Component {
 
     zoomed = () => {
         // ignore zoom-by-brush
-        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") {
+        if (currentEvent.sourceEvent && currentEvent.sourceEvent.type === "brush") {
             return;
         }
 
         let { dZoom } = this.props; 
         let { lastK, lastX, proposalId } = this.state; 
-        let { k, x } = d3.zoomTransform(d3.select(this.ZOOM_REF).node());
+        let { k, x } = zoomTransform(select(this.ZOOM_REF).node());
         let isPan = lastK === k;      
         let zoomDir = k > lastK ? -1 : 1; 
         let newProposalId = proposalId + 1; 
@@ -50,7 +55,7 @@ class Track extends React.Component {
     }
 
     initZoom() {
-        d3.select(this.ZOOM_REF).call(this.state.zoom.on("zoom", this.zoomed)); 
+        select(this.ZOOM_REF).call(this.state.zoom.on("zoom", this.zoomed)); 
     }
 
     updateAxes() {
@@ -71,7 +76,7 @@ class Track extends React.Component {
                 applyScaleToAxis = scale => axis.scale(scale);
                 break; 
             case 'continuous': 
-                valueDomain = d3.extent(observations.map(o => o[valueKey])); 
+                valueDomain = extent(observations.map(o => o[valueKey])); 
                 scale = quantitativeScale; 
                 applyScaleToAxis = scale => axis.scale(scale.nice()).ticks(numAxisTicks ? numAxisTicks : 4); 
                 break; 
@@ -85,7 +90,7 @@ class Track extends React.Component {
                 scale.domain(valueDomain)
                      .range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop])
             ); 
-            d3.select(this.AXES_REF)
+            select(this.AXES_REF)
                 .call(axis)
                     .selectAll('text').classed('pplot-track-axis-text', true);
         }
@@ -97,8 +102,8 @@ class Track extends React.Component {
         let { focusWidth, numContextsPerSide, contextWidth, trackWidth, timeDomains } = this.props;
         let { formatter, timeScale } = this.state;  
 
-        let [x,y] = d3.mouse(this.FOCUS_REF); 
-        d3.selectAll('.focus-time-bar')
+        let [x,y] = mouse(this.FOCUS_REF); 
+        selectAll('.focus-time-bar')
           .attr('transform', `translate(${x},0)`); 
 
         // True if mouse in left half of container 
@@ -111,12 +116,12 @@ class Track extends React.Component {
 
         let dateString = formatter(currentDate); 
 
-        let containerNode = d3.select(this.FOCUS_REF).node();
+        let containerNode = select(this.FOCUS_REF).node();
 
-        d3.selectAll('.focus-time-text').each(function(d,i) {
+        selectAll('.focus-time-text').each(function(d,i) {
             let parentNode = this.parentNode; 
             if (parentNode.isEqualNode(containerNode)) {
-                let textS = d3.select(this).text(dateString); 
+                let textS = select(this).text(dateString); 
                 let textBbox = this.getBBox();
                 let textW = textBbox.width; 
                 let propBbox = [x - textW / 2, x + textW / 2]; 
@@ -135,10 +140,10 @@ class Track extends React.Component {
     }
 
     removeTooltip = () => {
-        d3.selectAll('.focus-time-bar')
+        selectAll('.focus-time-bar')
             .attr('transform', `translate(${-1},0)`);
             
-        d3.selectAll('.focus-time-text')
+        selectAll('.focus-time-text')
             .attr('display', 'none') 
     }
 
@@ -147,8 +152,8 @@ class Track extends React.Component {
         this.updateAxes(); 
         this.initZoom(); 
 
-        d3.select(this.FOCUS_REF).on('mousemove', this.updateTooltip); 
-        d3.select(this.FOCUS_REF).on('mouseleave', this.removeTooltip); 
+        select(this.FOCUS_REF).on('mousemove', this.updateTooltip); 
+        select(this.FOCUS_REF).on('mouseleave', this.removeTooltip); 
 
     }
 
@@ -208,7 +213,7 @@ class Track extends React.Component {
         let focusScaleRangeToBox = _.partial(scaleRangeToBox, focusXRange, focusYRange); 
 
         let tHeight = trackHeight - trackSvgOffsetTop - trackSvgOffsetBottom; 
-        let valueDomain = type === 'continuous' ? d3.extent(observations.map(o => o[valueKey])) : 
+        let valueDomain = type === 'continuous' ? extent(observations.map(o => o[valueKey])) : 
                             type === 'discrete' ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                   null; 
 
@@ -223,7 +228,9 @@ class Track extends React.Component {
         <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding }}>
 
             {/* Track Label */}
-            <div style={{ width: "100%", display: "block" }}>
+            <div 
+            className={'pplot-track-header-text-container'}
+            style={{ width: "100%", display: "block" }}>
                 <p className={'pplot-track-header-text'}>
                     {formatTrackHeader(valueKey, unit)}
                 </p>

@@ -1,13 +1,13 @@
 import React from "react";
-import * as d3 from "d3"; 
+import { scaleTime, scaleLinear } from 'd3-scale'; 
 
 const BAR_WIDTH = 3; 
 
 class BarGroup extends React.Component {
 
     state = {
-        timeScale: d3.scaleTime(), 
-        valueScale: d3.scaleLinear()
+        timeScale: scaleTime(), 
+        valueScale: scaleLinear()
     }
 
     render() {

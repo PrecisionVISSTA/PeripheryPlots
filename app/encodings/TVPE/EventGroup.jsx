@@ -1,5 +1,6 @@
 import React from "react";
-import * as d3 from "d3"; 
+import { scaleTime, scaleBand } from 'd3-scale';
+import { schemeCategory10 } from 'd3-scale-chromatic'; 
 
 const RECT_WIDTH = 2; 
 const RECT_HEIGHT = 5; 
@@ -7,9 +8,9 @@ const RECT_HEIGHT = 5;
 class LineGroup extends React.Component {
 
     state = {
-        timeScale: d3.scaleTime(), 
-        valueScale: d3.scaleBand(), 
-        colors: d3.schemeCategory10
+        timeScale: scaleTime(), 
+        valueScale: scaleBand(), 
+        colors: schemeCategory10
     }
 
     render() {

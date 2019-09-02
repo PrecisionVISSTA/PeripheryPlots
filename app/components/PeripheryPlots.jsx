@@ -1,8 +1,9 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import RootProvider from "./Wrappers/RootProvider.jsx";
-import PeripheryPlotsContent from "./Wrappers/PeripheryPlotsContent.jsx"; 
-import * as d3 from "d3"; 
+import { color } from "d3-color"; 
+import { timeDay } from 'd3-time'; 
+import RootProvider from "./Wrappers/RootProvider";
+import PeripheryPlotsContent from "./Wrappers/PeripheryPlotsContent"; 
 
 function assert(condition, errorMsg) {
     if (!condition) throw new Error(errorMsg); 
@@ -18,7 +19,7 @@ function errMsg(propName) {
 
 function isColor(props, propName) {
     // Runs input value through d3 color constructor. If this works, color is valid 
-    d3.color(props[propName]);
+    color(props[propName]);
 }; 
 
 function isPositiveNumber(props, propName) { 
@@ -129,7 +130,7 @@ PeripheryPlots.propTypes = {
     tickInterval: 
         function(props, propName) {
             // Ensures input is a d3 time interval 
-            if (props[propName].toString() !== d3.timeDay.toString()) {
+            if (props[propName].toString() !== timeDay.toString()) {
                 throw new Error(errMsg(propName)); 
             }
         }, 
