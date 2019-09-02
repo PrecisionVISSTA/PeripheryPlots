@@ -1,11 +1,15 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const path = require('path'); 
 
+module.exports = {
 
-const devConfig = {
   mode: 'development', 
   context: path.resolve(__dirname, 'demo'), 
   entry: './src/demo.js',
+  output: {
+    path: path.join(__dirname, "examples/dist"),
+    filename: "bundle.js"
+  },
   plugins: [
     new HtmlWebPackPlugin({ template: './public/demo.html', filename: 'index.html' })
   ], 
@@ -45,32 +49,5 @@ const devConfig = {
   resolve: {
     extensions: [".js", ".jsx"]
   }
+
 }; 
-
-module.exports = (_, params) => {
-
-  let isProduction = false === 'prod'; // via the webpack command
-  let isDev = params && params.mode === 'development'; // via the webpack-dev-server command 
-
-  if (isDev) return devConfig; 
-  throw new Error('this shouldnt happen'); 
-
-  // console.log("Production Build");
-
-  // mode = 'production'; 
-  // context = path.resolve(__dirname, 'app');
-  // entry = './index.js';
-  // output = {
-  //   filename: "bundle.js",
-  //   path: path.resolve(__dirname, './prod-dist'), 
-  //   library: '',
-  //   libraryTarget: 'commonjs2'
-  // }; 
-
-  // output = {
-  //   filename: "bundle.js",
-  //   path: path.resolve(__dirname, './dist'),
-  // };
-
-}
- 

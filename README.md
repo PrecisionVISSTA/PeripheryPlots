@@ -24,7 +24,7 @@ Patterns in temporal data are often across different scales, such as days, weeks
 > 
 > 1. npm i periphery-plots
 > 2. npm i react react-dom 
->     * Only complete step 2 if you do not already have react and react-dom in your project. 
+>     * Only complete step 2 if you do not already have react and react-dom in your project already. To understand why this is necessary, research why it is important to have React and React-DOM as [peer dependencies](https://nodejs.org/es/blog/npm/peer-dependencies/).  
 
 ## Preprint
 
@@ -67,6 +67,7 @@ The PeripheryPlots React component takes a single configuration object as input.
 | `trackSvgOffsetBottom` | Integer+ <br> **default:** 5 | The offset from bottom of svg plot containers defining bottom bound on drawable space. |
 | `trackSvgOffsetBottom` | Integer+ <br> **default:** 5 | The offset from bottom of svg plot containers defining bottom bound on drawable space. |
 | `formatTrackHeader` | Function(`valueKey`, `unit`) <br> **default:** removes underscores and adds a space between valueKey and unit. | Function to format header string for each track receiving `valueKey` and `unit` as inputs | 
+| `msecsPadding` | Integer <br> **default:** 0 | When determining the observations bound to an individual plot, we expand the plot's bound time domain by `msecsPadding` time units on both sides. This property is helpful for encodings like line charts, which may appear discontinuous near the boundaries of the container if only the data points within the interval are visualized. | 
 
 Some of the descriptions in the table above are sufficient, but some properties are more complex and must satisfy specific criteria to be considered valid.
 
@@ -129,6 +130,7 @@ One area where this is not as much of a problem is styling the text that appears
 | ------------- | ------------- |
 | `pplot-control-timeline-text` | Control timeline axis labels. |
 | `pplot-track-header-text` | Header text for each track. |
+| `pplot-track-header-text-container` | Container (div) for header text for each track. This container can control the text-alignment of the track label. |
 | `pplot-track-axis-text` | Axis text for each track. |
 
 ## Creating Custom Encodings 
@@ -147,6 +149,7 @@ You can create your own custom encodings for use with the PeripheryPlots compone
 | `scaleRangeToBox` | Function ([d3.scale](https://github.com/d3/d3-scale), [d3.scale](https://github.com/d3/d3-scale)) | Binds input d3.scale objects to plottable ranges (x and/or y). | 
 | `isLeft` | Boolean | Whether or not the encoding is bound to a left context plot. |
 | `isFocus` | Boolean | Whether or not the encoding is bound to focus plot. |
+| `getAllObservations` | Function() | Escape hatch that allows an encoding bound to any plot to access all observations, not just observations within a set time domain. This should only be used for encodings that require knowledge of other data points to generate their own visual representation (for performance reasons). An example would be a 21 day moving average encoding. |
 
 We describe some of these properties in more detail below. 
 
@@ -176,6 +179,8 @@ We describe some of these properties in more detail below.
 
 The PeripheryPlots framework has a number of encodings implemented by default. 
 
+Any one of these default encodings can be used as a reference template when developing custom encodings. 
+
 **BarGroup** - Quantitative bar chart. 
 
 **EventGroup** - Categorical event timeline where each event is a rectangle. Rectangles are colored by event type. 
@@ -191,3 +196,41 @@ The PeripheryPlots framework has a number of encodings implemented by default.
 **NominalTraceGroup** - Categorical sideways histogram. 
 
 **QuantitativeTraceGroup** - Quantitative sideways histogram. 
+
+## Custom Encoding Example 
+
+Here is an example of what a line plot encoding might look like using the new React Hooks API.  
+
+```javascript
+import React, { useState } from "react";
+import { line, curveMonotoneX } from 'd3-shape'; 
+import { scaleLinear, scaleTime } from 'd3-scale'; 
+
+export default function LineGroup(props) {
+
+    let [line, setLine] = useState(() => line().curve(curveMonotoneX)); 
+    let [timeScale, setTimeScale] = useState(() => scaleTime()); 
+    let [valueScale, setValueScale] = useState(() => scaleLinear()); 
+
+    let { pplot } = props; 
+    let { timeKey, valueKey, timeDomain, valueDomain, observations, scaleRangeToBox } = pplot; 
+
+    let scales = scaleRangeToBox(timeScale, valueScale); 
+    timeScale = scales.xScale; 
+    valueScale = scales.yScale; 
+
+    timeScale.domain(timeDomain); 
+    valueScale.domain(valueDomain); 
+
+    line.x(d => timeScale(d[timeKey]))
+        .y(d => valueScale(d[valueKey]));
+
+    return (
+        <g>
+            {/* Line */}
+            <path d={line(observations)} fill="none" stroke="steelblue"/>
+        </g>
+    ); 
+
+}
+```

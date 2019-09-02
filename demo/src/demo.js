@@ -14,7 +14,7 @@ import PeripheryPlots, {
     QuantitativeTraceGroup,
     NominalTraceGroup,
     AverageLineGroup
-} from "../../app/index.js"; 
+} from "../../src/index.js"; 
 
 let data = loadData(); 
 

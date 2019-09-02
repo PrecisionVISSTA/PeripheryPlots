@@ -1,19 +1,23 @@
 {
   "name": "periphery-plots",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Bryce Morrow bam4564@live.unc.edu",
   "description": "A React component for multivariate time series analysis",
+  "repository": "https://github.com/PrecisionVISSTA/PeripheryPlots",
+  "license": "Apache-2.0",
   "module": "dist/index.js",
   "homepage": "http://PrecisionVISSTA.github.io/PeripheryPlots",
   "scripts": {
     "start": "webpack-dev-server --mode development --open",
+    "removePeerDependencies": "rm -rf node_modules/react && rm -rf node_modules/react-dom",
+    "installPeerDependencies": "npm i react react-dom",
     "transpile": "babel src -d dist --copy-files",
-    "prepublishOnly": "npm run transpile",
+    "prepublishOnly": "npm run clean-install && npm run transpile",
     "clean": "rm -rf node_modules",
-    "reinstall": "npm run clean && npm install",
-    "build": "webpack --env.NODE_ENV=dev",
-    "predeploy": "npm run build:dev",
-    "deploy": "gh-pages -d dist"
+    "clean-install": "npm run clean && npm install",
+    "build": "npm run installPeerDependencies && webpack --mode production",
+    "deploy": "gh-pages -d examples/dist",
+    "publish-demo": "npm run build && npm run deploy"
   },
   "dependencies": {
     "@types/react": "^16.9.2",
