@@ -7,7 +7,7 @@ import { zoom, zoomTransform } from 'd3-zoom';
 import { extent } from 'd3-array'; 
 import { timeFormat } from 'd3-time-format'; 
 import { connect } from "react-redux";
-import { scaleRangeToBox } from "../../util/util"; 
+import { scaleRangeToBox, padDateRange } from "../../util/util"; 
 
 import { ACTION_CHANGE_proposal } from "../../actions/actions"; 
 
@@ -183,7 +183,8 @@ class Track extends React.Component {
             baseWidth, 
             applyContextEncodingsUniformly, 
             type, 
-            formatTrackHeader
+            formatTrackHeader, 
+            msecsPadding
         } = this.props; 
 
         // utility functions 
@@ -201,9 +202,10 @@ class Track extends React.Component {
         let rightContextEncodings = encodings.slice(numContextsPerSide + 1, encodings.length); 
 
         // partitioned observations
-        let leftContextObservations = leftContextTimeDomains.map(observationsInDomain);
-        let focusObservations = observationsInDomain(focusTimeDomain); 
-        let rightContextObservations = rightContextTimeDomains.map(observationsInDomain); 
+        let padDomain = _.partial(padDateRange, msecsPadding); 
+        let leftContextObservations = leftContextTimeDomains.map(padDomain).map(observationsInDomain);
+        let focusObservations = observationsInDomain(padDomain(focusTimeDomain)); 
+        let rightContextObservations = rightContextTimeDomains.map(padDomain).map(observationsInDomain); 
 
         let contextXRange = [0, contextWidth];
         let contextYRange = [trackHeight - trackSvgOffsetBottom, trackSvgOffsetTop];  
@@ -217,11 +219,14 @@ class Track extends React.Component {
                             type === 'discrete' ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
                                                   null; 
 
+        let getAllObservations = () => observations; 
+
         // namespace for periphery plot specific properties 
         let pplot = {
             timeKey,
             valueKey,
-            valueDomain
+            valueDomain, 
+            getAllObservations 
         };
         
         return (
@@ -239,7 +244,7 @@ class Track extends React.Component {
             {/* Axis */}
             <svg 
             ref={ref => this.AXES_REF = ref} 
-            style={{ width: axesWidth, height: trackHeight }}/>
+            style={{ width: axesWidth, height: trackHeight, float: 'left' }}/>
 
             {/* Left Contexts */}
             {leftContextTimeDomains.map((timeDomain, i) => {
@@ -254,7 +259,7 @@ class Track extends React.Component {
                     <svg 
                     key={`left-${i}`}
                     clipPath={`url(#${clipId})`}
-                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
+                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
 
                         {/* Clipping */}
                         <defs>
@@ -290,7 +295,7 @@ class Track extends React.Component {
             {/* Focus */}
             <svg 
             ref={ref => this.FOCUS_REF = ref}
-            style={{ width: focusWidth, height: trackHeight, display: 'inline-block' }}>
+            style={{ width: focusWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
 
                 {/* Clipping */}
                 <defs>
@@ -371,7 +376,7 @@ class Track extends React.Component {
                     <svg 
                     key={`right-${i}`}
                     clipPath={`url(#${clipId})`}
-                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block' }}>
+                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
                         
                         {/* Clipping */}
                         <defs>
@@ -426,7 +431,8 @@ const mapStateToProps = ({
     baseWidth, 
     dZoom, 
     applyContextEncodingsUniformly, 
-    formatTrackHeader
+    formatTrackHeader, 
+    msecsPadding
 }) => ({ 
     timeDomains, 
     timeExtentDomain, 
@@ -444,7 +450,8 @@ const mapStateToProps = ({
     baseWidth, 
     dZoom, 
     applyContextEncodingsUniformly,
-    formatTrackHeader
+    formatTrackHeader, 
+    msecsPadding
 }); 
                         
 const mapDispatchToProps = dispatch => ({

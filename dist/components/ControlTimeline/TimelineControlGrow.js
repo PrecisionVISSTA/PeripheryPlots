@@ -7,9 +7,9 @@ exports.perform_GROW = perform_GROW;
 
 var _lodash = _interopRequireDefault(require("lodash"));
 
-var _TimelineControlConfiguration = require("./TimelineControlConfiguration.js");
+var _TimelineControlConfiguration = require("./TimelineControlConfiguration");
 
-var _TimelineControlUtility = require("./TimelineControlUtility.js");
+var _TimelineControlUtility = require("./TimelineControlUtility");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 

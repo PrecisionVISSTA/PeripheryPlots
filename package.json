@@ -6,13 +6,14 @@
   "module": "dist/index.js",
   "homepage": "http://PrecisionVISSTA.github.io/PeripheryPlots",
   "scripts": {
-    "start": "webpack-dev-server --open --env.NODE_ENV=dev",
-    "predeploy": "npm run build:dev",
-    "deploy": "gh-pages -d dist",
-    "transpile": "babel app -d dist --copy-files",
+    "start": "webpack-dev-server --mode development --open",
+    "transpile": "babel src -d dist --copy-files",
+    "prepublishOnly": "npm run transpile",
     "clean": "rm -rf node_modules",
     "reinstall": "npm run clean && npm install",
-    "prepublishOnly": "npm run transpile"
+    "build": "webpack --env.NODE_ENV=dev",
+    "predeploy": "npm run build:dev",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@types/react": "^16.9.2",

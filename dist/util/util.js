@@ -13,6 +13,7 @@ exports.logicalOrOver = logicalOrOver;
 exports.rangeIntersection = rangeIntersection;
 exports.zip = zip;
 exports.scaleRangeToBox = scaleRangeToBox;
+exports.padDateRange = padDateRange;
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
 
@@ -122,4 +123,11 @@ function scaleRangeToBox(xRange, yRange, xScale, yScale) {
     xScale: xScale,
     yScale: yScale
   };
+}
+
+function padDateRange(msecsPadding, range) {
+  /*
+  Take a range of javascript date objects and widens it by msecsPadding on both sides 
+  */
+  return [new Date(range[0].valueOf() - msecsPadding), new Date(range[1].valueOf() + msecsPadding)];
 }

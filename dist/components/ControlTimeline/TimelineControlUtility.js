@@ -7,13 +7,13 @@ exports.functionFromAction = exports.computeActionFromSelectionTransition = expo
 
 var _lodash = _interopRequireDefault(require("lodash"));
 
-var _TimelineControlTranslation = require("./TimelineControlTranslation.js");
+var _TimelineControlTranslation = require("./TimelineControlTranslation");
 
-var _TimelineControlShrink = require("./TimelineControlShrink.js");
+var _TimelineControlShrink = require("./TimelineControlShrink");
 
-var _TimelineControlGrow = require("./TimelineControlGrow.js");
+var _TimelineControlGrow = require("./TimelineControlGrow");
 
-var _TimelineControlConfiguration = require("./TimelineControlConfiguration.js");
+var _TimelineControlConfiguration = require("./TimelineControlConfiguration");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 

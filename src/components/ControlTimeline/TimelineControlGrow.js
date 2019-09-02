@@ -1,6 +1,6 @@
 import _ from "lodash"; 
-import { BRUSH_ACTIONS } from "./TimelineControlConfiguration.js";
-import { packMultiIndex } from "./TimelineControlUtility.js"; 
+import { BRUSH_ACTIONS } from "./TimelineControlConfiguration";
+import { packMultiIndex } from "./TimelineControlUtility"; 
 
 function GROW_revertTargetToPreviousState(index, actionProperties) {
     let { preS, currentSelections } = actionProperties; 

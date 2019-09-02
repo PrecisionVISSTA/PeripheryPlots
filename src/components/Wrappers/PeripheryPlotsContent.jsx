@@ -23,7 +23,8 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_lockInactiveColor, 
             ACTION_CHANGE_dZoom, 
             ACTION_CHANGE_applyContextEncodingsUniformly, 
-            ACTION_CHANGE_formatTrackHeader
+            ACTION_CHANGE_formatTrackHeader, 
+            ACTION_CHANGE_msecsPadding
 
         } from "../../actions/actions"; 
 
@@ -87,7 +88,8 @@ function PeripheryPlotsContent(props) {
             'numContextsPerSide', 
             'tickInterval', 
             'applyContextEncodingsUniformly', 
-            'formatTrackHeader'
+            'formatTrackHeader', 
+            'msecsPadding'
         ]; 
 
         for (let p of updateProps) {
@@ -222,6 +224,9 @@ const mapDispatchToProps = dispatch => ({
 
     ACTION_CHANGE_formatTrackHeader: (formatTrackHeader) => 
     dispatch(ACTION_CHANGE_formatTrackHeader(formatTrackHeader)),
+
+    ACTION_CHANGE_msecsPadding: (msecsPadding) => 
+    dispatch(ACTION_CHANGE_msecsPadding(msecsPadding)),
 
 }); 
 

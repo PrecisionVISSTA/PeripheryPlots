@@ -174,6 +174,12 @@ var mutations = {
     return _objectSpread({}, state, {
       formatTrackHeader: formatTrackHeader
     });
+  },
+  'CHANGE_msecsPadding': function CHANGE_msecsPadding(state, action) {
+    var msecsPadding = action.msecsPadding;
+    return _objectSpread({}, state, {
+      msecsPadding: msecsPadding
+    });
   }
 };
 

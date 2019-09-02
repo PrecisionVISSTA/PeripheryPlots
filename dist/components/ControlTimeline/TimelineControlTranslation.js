@@ -7,9 +7,9 @@ exports.perform_TRANSLATE = perform_TRANSLATE;
 
 var _lodash = _interopRequireDefault(require("lodash"));
 
-var _TimelineControlUtility = require("./TimelineControlUtility.js");
+var _TimelineControlUtility = require("./TimelineControlUtility");
 
-var _TimelineControlConfiguration = require("./TimelineControlConfiguration.js");
+var _TimelineControlConfiguration = require("./TimelineControlConfiguration");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 

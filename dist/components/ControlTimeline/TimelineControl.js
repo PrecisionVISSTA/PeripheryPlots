@@ -23,9 +23,9 @@ var _d3Ease = require("d3-ease");
 
 var _lodash = _interopRequireDefault(require("lodash"));
 
-var _TimelineControlUtility = require("./TimelineControlUtility.js");
+var _TimelineControlUtility = require("./TimelineControlUtility");
 
-var _TimelineControlConfiguration = require("./TimelineControlConfiguration.js");
+var _TimelineControlConfiguration = require("./TimelineControlConfiguration");
 
 var _actions = require("../../actions/actions");
 

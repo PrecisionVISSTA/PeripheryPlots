@@ -110,7 +110,15 @@ let config = {
 //   }; 
 
 ReactDOM.render(
-    <PeripheryPlots {...config}/>, 
+    <React.Fragment>
+        <div>
+            <p>A small sample dataset from the {<a href={'https://github.com/vega/vega/blob/master/docs/data/seattle-weather.csv'}>Vega</a>} repository</p>
+            <p>You can control the selected time zones via the control timeline or via zoom / pan interaction on the focus zones of each track.</p>
+            <p>For this demo, the types of visual encodings used are fixed. When using the component in your own applications, you can create custom encodings and change the types of encodings used dynamically.</p>
+        </div>
+        <PeripheryPlots {...config}/>
+    </React.Fragment>
+    , 
     document.getElementById('DEMO')
 );
 

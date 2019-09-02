@@ -72,7 +72,7 @@ function PeripheryPlotsContent(props) {
   }, [width]); // Update store with these properties anytime config changes 
 
   (0, _react.useEffect)(function () {
-    var updateProps = ['containerPadding', 'controlTimelineHeight', 'verticalAlignerHeight', 'axesWidth', 'trackHeight', 'trackSvgOffsetTop', 'trackSvgOffsetBottom', 'focusColor', 'contextColor', 'lockActiveColor', 'lockInactiveColor', 'dZoom', 'timeDomains', 'timeExtentDomain', 'contextWidthRatio', 'numContextsPerSide', 'tickInterval', 'applyContextEncodingsUniformly', 'formatTrackHeader'];
+    var updateProps = ['containerPadding', 'controlTimelineHeight', 'verticalAlignerHeight', 'axesWidth', 'trackHeight', 'trackSvgOffsetTop', 'trackSvgOffsetBottom', 'focusColor', 'contextColor', 'lockActiveColor', 'lockInactiveColor', 'dZoom', 'timeDomains', 'timeExtentDomain', 'contextWidthRatio', 'numContextsPerSide', 'tickInterval', 'applyContextEncodingsUniformly', 'formatTrackHeader', 'msecsPadding'];
 
     for (var _i2 = 0, _updateProps = updateProps; _i2 < _updateProps.length; _i2++) {
       var p = _updateProps[_i2];
@@ -195,6 +195,9 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     },
     ACTION_CHANGE_formatTrackHeader: function ACTION_CHANGE_formatTrackHeader(formatTrackHeader) {
       return dispatch((0, _actions.ACTION_CHANGE_formatTrackHeader)(formatTrackHeader));
+    },
+    ACTION_CHANGE_msecsPadding: function ACTION_CHANGE_msecsPadding(msecsPadding) {
+      return dispatch((0, _actions.ACTION_CHANGE_msecsPadding)(msecsPadding));
     }
   };
 };

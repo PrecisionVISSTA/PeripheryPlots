@@ -87,3 +87,13 @@ export function scaleRangeToBox(xRange, yRange, xScale, yScale) {
 
     return { xScale: xScale, yScale: yScale }; 
 }
+
+export function padDateRange(msecsPadding, range) {
+    /*
+    Take a range of javascript date objects and widens it by msecsPadding on both sides 
+    */
+    return [
+        new Date(range[0].valueOf() - msecsPadding), 
+        new Date(range[1].valueOf() + msecsPadding)
+    ]; 
+}

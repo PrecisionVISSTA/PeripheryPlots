@@ -1,108 +1,76 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
-const TerserPlugin = require('terser-webpack-plugin');
 const path = require('path'); 
 
-module.exports = (env) => {
 
-  let mode; 
-  let context; 
-  let entry; 
-  let output; 
-  let plugins = []; 
-  let extraProps = {}; 
-  let rules = [
-    {
-      test: /\.(js|jsx)$/,
-      exclude: /node_modules/,
-      use: {
-        loader: "babel-loader"
-      }
-    }, 
-    {
-      test: /\.css$/,
-      use: ['style-loader', 'css-loader'],
-    }
-  ]; 
-
-  let isProduction = env === 'prod'; // via the webpack command
-  let isDev = env.NODE_ENV === 'dev'; // via the webpack-dev-server command 
-
-  if (isProduction) {
-
-    console.log("Production Build");
-
-    mode = 'production'; 
-    context = path.resolve(__dirname, 'app');
-    entry = './index.js';
-    output = {
-      filename: "bundle.js",
-      path: path.resolve(__dirname, './dist'), 
-      library: '',
-      libraryTarget: 'commonjs2'
-    }; 
-
-    // Minimizer
-    // extraProps['optimization'] = { minimizer: [new TerserPlugin()] }; 
-
-  } 
-  else if (isDev) {
-
-    mode = 'development';  
-    context = path.resolve(__dirname, 'demo');
-    entry = './src/demo.js'; 
-    output = {
-      filename: "bundle.js",
-      path: path.resolve(__dirname, './dist'),
-    };
-
-    // HTML bundler 
-    plugins.push(new HtmlWebPackPlugin({ template: './public/demo.html', filename: 'index.html' }));
-
-    // We need to load the HTML for the demo page  
-    rules.push({
-      test: /\.html$/,
-      use: [
-        {
-          loader: "html-loader"
+const devConfig = {
+  mode: 'development', 
+  context: path.resolve(__dirname, 'demo'), 
+  entry: './src/demo.js',
+  plugins: [
+    new HtmlWebPackPlugin({ template: './public/demo.html', filename: 'index.html' })
+  ], 
+  module: {
+    rules: [
+      // babel transpilation from es6 to browser compatible javascript  
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader"
         }
-      ]
-    }); 
-
-    // add the a rule for loading css so we can load demo data into the app 
-    rules.push({
-      test: /\.(csv|tsv)$/,
-      use: [
-        'csv-loader'
-      ]
-    }); 
-
-  }
-  else {
-    throw new Error("Unrecognized webpack config type"); 
-  }
-
-  let config = {
-    mode, 
-    context, 
-    entry,
-    output,
-    module: {
-      rules
-    }, 
-    resolve: {
-      extensions: [".js", ".jsx"],
-      alias: {
-        react: path.resolve('./node_modules/react')
+      }, 
+      // Load .css assets
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+      // Load .html assets
+      {
+        test: /\.html$/,
+        use: [
+          {
+            loader: "html-loader"
+          }
+        ]
+      }, 
+      // Load .csv data for the demo 
+      {
+        test: /\.(csv|tsv)$/,
+        use: [
+          'csv-loader'
+        ]
       }
-    },
-    plugins
-  }; 
+    ]
+  },
+  resolve: {
+    extensions: [".js", ".jsx"]
+  }
+}; 
 
-  Object.assign(config, extraProps); 
+module.exports = (_, params) => {
 
-  console.log(config); 
+  let isProduction = false === 'prod'; // via the webpack command
+  let isDev = params && params.mode === 'development'; // via the webpack-dev-server command 
 
-  return config; 
+  if (isDev) return devConfig; 
+  throw new Error('this shouldnt happen'); 
+
+  // console.log("Production Build");
+
+  // mode = 'production'; 
+  // context = path.resolve(__dirname, 'app');
+  // entry = './index.js';
+  // output = {
+  //   filename: "bundle.js",
+  //   path: path.resolve(__dirname, './prod-dist'), 
+  //   library: '',
+  //   libraryTarget: 'commonjs2'
+  // }; 
+
+  // output = {
+  //   filename: "bundle.js",
+  //   path: path.resolve(__dirname, './dist'),
+  // };
 
 }
  

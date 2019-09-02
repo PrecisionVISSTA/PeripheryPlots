@@ -287,7 +287,8 @@ function (_React$Component) {
           baseWidth = _this$props3.baseWidth,
           applyContextEncodingsUniformly = _this$props3.applyContextEncodingsUniformly,
           type = _this$props3.type,
-          formatTrackHeader = _this$props3.formatTrackHeader; // utility functions 
+          formatTrackHeader = _this$props3.formatTrackHeader,
+          msecsPadding = _this$props3.msecsPadding; // utility functions 
 
       var valueInDomain = function valueInDomain(value, domain) {
         return value >= domain[0] && value <= domain[1];
@@ -308,9 +309,11 @@ function (_React$Component) {
       var FocusEncoding = encodings[numContextsPerSide];
       var rightContextEncodings = encodings.slice(numContextsPerSide + 1, encodings.length); // partitioned observations
 
-      var leftContextObservations = leftContextTimeDomains.map(observationsInDomain);
-      var focusObservations = observationsInDomain(focusTimeDomain);
-      var rightContextObservations = rightContextTimeDomains.map(observationsInDomain);
+      var padDomain = _lodash["default"].partial(_util.padDateRange, msecsPadding);
+
+      var leftContextObservations = leftContextTimeDomains.map(padDomain).map(observationsInDomain);
+      var focusObservations = observationsInDomain(padDomain(focusTimeDomain));
+      var rightContextObservations = rightContextTimeDomains.map(padDomain).map(observationsInDomain);
       var contextXRange = [0, contextWidth];
       var contextYRange = [trackHeight - trackSvgOffsetBottom, trackSvgOffsetTop];
       var focusXRange = [0, focusWidth];
@@ -327,12 +330,18 @@ function (_React$Component) {
         return o[valueKey];
       })), function (d) {
         return d;
-      }) : null; // namespace for periphery plot specific properties 
+      }) : null;
+
+      var getAllObservations = function getAllObservations() {
+        return observations;
+      }; // namespace for periphery plot specific properties 
+
 
       var pplot = {
         timeKey: timeKey,
         valueKey: valueKey,
-        valueDomain: valueDomain
+        valueDomain: valueDomain,
+        getAllObservations: getAllObservations
       };
       return _react["default"].createElement("div", {
         style: {
@@ -354,7 +363,8 @@ function (_React$Component) {
         },
         style: {
           width: axesWidth,
-          height: trackHeight
+          height: trackHeight,
+          "float": 'left'
         }
       }), leftContextTimeDomains.map(function (timeDomain, i) {
         var LeftContextEncoding = applyContextEncodingsUniformly ? leftContextEncodings[0] : leftContextEncodings[i];
@@ -375,7 +385,8 @@ function (_React$Component) {
           style: {
             width: contextWidth,
             height: trackHeight,
-            display: 'inline-block'
+            display: 'inline-block',
+            "float": 'left'
           }
         }, _react["default"].createElement("defs", null, _react["default"].createElement("clipPath", {
           id: clipId
@@ -404,7 +415,8 @@ function (_React$Component) {
         style: {
           width: focusWidth,
           height: trackHeight,
-          display: 'inline-block'
+          display: 'inline-block',
+          "float": 'left'
         }
       }, _react["default"].createElement("defs", null, _react["default"].createElement("clipPath", {
         id: "focus-clip"
@@ -480,7 +492,8 @@ function (_React$Component) {
           style: {
             width: contextWidth,
             height: trackHeight,
-            display: 'inline-block'
+            display: 'inline-block',
+            "float": 'left'
           }
         }, _react["default"].createElement("defs", null, _react["default"].createElement("clipPath", {
           id: clipId
@@ -526,7 +539,8 @@ var mapStateToProps = function mapStateToProps(_ref4) {
       baseWidth = _ref4.baseWidth,
       dZoom = _ref4.dZoom,
       applyContextEncodingsUniformly = _ref4.applyContextEncodingsUniformly,
-      formatTrackHeader = _ref4.formatTrackHeader;
+      formatTrackHeader = _ref4.formatTrackHeader,
+      msecsPadding = _ref4.msecsPadding;
   return {
     timeDomains: timeDomains,
     timeExtentDomain: timeExtentDomain,
@@ -544,7 +558,8 @@ var mapStateToProps = function mapStateToProps(_ref4) {
     baseWidth: baseWidth,
     dZoom: dZoom,
     applyContextEncodingsUniformly: applyContextEncodingsUniformly,
-    formatTrackHeader: formatTrackHeader
+    formatTrackHeader: formatTrackHeader,
+    msecsPadding: msecsPadding
   };
 };
 

@@ -24,6 +24,7 @@ exports.ACTION_CHANGE_lockInactiveColor = ACTION_CHANGE_lockInactiveColor;
 exports.ACTION_CHANGE_dZoom = ACTION_CHANGE_dZoom;
 exports.ACTION_CHANGE_applyContextEncodingsUniformly = ACTION_CHANGE_applyContextEncodingsUniformly;
 exports.ACTION_CHANGE_formatTrackHeader = ACTION_CHANGE_formatTrackHeader;
+exports.ACTION_CHANGE_msecsPadding = ACTION_CHANGE_msecsPadding;
 
 function ACTION_CHANGE_timeExtentDomain(timeExtentDomain) {
   return {
@@ -209,6 +210,15 @@ function ACTION_CHANGE_formatTrackHeader(formatTrackHeader) {
   return {
     type: 'CHANGE_formatTrackHeader',
     formatTrackHeader: formatTrackHeader
+  };
+}
+
+;
+
+function ACTION_CHANGE_msecsPadding(msecsPadding) {
+  return {
+    type: 'CHANGE_msecsPadding',
+    msecsPadding: msecsPadding
   };
 }
 

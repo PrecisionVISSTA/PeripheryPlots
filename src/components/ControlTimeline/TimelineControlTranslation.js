@@ -1,6 +1,6 @@
 import _ from "lodash"; 
-import { packMultiIndex } from "./TimelineControlUtility.js"; 
-import { BRUSH_ACTIONS } from "./TimelineControlConfiguration.js"; 
+import { packMultiIndex } from "./TimelineControlUtility"; 
+import { BRUSH_ACTIONS } from "./TimelineControlConfiguration"; 
 
 function TRANSLATE_revertTargetToPreviousState(index, actionProperties) {
     let { shiftSet, previousSelections, curS } = actionProperties; 

@@ -145,3 +145,10 @@ export function ACTION_CHANGE_formatTrackHeader (formatTrackHeader) {
         formatTrackHeader
     }; 
 };
+
+export function ACTION_CHANGE_msecsPadding (msecsPadding) {
+    return {
+        type: 'CHANGE_msecsPadding',
+        msecsPadding
+    }; 
+};

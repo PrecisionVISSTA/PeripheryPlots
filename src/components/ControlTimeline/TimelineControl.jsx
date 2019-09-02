@@ -11,9 +11,9 @@ import _ from "lodash";
 import  { computeActionFromSelectionTransition, 
           functionFromAction, 
           performShifts
-        } from "./TimelineControlUtility.js";
+        } from "./TimelineControlUtility";
         
-import { CONTROL_CONFIGURATION } from "./TimelineControlConfiguration.js"; 
+import { CONTROL_CONFIGURATION } from "./TimelineControlConfiguration"; 
 
 import { ACTION_CHANGE_timeDomains, 
          ACTION_CHANGE_timeExtentDomain

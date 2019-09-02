@@ -7,7 +7,7 @@ exports.perform_SHRINK = perform_SHRINK;
 
 var _lodash = _interopRequireDefault(require("lodash"));
 
-var _TimelineControlConfiguration = require("./TimelineControlConfiguration.js");
+var _TimelineControlConfiguration = require("./TimelineControlConfiguration");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 

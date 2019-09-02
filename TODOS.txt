@@ -1,6 +1,10 @@
 
 Still need to do: 
 
+    Add documentation for 
+        * getAllObservations function 
+        * msecsPadding property 
+        * css property for label box 
 
     Get package published to npm, test out install locally 
     Include local install instructions in README

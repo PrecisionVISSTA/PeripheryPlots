@@ -72,6 +72,7 @@ function PeripheryPlots(props) {
 
 PeripheryPlots.defaultProps = {
   dZoom: 5,
+  msecsPadding: 0,
   numContextsPerSide: 1,
   contextWidthRatio: .2,
   containerBackgroundColor: '#ffffff',

@@ -121,7 +121,10 @@ const mutations = {
         let { formatTrackHeader } = action; 
         return { ...state, formatTrackHeader };
     },
-
+    'CHANGE_msecsPadding': (state, action) => {
+        let { msecsPadding } = action; 
+        return { ...state, msecsPadding };
+    },
     
 };
 
