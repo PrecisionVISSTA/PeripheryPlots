@@ -24,8 +24,10 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_dZoom, 
             ACTION_CHANGE_applyContextEncodingsUniformly, 
             ACTION_CHANGE_formatTrackHeader, 
-            ACTION_CHANGE_msecsPadding
-
+            ACTION_CHANGE_msecsPadding, 
+            ACTION_CHANGE_handleOutlineColor, 
+            ACTION_CHANGE_brushOutlineColor, 
+            ACTION_CHANGE_lockOutlineColor
         } from "../../actions/actions"; 
 
 import TimelineControl from "../ControlTimeline/TimelineControl"; 
@@ -89,7 +91,10 @@ function PeripheryPlotsContent(props) {
             'tickInterval', 
             'applyContextEncodingsUniformly', 
             'formatTrackHeader', 
-            'msecsPadding'
+            'msecsPadding', 
+            'lockOutlineColor', 
+            'handleOutlineColor', 
+            'brushOutlineColor'
         ]; 
 
         for (let p of updateProps) {
@@ -228,6 +233,14 @@ const mapDispatchToProps = dispatch => ({
     ACTION_CHANGE_msecsPadding: (msecsPadding) => 
     dispatch(ACTION_CHANGE_msecsPadding(msecsPadding)),
 
+    ACTION_CHANGE_handleOutlineColor: (handleOutlineColor) => 
+    dispatch(ACTION_CHANGE_handleOutlineColor(handleOutlineColor)),
+
+    ACTION_CHANGE_brushOutlineColor: (brushOutlineColor) => 
+    dispatch(ACTION_CHANGE_brushOutlineColor(brushOutlineColor)),
+
+    ACTION_CHANGE_lockOutlineColor: (lockOutlineColor) => 
+    dispatch(ACTION_CHANGE_lockOutlineColor(lockOutlineColor)),
 }); 
 
 export default connect(mapStateToProps, mapDispatchToProps)(PeripheryPlotsContent);

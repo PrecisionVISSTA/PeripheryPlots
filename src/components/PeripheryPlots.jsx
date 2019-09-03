@@ -42,7 +42,6 @@ PeripheryPlots.defaultProps = {
 
     dZoom: 5,
     msecsPadding: 0, 
-    numContextsPerSide: 1, 
     contextWidthRatio: .2, 
 
     containerBackgroundColor: '#ffffff',
@@ -50,6 +49,10 @@ PeripheryPlots.defaultProps = {
     contextColor: '#9bb1ba', 
     lockActiveColor: '#00496e', 
     lockInactiveColor: 'grey',
+
+    handleOutlineColor: '#000', 
+    brushOutlineColor: '#000', 
+    lockOutlineColor: '#000', 
 
     containerPadding: 10, 
     controlTimelineHeight: 50, 

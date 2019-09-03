@@ -41,14 +41,22 @@ let config = {
             [NominalTraceGroup], [EventGroup], [NominalTraceGroup]
         ]
     ],
+    contextWidthRatio: .15, 
+    numContextsPerSide: 2, 
     applyContextEncodingsUniformly: true,
     tickInterval: timeMonth.every(3), 
     timeExtentDomain: extent(data.map(d => d.date)),  
     timeDomains: [
-        ['02/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
+        ['03/02/2012', '07/02/2012'].map(dateStr => new Date(dateStr)),
+        ['07/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
         ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
-        ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)) 
+        ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)),
+        ['02/01/2015', '06/01/2015'].map(dateStr => new Date(dateStr)) 
     ], 
+
+    // lockOutlineColor: '#ff0000', 
+    // handleOutlineColor:  '#ff0000', 
+    // brushOutlineColor: '#ff0000'
 
     // dZoom: 10,
     // containerBackgroundColor: 'white',
@@ -57,8 +65,8 @@ let config = {
     // lockActiveColor: '#00496e', 
     // lockInactiveColor: 'grey', 
     // containerPadding: 14, 
-    // controlTimelineHeight: 50, 
-    // verticalAlignerHeight: 30, 
+    controlTimelineHeight: 70, 
+    verticalAlignerHeight: 40, 
     // axesWidth: 40, 
     // trackHeight: 50, 
     // trackSvgOffsetTop: 10, 

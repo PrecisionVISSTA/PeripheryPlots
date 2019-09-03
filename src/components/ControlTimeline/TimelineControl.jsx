@@ -212,7 +212,20 @@ class TimelineControl extends React.Component {
 
   componentDidMount() {
     // Code to create the d3 element, using the root container 
-    let { width, height, focusColor, contextColor, containerPadding, lockActiveColor, lockInactiveColor } = this.props; 
+    let { 
+
+      width, 
+      height, 
+      focusColor, 
+      contextColor, 
+      containerPadding, 
+      lockActiveColor, 
+      lockInactiveColor, 
+      lockOutlineColor, 
+      handleOutlineColor, 
+      brushOutlineColor
+    
+    } = this.props; 
     
     let root = select(this.ROOT); 
 
@@ -271,6 +284,7 @@ class TimelineControl extends React.Component {
             .attr('id', lockId)
             .attr('x', 0)
             .attr('y', y)
+            .attr('stroke', lockOutlineColor)
             .attr('width', LOCK_WIDTH)
             .attr('height', LOCK_HEIGHT)
             .attr('transform', `translate(${x - LOCK_WIDTH / 2},0)`)
@@ -331,17 +345,11 @@ class TimelineControl extends React.Component {
         .select("rect.overlay")
         .style("pointer-events", "none"); 
 
-      if (isFocus) {
-        // Apply styling to the focus brush region
-        brushG
-          .select("rect.selection")
-          .style("fill", focusColor); 
-      } else {
-        // Apply styling to the context brush region
-        brushG
-          .select("rect.selection")
-          .style("fill", contextColor); 
-      }
+      // Styling the brush selection 
+      brushG
+        .select("rect.selection")
+        .attr('stroke', brushOutlineColor)
+        .style("fill", isFocus ? focusColor : contextColor); 
 
       // Append custom handles to brush
       brushG.selectAll(".handle--custom")
@@ -351,6 +359,7 @@ class TimelineControl extends React.Component {
               .attr('clipPath', `url(#${clipId})`)
                 .append("rect")
                 .attr('clipPath', `url(#${clipId})`)
+                .attr('stroke', handleOutlineColor)
                 .attr('x', 0)
                 .attr('y', MARGIN.top + this.state.brushHeight / 2 - HANDLE_HEIGHT / 2)
                 .attr('width', HANDLE_WIDTH)
@@ -615,7 +624,10 @@ const mapStateToProps = ({
                           proposal, 
                           tickInterval, 
                           lockActiveColor, 
-                          lockInactiveColor
+                          lockInactiveColor, 
+                          lockOutlineColor, 
+                          handleOutlineColor, 
+                          brushOutlineColor
                         }) => 
                         ({ 
                           timeDomains, 
@@ -625,7 +637,10 @@ const mapStateToProps = ({
                           proposal, 
                           tickInterval, 
                           lockActiveColor, 
-                          lockInactiveColor
+                          lockInactiveColor,
+                          lockOutlineColor, 
+                          handleOutlineColor, 
+                          brushOutlineColor
                         });
                         
 const mapDispatchToProps = dispatch => ({

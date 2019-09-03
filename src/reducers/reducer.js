@@ -125,6 +125,18 @@ const mutations = {
         let { msecsPadding } = action; 
         return { ...state, msecsPadding };
     },
+    'CHANGE_lockOutlineColor': (state, action) => {
+        let { lockOutlineColor } = action; 
+        return { ...state, lockOutlineColor };
+    },
+    'CHANGE_handleOutlineColor': (state, action) => {
+        let { handleOutlineColor } = action; 
+        return { ...state, handleOutlineColor };
+    },
+    'CHANGE_brushOutlineColor': (state, action) => {
+        let { brushOutlineColor } = action; 
+        return { ...state, brushOutlineColor };
+    },
     
 };
 

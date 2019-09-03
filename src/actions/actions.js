@@ -152,3 +152,24 @@ export function ACTION_CHANGE_msecsPadding (msecsPadding) {
         msecsPadding
     }; 
 };
+
+export function ACTION_CHANGE_lockOutlineColor (lockOutlineColor) {
+    return {
+        type: 'CHANGE_lockOutlineColor',
+        lockOutlineColor
+    }; 
+};
+
+export function ACTION_CHANGE_handleOutlineColor (handleOutlineColor) {
+    return {
+        type: 'CHANGE_handleOutlineColor',
+        handleOutlineColor
+    }; 
+};
+
+export function ACTION_CHANGE_brushOutlineColor (brushOutlineColor) {
+    return {
+        type: 'CHANGE_brushOutlineColor',
+        brushOutlineColor
+    }; 
+};

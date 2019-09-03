@@ -5,7 +5,9 @@ import { connect } from "react-redux";
 const lineStyle = {
     stroke: "rgb(0, 150, 136)", 
     strokeDasharray: "1 1"
-}
+}; 
+
+const hPadding = 3; 
 
 class ControlToTrackAligner extends React.Component {
 
@@ -36,13 +38,18 @@ class ControlToTrackAligner extends React.Component {
 
         let topX = _.union(timeDomains.map(d => d[0]), [timeDomains[timeDomains.length-1][1]])
                     .map(controlScale); 
+        let botX = _.range(0, numContextsPerSide).map(i => axesWidth + i * contextWidth); 
 
-        let botX = []; 
-        let ys = [height/4, height/1.5, height/1.5, height/4]; 
+        // Simple algorithm for determining y coordinates 
+        let yMin = hPadding; 
+        let yMax = height - hPadding; 
+        let dy = yMax - yMin; 
+        let nYSteps = numContextsPerSide + 1; 
+        let yStep = dy / nYSteps;
+        let yleft = _.range(0, numContextsPerSide + 1).map(i => hPadding + i * yStep);
+        let yright = _.reverse(yleft.slice()); 
+        let ys = _.concat(yleft, yright); 
 
-        for (let i = 0; i < numContextsPerSide; i++) {
-            botX.push(axesWidth + i * contextWidth); 
-        }
         botX.push(axesWidth + numContextsPerSide * contextWidth);
         botX.push(axesWidth + numContextsPerSide * contextWidth + focusWidth);
         for (let i = 0; i < numContextsPerSide; i++) {

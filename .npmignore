@@ -4,5 +4,5 @@ demo
 .gitignore
 webpack.config.js
 *.txt
-*.png
+*.gif
 

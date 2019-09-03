@@ -197,9 +197,9 @@ class Track extends React.Component {
         let rightContextTimeDomains = timeDomains.slice(numContextsPerSide + 1, timeDomains.length);
         
         // partitioned encodings
-        let leftContextEncodings = encodings.slice(0, numContextsPerSide); 
-        let FocusEncoding = encodings[numContextsPerSide]; 
-        let rightContextEncodings = encodings.slice(numContextsPerSide + 1, encodings.length); 
+        let leftContextEncodings = applyContextEncodingsUniformly ? [encodings[0]] : encodings.slice(0, numContextsPerSide); 
+        let FocusEncoding = encodings[Math.floor(encodings.length / 2)]; 
+        let rightContextEncodings = applyContextEncodingsUniformly ? [encodings[2]] : encodings.slice(numContextsPerSide + 1, encodings.length); 
 
         // partitioned observations
         let padDomain = _.partial(padDateRange, msecsPadding); 

@@ -2,7 +2,7 @@
 
 Patterns in temporal data are often across different scales, such as days, weeks, and months, making effective visualization of time-based data challenging. _Periphery Plots_ are a new approach for providing focus and context in time-based charts to enable interpretation of patterns across heterogeneous time scales. Our approach employs a focus zone with a time axis and a second axis, that can either represent quantities or categories, as well as a set of adjacent periphery plots that aggregate data along the time dimension, value dimension, or both. This repository contains a prototype implementation of Periphery Plots as a React component as well as demo of the technique.
 
-![](peripheryplots-preview.png)
+![](pplots-gif.gif)
 
 ## How to Use
 
@@ -24,7 +24,7 @@ Patterns in temporal data are often across different scales, such as days, weeks
 > 
 > 1. npm i periphery-plots
 > 2. npm i react react-dom 
->     * Only complete step 2 if you do not already have react and react-dom in your project already. To understand why this is necessary, research why it is important to have React and React-DOM as [peer dependencies](https://nodejs.org/es/blog/npm/peer-dependencies/).  
+>     * Only complete step 2 if you do not already have compatible versions of react and react-dom in your project already. See the reasoning [here](hhttps://stackoverflow.com/a/30454133).  
 
 ## Preprint
 
@@ -53,11 +53,11 @@ The PeripheryPlots React component takes a single configuration object as input.
 | __`timeDomains`__ | [ [ Date, Date ], ... ] | Temporal ranges corresponding to initially selected brush regions for the control timeline. |
 | __`tickInterval`__ | [d3.interval](https://github.com/d3/d3-time) | The interval for tick placement for the control timeline axis. |
 | `dZoom` | Integer+ <br> **default:** 5 | Speed of track generated zoom events for control timeline. For wide screens, it may be necessary to increase this value |
-| `containerBackgroundColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "#ffffff" | Background color for the component container. |
-| `focusColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "#576369" | Color of focus brush and focus plot borders. |
-| `contextColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "#9BB1BA" | Color of context brush and context plot borders.|
-| `lockActiveColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "#00496E" | Color of control timeline locks when active. |
-| `lockInactiveColor` | Valid input to [d3.color](https://github.com/d3/d3-color) constructor <br> **default:** "Grey" | Color of control timeline locks when inactive. |
+| `containerBackgroundColor` | Valid input to [d3.color](https://github.com/d3/d3-color) <br> **default:** "#ffffff" | Background color for the component container. |
+| `focusColor` | Valid input to [d3.color](https://github.com/d3/d3-color) <br> **default:** "#576369" | Color of focus brush and focus plot borders. |
+| `contextColor` | Valid input to [d3.color](https://github.com/d3/d3-color) <br> **default:** "#9BB1BA" | Color of context brush and context plot borders.|
+| `lockActiveColor` | Valid input to [d3.color](https://github.com/d3/d3-color) <br> **default:** "#00496E" | Color of control timeline locks when active. |
+| `lockInactiveColor` | Valid input to [d3.color](https://github.com/d3/d3-color) <br> **default:** "Grey" | Color of control timeline locks when inactive. |
 | `containerPadding` | Integer+ <br> **default:** 10 | Component padding in pixels that surrounds tracks and control timeline. |
 | `controlTimelineHeight` | Integer+ <br> **default:** 50 | The height of the control timeline in pixels. |
 | `verticalAlignerHeight` | Integer+ <br> **default:** 30 | The height of the vertical alignment component in pixels. |
@@ -68,6 +68,9 @@ The PeripheryPlots React component takes a single configuration object as input.
 | `trackSvgOffsetBottom` | Integer+ <br> **default:** 5 | The offset from bottom of svg plot containers defining bottom bound on drawable space. |
 | `formatTrackHeader` | Function(`valueKey`, `unit`) <br> **default:** removes underscores and adds a space between valueKey and unit. | Function to format header string for each track receiving `valueKey` and `unit` as inputs | 
 | `msecsPadding` | Integer <br> **default:** 0 | When determining the observations bound to an individual plot, we expand the plot's bound time domain by `msecsPadding` time units on both sides. This property is helpful for encodings like line charts, which may appear discontinuous near the boundaries of the container if only the data points within the interval are visualized. | 
+| `lockOutlineColor` | Valid input to [d3.color](https://github.com/d3/d3-color) <br> **default:** "#000000" | The outline color for timeline control locks. |
+| `handleOutlineColor` | Valid input to [d3.color](https://github.com/d3/d3-color) <br> **default:** "#000000" | The outline color for timeline control handles. |
+| `brushOutlineColor` | Valid input to [d3.color](https://github.com/d3/d3-color) <br> **default:** "#000000" | The outline color for timeline control brushes. |
 
 Some of the descriptions in the table above are sufficient, but some properties are more complex and must satisfy specific criteria to be considered valid.
 
