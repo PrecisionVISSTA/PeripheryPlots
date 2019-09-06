@@ -1,7 +1,10 @@
+import { scaleTime } from 'd3-scale'; 
 
 const DEFAULT_state = {
 
-    proposal: { id: -1 }
+    proposal: { id: -1 }, 
+
+    controlScale: scaleTime()
     
 };
 

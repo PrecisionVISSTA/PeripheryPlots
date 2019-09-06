@@ -1,10 +1,10 @@
 import React from "react"; 
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
-
+import PeripheryPlotContext from "../../context/periphery-plot-context"; 
 import reducer from "../../reducers/reducer.js"; 
 
-class RootProvider extends React.Component {
+class PeripheryPlotsProvider extends React.Component {
 
     state = {
         store: createStore(
@@ -15,7 +15,7 @@ class RootProvider extends React.Component {
 
     render() {
         return (
-            <Provider store={this.state.store}>
+            <Provider context={PeripheryPlotContext} store={this.state.store}>
                 {this.props.children}
             </Provider>
         ); 
@@ -23,6 +23,6 @@ class RootProvider extends React.Component {
 
 }
 
-export default RootProvider; 
+export default PeripheryPlotsProvider; 
 
     

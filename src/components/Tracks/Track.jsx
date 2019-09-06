@@ -8,6 +8,7 @@ import { extent } from 'd3-array';
 import { timeFormat } from 'd3-time-format'; 
 import { connect } from "react-redux";
 import { scaleRangeToBox, padDateRange } from "../../util/util"; 
+import PeripheryPlotContext from "../../context/periphery-plot-context"; 
 
 import { ACTION_CHANGE_proposal } from "../../actions/actions"; 
 
@@ -461,4 +462,4 @@ const mapDispatchToProps = dispatch => ({
 
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Track); 
+export default connect(mapStateToProps, mapDispatchToProps, null, { context: PeripheryPlotContext })(Track); 

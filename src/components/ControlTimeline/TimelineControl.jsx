@@ -7,6 +7,8 @@ import { brushX, brushSelection } from 'd3-brush';
 import { transition } from 'd3-transition'; 
 import { easeLinear } from 'd3-ease'; 
 import _ from "lodash"; 
+import PeripheryPlotContext from "../../context/periphery-plot-context"; 
+
 
 import  { computeActionFromSelectionTransition, 
           functionFromAction, 
@@ -653,4 +655,4 @@ const mapDispatchToProps = dispatch => ({
     
 }); 
 
-export default connect(mapStateToProps, mapDispatchToProps)(TimelineControl);
+export default connect(mapStateToProps, mapDispatchToProps, null, { context: PeripheryPlotContext })(TimelineControl);

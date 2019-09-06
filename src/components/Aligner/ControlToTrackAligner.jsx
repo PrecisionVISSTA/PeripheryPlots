@@ -1,6 +1,7 @@
 import React from "react"; 
 import { scaleLinear } from "d3-scale"; 
 import { connect } from "react-redux"; 
+import PeripheryPlotContext from "../../context/periphery-plot-context"; 
 
 const lineStyle = {
     stroke: "rgb(0, 150, 136)", 
@@ -118,4 +119,4 @@ const mapStateToProps = ({
                             contextWidthRatio
                         }); 
 
-export default connect(mapStateToProps, null)(ControlToTrackAligner); 
+export default connect(mapStateToProps, null, null, { context: PeripheryPlotContext })(ControlToTrackAligner); 

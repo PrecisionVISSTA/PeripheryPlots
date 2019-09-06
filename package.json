@@ -1,6 +1,6 @@
 {
   "name": "periphery-plots",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Bryce Morrow bam4564@live.unc.edu",
   "description": "A React component for multivariate time series analysis",
   "repository": "https://github.com/PrecisionVISSTA/PeripheryPlots",
@@ -9,13 +9,14 @@
   "homepage": "http://PrecisionVISSTA.github.io/PeripheryPlots",
   "scripts": {
     "start": "webpack-dev-server --mode development --open",
-    "removePeerDependencies": "rm -rf node_modules/react && rm -rf node_modules/react-dom",
-    "installPeerDependencies": "npm i react react-dom",
+    "removeReact": "rm -rf node_modules/react && rm -rf node_modules/react-dom",
+    "installReact": "npm i --save-dev react react-dom",
     "transpile": "babel src -d dist --copy-files",
-    "prepublishOnly": "npm run clean-install && npm run transpile",
+    "prepublishOnly": "npm run clean-install && npm run removeReact && npm run transpile",
+    "postpublish": "npm run installReact",
     "clean": "rm -rf node_modules",
     "clean-install": "npm run clean && npm install",
-    "build": "npm run installPeerDependencies && webpack --mode production",
+    "build": "webpack --mode production",
     "deploy": "gh-pages -d examples/dist",
     "publish-demo": "npm run build && npm run deploy"
   },
@@ -37,8 +38,6 @@
     "d3-zoom": "^1.8.3",
     "lodash": "^4.17.15",
     "prop-types": "^15.7.2",
-    "react": "^16.9.0",
-    "react-dom": "^16.9.0",
     "react-redux": "^7.0.3",
     "react-use-dimensions": "^1.2.1",
     "redux": "^4.0.1",
@@ -49,6 +48,8 @@
     "react-dom": "^16.9.0"
   },
   "devDependencies": {
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.4.4",
     "@babel/plugin-proposal-class-properties": "^7.4.4",
