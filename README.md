@@ -2,6 +2,12 @@
 
 Patterns in temporal data are often across different scales, such as days, weeks, and months, making effective visualization of time-based data challenging. _Periphery Plots_ are a new approach for providing focus and context in time-based charts to enable interpretation of patterns across heterogeneous time scales. Our approach employs a focus zone with a time axis and a second axis, that can either represent quantities or categories, as well as a set of adjacent periphery plots that aggregate data along the time dimension, value dimension, or both. This repository contains a prototype implementation of Periphery Plots as a React component as well as demo of the technique.
 
+
+Developed by Bryce Morrow, David Gotz, Arlene Chung, Trevor Manz, Nils Gehlenborg through funding support from the NIH NIBIB and Office of the Director.
+
+Contact information: qubbdr01@gmail.com
+
+
 ![](pplots-gif.gif)
 
 ## How to Use
