@@ -51,6 +51,18 @@ Object.defineProperty(exports, "AverageLineGroup", {
     return _AverageLineGroup["default"];
   }
 });
+Object.defineProperty(exports, "getPeripheryPlotsDistributedComponents", {
+  enumerable: true,
+  get: function get() {
+    return _configurePeripheryPlotsPieces["default"];
+  }
+});
+Object.defineProperty(exports, "PeripheryPlotsWrapperHOC", {
+  enumerable: true,
+  get: function get() {
+    return _PeripheryPlotsWrapperHOC["default"];
+  }
+});
 exports["default"] = void 0;
 
 var _PeripheryPlots = _interopRequireDefault(require("./components/PeripheryPlots"));
@@ -70,6 +82,10 @@ var _QuantitativeTraceGroup = _interopRequireDefault(require("./encodings/VPE/Qu
 var _NominalTraceGroup = _interopRequireDefault(require("./encodings/VPE/NominalTraceGroup"));
 
 var _AverageLineGroup = _interopRequireDefault(require("./encodings/VPE/AverageLineGroup"));
+
+var _configurePeripheryPlotsPieces = _interopRequireDefault(require("./components/Detached/configurePeripheryPlotsPieces"));
+
+var _PeripheryPlotsWrapperHOC = _interopRequireDefault(require("./components/Wrappers/PeripheryPlotsWrapperHOC"));
 
 require("./css/PeripheryPlotsDefaultStyle.css");
 

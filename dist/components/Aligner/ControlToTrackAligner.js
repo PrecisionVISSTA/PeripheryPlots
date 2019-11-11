@@ -11,6 +11,8 @@ var _d3Scale = require("d3-scale");
 
 var _reactRedux = require("react-redux");
 
+var _peripheryPlotContext = _interopRequireDefault(require("../../context/periphery-plot-context"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -47,6 +49,7 @@ var lineStyle = {
   stroke: "rgb(0, 150, 136)",
   strokeDasharray: "1 1"
 };
+var hPadding = 3;
 
 var ControlToTrackAligner =
 /*#__PURE__*/
@@ -100,18 +103,30 @@ function (_React$Component) {
         return d[0];
       }), [timeDomains[timeDomains.length - 1][1]]).map(controlScale);
 
-      var botX = [];
-      var ys = [height / 4, height / 1.5, height / 1.5, height / 4];
+      var botX = _.range(0, numContextsPerSide).map(function (i) {
+        return axesWidth + i * contextWidth;
+      }); // Simple algorithm for determining y coordinates 
 
-      for (var i = 0; i < numContextsPerSide; i++) {
-        botX.push(axesWidth + i * contextWidth);
-      }
+
+      var yMin = hPadding;
+      var yMax = height - hPadding;
+      var dy = yMax - yMin;
+      var nYSteps = numContextsPerSide + 1;
+      var yStep = dy / nYSteps;
+
+      var yleft = _.range(0, numContextsPerSide + 1).map(function (i) {
+        return hPadding + i * yStep;
+      });
+
+      var yright = _.reverse(yleft.slice());
+
+      var ys = _.concat(yleft, yright);
 
       botX.push(axesWidth + numContextsPerSide * contextWidth);
       botX.push(axesWidth + numContextsPerSide * contextWidth + focusWidth);
 
-      for (var _i2 = 0; _i2 < numContextsPerSide; _i2++) {
-        botX.push(axesWidth + numContextsPerSide * contextWidth + focusWidth + (_i2 + 1) * contextWidth);
+      for (var i = 0; i < numContextsPerSide; i++) {
+        botX.push(axesWidth + numContextsPerSide * contextWidth + focusWidth + (i + 1) * contextWidth);
       }
 
       return _react["default"].createElement("div", {
@@ -123,7 +138,8 @@ function (_React$Component) {
           width: width,
           height: height,
           paddingLeft: containerPadding,
-          paddingRight: containerPadding
+          paddingRight: containerPadding,
+          boxSizing: 'content-box'
         }
       }, topX.map(function (x, i) {
         return _react["default"].createElement("line", _extends({
@@ -191,6 +207,8 @@ var mapStateToProps = function mapStateToProps(_ref) {
   };
 };
 
-var _default = (0, _reactRedux.connect)(mapStateToProps, null)(ControlToTrackAligner);
+var _default = (0, _reactRedux.connect)(mapStateToProps, null, null, {
+  context: _peripheryPlotContext["default"]
+})(ControlToTrackAligner);
 
 exports["default"] = _default;

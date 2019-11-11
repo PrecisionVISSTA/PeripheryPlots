@@ -9,7 +9,6 @@ import { easeLinear } from 'd3-ease';
 import _ from "lodash"; 
 import PeripheryPlotContext from "../../context/periphery-plot-context"; 
 
-
 import  { computeActionFromSelectionTransition, 
           functionFromAction, 
           performShifts
@@ -17,10 +16,8 @@ import  { computeActionFromSelectionTransition,
         
 import { CONTROL_CONFIGURATION } from "./TimelineControlConfiguration"; 
 
-import { ACTION_CHANGE_timeDomains, 
-         ACTION_CHANGE_timeExtentDomain
-       } from "../../actions/actions"; 
-
+import { ACTION_CHANGE_timeDomains } from "../../actions/actions"; 
+       
 const {
   MARGIN,
   LOCK_WIDTH, 
@@ -86,48 +83,42 @@ class TimelineControl extends React.Component {
     this.state.brushLocks = this.state.brushLockIds.map(i => false); 
 
     // Brush height - takes up 75% of vertical space in the container (not including MARGIN)
-    this.state.brushHeight = (height - (MARGIN.top + MARGIN.bottom)) * .85; 
+    this.state.brushHeight = (height - (MARGIN.top + MARGIN.bottom)) * .7; 
     
   }
 
   ingestProposal = (nextProps) => {
 
     let { proposal } = nextProps; 
-    let { shift, dl, dr } = proposal; 
-    let { focusIndex } = this.state; 
+    let { shift, dl, dr, index } = proposal; 
     let currentSelections = this.getBrushRanges(); 
     let previousSelections1, previousSelections2, 
         newSelections1, newSelections2, 
         newSelections; 
-
-    // TODO: Remove this when locking is implemented for single handle resizing 
-    // let aBrushIsLocked = this.state.brushLocks.reduce((acc,cur) => acc || cur, false); 
-    // if (proposal.type === 'zoom' && aBrushIsLocked) 
-    //   return; 
 
     switch (proposal.type) {
       case 'pan': 
         // translate 
         previousSelections1 = currentSelections.slice(); 
         newSelections1 = previousSelections1.slice(); 
-        newSelections1[focusIndex] = previousSelections1[focusIndex].map(v => v + shift); 
+        newSelections1[index] = previousSelections1[index].map(v => v + shift); 
 
-        newSelections = this.computeAction(focusIndex, newSelections1, previousSelections1); 
+        newSelections = this.computeAction(index, newSelections1, previousSelections1); 
         break; 
       case 'zoom': 
         // grow/shrink left 
         previousSelections1 = currentSelections.slice(); 
         newSelections1 = currentSelections.slice(); 
-        newSelections1[focusIndex] = [previousSelections1[focusIndex][0] + dl, 
-                                      previousSelections1[focusIndex][1]]; 
+        newSelections1[index] = [previousSelections1[index][0] + dl, 
+                                      previousSelections1[index][1]]; 
         
         // grow/shrink right 
-        previousSelections2 = this.computeAction(focusIndex, newSelections1, previousSelections1); 
+        previousSelections2 = this.computeAction(index, newSelections1, previousSelections1); 
         newSelections2 = previousSelections2.slice(); 
-        newSelections2[focusIndex] = [previousSelections2[focusIndex][0], 
-                                      previousSelections2[focusIndex][1] + dr]; 
+        newSelections2[index] = [previousSelections2[index][0], 
+                                      previousSelections2[index][1] + dr]; 
 
-        newSelections = this.computeAction(focusIndex, newSelections2, previousSelections2);
+        newSelections = this.computeAction(index, newSelections2, previousSelections2);
         break; 
     }
 
@@ -236,8 +227,9 @@ class TimelineControl extends React.Component {
     // Create the svg container for the brushes
     let svg = root.append('svg')
                   .attr('id', 'brush-svg')
-                  .attr('width', brushSvgWidth)  // padding on left and right 
+                  .attr('width', brushSvgWidth)
                   .attr('height', height)
+                  .style('box-sizing', 'content-box') // padding not included in container width 
                   .style('padding-left', containerPadding)
                   .style('padding-right', containerPadding)
                   .style('padding-top', containerPadding)
@@ -620,8 +612,8 @@ class TimelineControl extends React.Component {
 
 const mapStateToProps = ({ 
                           timeDomains, 
-                          timeExtentDomain, 
-                          focusColor, contextColor, 
+                          focusColor, 
+                          contextColor, 
                           containerPadding, 
                           proposal, 
                           tickInterval, 
@@ -629,12 +621,15 @@ const mapStateToProps = ({
                           lockInactiveColor, 
                           lockOutlineColor, 
                           handleOutlineColor, 
-                          brushOutlineColor
+                          brushOutlineColor, 
+                          controlScale,
+                          baseWidth,
+                          controlTimelineHeight
                         }) => 
                         ({ 
                           timeDomains, 
-                          timeExtentDomain, 
-                          focusColor, contextColor, 
+                          focusColor, 
+                          contextColor, 
                           containerPadding, 
                           proposal, 
                           tickInterval, 
@@ -642,7 +637,10 @@ const mapStateToProps = ({
                           lockInactiveColor,
                           lockOutlineColor, 
                           handleOutlineColor, 
-                          brushOutlineColor
+                          brushOutlineColor, 
+                          controlScale, 
+                          width: baseWidth, 
+                          height: controlTimelineHeight
                         });
                         
 const mapDispatchToProps = dispatch => ({
@@ -650,9 +648,6 @@ const mapDispatchToProps = dispatch => ({
   ACTION_CHANGE_timeDomains: (timeDomains) => 
     dispatch(ACTION_CHANGE_timeDomains(timeDomains)), 
 
-  ACTION_CHANGE_timeExtentDomain: (timeExtentDomain) => 
-    dispatch(ACTION_CHANGE_timeExtentDomain(timeExtentDomain))
-    
 }); 
 
 export default connect(mapStateToProps, mapDispatchToProps, null, { context: PeripheryPlotContext })(TimelineControl);

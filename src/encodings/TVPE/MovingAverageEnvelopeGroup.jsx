@@ -17,10 +17,10 @@ class MovingAverageEnvelopeGroup extends React.Component {
 
     computeEnvelope(observations, timeKey, valueKey) {
 
-        let dates = observations.map(d => d[timeKey]).map(d => d.valueOf()); 
+        let dates = observations.map(d => d[timeKey].valueOf()); 
         let values = observations.map(d => d[valueKey]); 
         
-        let [min_ms, max_ms] = extent(dates).map(d => d.valueOf()); 
+        let [min_ms, max_ms] = extent(dates); 
         let envelope = []; 
         let wsstart = min_ms; 
         let wsend = min_ms + WINDOW_SIZE_MS; 

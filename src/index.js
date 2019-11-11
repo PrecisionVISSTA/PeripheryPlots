@@ -9,6 +9,9 @@ import QuantitativeTraceGroup from "./encodings/VPE/QuantitativeTraceGroup";
 import NominalTraceGroup from "./encodings/VPE/NominalTraceGroup"; 
 import AverageLineGroup from "./encodings/VPE/AverageLineGroup"; 
 
+import getPeripheryPlotSubComponents from "./components/Wrappers/getPeripheryPlotSubComponents"; 
+import PeripheryPlotsWrapperHOC from "./components/Wrappers/PeripheryPlotsWrapperHOC"; 
+
 import "./css/PeripheryPlotsDefaultStyle.css"; 
 
 /*
@@ -20,7 +23,10 @@ We also import the default stylings for the app here
 */
 
 export default PeripheryPlots; 
+
 export {
+
+    // Default Encodings 
     LineGroup, 
     BarGroup,
     ScatterGroup,
@@ -28,5 +34,13 @@ export {
     MovingAverageEnvelopeGroup,
     QuantitativeTraceGroup,
     NominalTraceGroup,
-    AverageLineGroup
+    AverageLineGroup,
+
+    // Distributed Component Rendering 
+    PeripheryPlotsWrapperHOC,
+    getPeripheryPlotSubComponents
+
 }; 
+
+
+// initialize store from a configuration object that is 

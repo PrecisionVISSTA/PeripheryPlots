@@ -19,7 +19,7 @@ class Track extends React.Component {
         quantitativeScale: scaleLinear(), 
         categoricalScale: scaleBand(), 
         timeScale: scaleTime(), 
-        zoom: zoom(), 
+        zooms: [], 
         formatter: timeFormat('%B %d, %Y'), 
         zoomsInitialized: false, 
         proposalId: 0, 
@@ -27,20 +27,34 @@ class Track extends React.Component {
         lastX: 0
     }
 
-    zoomed = () => {
+    constructor(props) {
+
+        super(props); 
+    
+        // initialize a single zoom manager per container 
+        let numCharts = this.props.numContextsPerSide * 2 + 1;
+
+        this.state.zooms = _.range(0, numCharts).map(i => zoom()); 
+        this.state.zoomRefs = _.range(0, numCharts).map(i => null); // populate with refs during render 
+
+    } 
+
+    zoomed = (index) => {
+        
         // ignore zoom-by-brush
         if (currentEvent.sourceEvent && currentEvent.sourceEvent.type === "brush") {
             return;
         }
 
         let { dZoom } = this.props; 
-        let { lastK, lastX, proposalId } = this.state; 
-        let { k, x } = zoomTransform(select(this.ZOOM_REF).node());
+        let { lastK, lastX, proposalId, zoomRefs } = this.state; 
+        let { k, x } = zoomTransform(select(zoomRefs[index]).node());
         let isPan = lastK === k;      
         let zoomDir = k > lastK ? -1 : 1; 
         let newProposalId = proposalId + 1; 
         let proposal = { 
             id: proposalId + 1, 
+            index: index, 
             type: isPan ? 'pan' : 'zoom', 
             shift: isPan ? x - lastX : undefined, 
             dl: !isPan ? zoomDir * dZoom : undefined, 
@@ -56,7 +70,15 @@ class Track extends React.Component {
     }
 
     initZoom() {
-        select(this.ZOOM_REF).call(this.state.zoom.on("zoom", this.zoomed)); 
+        let { numContextsPerSide } = this.props;
+        let { zooms, zoomRefs } = this.state; 
+        let numCharts = numContextsPerSide * 2 + 1; 
+        for (let i = 0; i < numCharts; i++) {
+            let zoomCallback = _.partial(this.zoomed, i); 
+            let zoomTarget = select(zoomRefs[i]); 
+            let zoomFn = zooms[i]; 
+            zoomTarget.call(zoomFn.on('zoom', zoomCallback)); 
+        }
     }
 
     updateAxes() {
@@ -107,16 +129,12 @@ class Track extends React.Component {
         selectAll('.focus-time-bar')
           .attr('transform', `translate(${x},0)`); 
 
-        // True if mouse in left half of container 
-        let toLeft = x < focusWidth / 2;
-
         let currentDate = timeScale
                             .domain(timeDomains[numContextsPerSide])
                             .range([0, focusWidth])
                             .invert(x);
 
         let dateString = formatter(currentDate); 
-
         let containerNode = select(this.FOCUS_REF).node();
 
         selectAll('.focus-time-text').each(function(d,i) {
@@ -171,7 +189,6 @@ class Track extends React.Component {
             valueKey, 
             timeDomains, 
             numContextsPerSide, 
-            encodings, 
             trackHeight, 
             trackSvgOffsetTop,
             trackSvgOffsetBottom, 
@@ -185,12 +202,20 @@ class Track extends React.Component {
             applyContextEncodingsUniformly, 
             type, 
             formatTrackHeader, 
-            msecsPadding
+            msecsPadding,
+            encodings
         } = this.props; 
+
+        let { zoomRefs } = this.state; 
 
         // utility functions 
         let valueInDomain = (value, domain) => value >= domain[0] && value <= domain[1]; 
         let observationsInDomain = domain => observations.filter(o => valueInDomain(o[timeKey], domain)); 
+
+        // Indices for zoom and ref objects 
+        let leftIndices = _.range(0, numContextsPerSide); 
+        let focusIndex = numContextsPerSide; 
+        let rightIndices = _.range(numContextsPerSide + 1, numContextsPerSide * 2 + 1); 
 
         // partitioned domains 
         let leftContextTimeDomains = timeDomains.slice(0, numContextsPerSide);
@@ -231,7 +256,7 @@ class Track extends React.Component {
         };
         
         return (
-        <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding }}>
+        <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding, boxSizing: 'content-box' }}>
 
             {/* Track Label */}
             <div 
@@ -254,6 +279,7 @@ class Track extends React.Component {
                 let clipId = `left-clip-${i}`; 
                 let pplotLeft = Object.assign({}, pplot); 
                 let observations = leftContextObservations[i]; 
+                let index = leftIndices[i]; 
                 pplotLeft = Object.assign(pplotLeft, { observations, timeDomain, xRange: contextXRange, yRange: contextYRange, isLeft: true, scaleRangeToBox: contextScaleRangeToBox }); 
 
                 return (
@@ -288,6 +314,17 @@ class Track extends React.Component {
                             key={`left-${i}-${j}-inner`}
                             pplot={pplotLeft}/>
                         )}
+
+                        {/* zoom target */}
+                        <rect 
+                        ref={ref => zoomRefs[index] = ref}
+                        className={`zoom`}
+                        pointerEvents="all"
+                        x={0} 
+                        y={trackSvgOffsetTop} 
+                        width={contextWidth} 
+                        height={tHeight} 
+                        fill='none'/>
 
                     </svg>
                 ); 
@@ -337,9 +374,9 @@ class Track extends React.Component {
                     height={tHeight - 2}
                     stroke="#515151"/>
 
-                    {/* Focus zoom panel */}
+                    {/* zoom target */}
                     <rect 
-                    ref={ref => this.ZOOM_REF = ref}
+                    ref={ref => zoomRefs[focusIndex] = ref}
                     className={`zoom`}
                     pointerEvents="all"
                     x={0} 
@@ -371,6 +408,7 @@ class Track extends React.Component {
                 let clipId = `right-clip-${i}`; 
                 let observations = rightContextObservations[i]; 
                 let pplotRight = Object.assign({}, pplot);
+                let index = rightIndices[i]; 
                 pplotRight = Object.assign(pplot, { observations, timeDomain, xRange: contextXRange, yRange: contextYRange, scaleRangeToBox: contextScaleRangeToBox }); 
                 
                 return (
@@ -406,6 +444,17 @@ class Track extends React.Component {
                             pplot={pplotRight}/>
                         )}       
 
+                        {/* zoom target */}
+                        <rect 
+                        ref={ref => zoomRefs[index] = ref}
+                        className={`zoom`}
+                        pointerEvents="all"
+                        x={0} 
+                        y={trackSvgOffsetTop} 
+                        width={contextWidth} 
+                        height={tHeight} 
+                        fill='none'/>
+
                     </svg>
                 );
             })}
@@ -413,11 +462,10 @@ class Track extends React.Component {
         );
     }
 
-}
+}; 
 
 const mapStateToProps = ({ 
     timeDomains, 
-    timeExtentDomain, 
     focusColor, 
     contextColor, 
     containerPadding, 
@@ -436,7 +484,6 @@ const mapStateToProps = ({
     msecsPadding
 }) => ({ 
     timeDomains, 
-    timeExtentDomain, 
     focusColor, 
     contextColor, 
     containerPadding,

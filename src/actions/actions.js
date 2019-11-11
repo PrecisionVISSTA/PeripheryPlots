@@ -173,3 +173,67 @@ export function ACTION_CHANGE_brushOutlineColor (brushOutlineColor) {
         brushOutlineColor
     }; 
 };
+
+export function ACTION_CHANGE_trackwiseObservations (trackwiseObservations) {
+    return {
+        type: 'CHANGE_trackwiseObservations',
+        trackwiseObservations
+    }; 
+};
+
+export function ACTION_CHANGE_trackwiseTimeKeys (trackwiseTimeKeys) {
+    return {
+        type: 'CHANGE_trackwiseTimeKeys',
+        trackwiseTimeKeys
+    }; 
+};
+
+export function ACTION_CHANGE_trackwiseValueKeys (trackwiseValueKeys) {
+    return {
+        type: 'CHANGE_trackwiseValueKeys',
+        trackwiseValueKeys
+    }; 
+};
+
+export function ACTION_CHANGE_trackwiseTypes (trackwiseTypes) {
+    return {
+        type: 'CHANGE_trackwiseTypes',
+        trackwiseTypes
+    }; 
+};
+
+export function ACTION_CHANGE_trackwiseUnits (trackwiseUnits) {
+    return {
+        type: 'CHANGE_trackwiseUnits',
+        trackwiseUnits
+    }; 
+};
+
+export function ACTION_CHANGE_trackwiseNumAxisTicks (trackwiseNumAxisTicks) {
+    return {
+        type: 'CHANGE_trackwiseNumAxisTicks',
+        trackwiseNumAxisTicks
+    }; 
+};
+
+export function ACTION_CHANGE_trackwiseAxisTickFormatters (trackwiseAxisTickFormatters) {
+    return {
+        type: 'CHANGE_trackwiseAxisTickFormatters',
+        trackwiseAxisTickFormatters
+    }; 
+};
+
+export function ACTION_CHANGE_trackwiseEncodings (trackwiseEncodings) {
+    return {
+        type: 'CHANGE_trackwiseEncodings',
+        trackwiseEncodings
+    }; 
+};
+
+export function ACTION_CHANGE_storeInit (storeInit) {
+    return {
+        type: 'CHANGE_storeInit',
+        storeInit
+    }; 
+};
+

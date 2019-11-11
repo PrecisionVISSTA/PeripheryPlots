@@ -26,54 +26,102 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_msecsPadding, 
             ACTION_CHANGE_handleOutlineColor, 
             ACTION_CHANGE_brushOutlineColor, 
-            ACTION_CHANGE_lockOutlineColor
+            ACTION_CHANGE_lockOutlineColor, 
+            ACTION_CHANGE_storeInit, 
+
+            ACTION_CHANGE_trackwiseEncodings, 
+            ACTION_CHANGE_trackwiseAxisTickFormatters, 
+            ACTION_CHANGE_trackwiseNumAxisTicks, 
+            ACTION_CHANGE_trackwiseObservations, 
+            ACTION_CHANGE_trackwiseTimeKeys,
+            ACTION_CHANGE_trackwiseTypes, 
+            ACTION_CHANGE_trackwiseUnits,
+            ACTION_CHANGE_trackwiseValueKeys
 
         } from "../../actions/actions"; 
 
-function PeripheryPlotsUpdateStoreFromConfig(props) {
+function PeripheryPlotsUpdateStoreFromConfiguration(props) {
 
-    let { config } = props;
+    const { controlScale, config } = props; 
 
-    // Update store with these properties anytime config changes 
+    /*
+    SINGLE TIME UPDATE FOR ALL CONFIGURATION PROPERTIES 
+    */ 
     useEffect(() => {
 
-        const updateProps = [
-            'containerPadding', 
-            'controlTimelineHeight', 
-            'verticalAlignerHeight', 
-            'axesWidth', 
-            'trackHeight', 
-            'trackSvgOffsetTop', 
-            'trackSvgOffsetBottom', 
-            'focusColor', 
-            'contextColor', 
-            'lockActiveColor', 
-            'lockInactiveColor', 
-            'dZoom', 
-            'timeDomains', 
-            'timeExtentDomain', 
-            'contextWidthRatio', 
-            'numContextsPerSide', 
-            'tickInterval', 
-            'applyContextEncodingsUniformly', 
-            'formatTrackHeader', 
-            'msecsPadding', 
-            'lockOutlineColor', 
-            'handleOutlineColor', 
-            'brushOutlineColor'
+        let properties = [
+            "timeDomains",
+            "timeExtentDomain",
+            "contextWidthRatio",
+            "numContextsPerSide",
+            "containerPadding",
+            "controlTimelineHeight",
+            "verticalAlignerHeight",
+            "axesWidth",
+            "trackHeight",
+            "trackSvgOffsetTop",
+            "trackSvgOffsetBottom",
+            "tickInterval",
+            "focusColor",
+            "contextColor",
+            "lockActiveColor",
+            "lockInactiveColor",
+            "dZoom",
+            "applyContextEncodingsUniformly",
+            "formatTrackHeader",
+            "msecsPadding",
+            "handleOutlineColor",
+            "brushOutlineColor",
+            "lockOutlineColor",
+
+            "trackwiseObservations", 
+            "trackwiseEncodings", 
+            "trackwiseTimeKeys",
+            "trackwiseValueKeys",
+            "trackwiseTypes", 
+            "trackwiseUnits", 
+            "trackwiseNumAxisTicks", 
+            "trackwiseAxisTickFormatters"
         ]; 
 
-        for (let p of updateProps) {
-            if (config[p] !== undefined) {
-                props[`ACTION_CHANGE_${p}`](config[p]); 
-            }
+        // update for all specified properties 
+        for (let prop of properties) {
+            let updater = props[`ACTION_CHANGE_${prop}`]; 
+            let value = config[prop]; 
+            // if (!updater || !value) {
+            //     console.log(prop, updater, value); 
+            // }
+            updater(value); 
         }
 
-    }, [config]); 
+        // update domain of control scale 
+        controlScale.domain(config.timeExtentDomain); 
 
+        // Will trigger rendering of sub-components as store now 
+        // holds the initial state of the configuration object that 
+        // the user passed in. 
+        props.ACTION_CHANGE_storeInit(true); 
+
+    }, []); 
+
+    /*
+    SINGLE PROPERTY UPDATES FOR DYNAMIC PROPERTIES 
+    */ 
+
+    // useEffect(() => {
+    //     props.ACTION_CHANGE_timeDomains(config.timeDomains); 
+    // }, [config.timeDomains]); 
+
+    // useEffect(() => {
+    //     props.ACTION_CHANGE_trackwiseEncodings(config.trackwiseEncodings); 
+    // }, [config.trackwiseEncodings]); 
+
+    // This component does not have a corresponding DOM element 
     return null; 
 
 };
+
+const mapStateToProps = ({ controlScale }) => ({ controlScale }); 
 
 const mapDispatchToProps = dispatch => ({
 
@@ -149,7 +197,34 @@ const mapDispatchToProps = dispatch => ({
     ACTION_CHANGE_lockOutlineColor: (lockOutlineColor) => 
     dispatch(ACTION_CHANGE_lockOutlineColor(lockOutlineColor)),
 
+    ACTION_CHANGE_storeInit: (storeInit) => 
+    dispatch(ACTION_CHANGE_storeInit(storeInit)), 
+
+    ACTION_CHANGE_trackwiseEncodings: (trackwiseEncodings) => 
+    dispatch(ACTION_CHANGE_trackwiseEncodings(trackwiseEncodings)),
+
+    ACTION_CHANGE_trackwiseAxisTickFormatters: (trackwiseAxisTickFormatters) => 
+    dispatch(ACTION_CHANGE_trackwiseAxisTickFormatters(trackwiseAxisTickFormatters)),
+
+    ACTION_CHANGE_trackwiseNumAxisTicks: (trackwiseNumAxisTicks) => 
+    dispatch(ACTION_CHANGE_trackwiseNumAxisTicks(trackwiseNumAxisTicks)),
+
+    ACTION_CHANGE_trackwiseObservations: (trackwiseObservations) => 
+    dispatch(ACTION_CHANGE_trackwiseObservations(trackwiseObservations)),
+
+    ACTION_CHANGE_trackwiseTimeKeys: (trackwiseTimeKeys) => 
+    dispatch(ACTION_CHANGE_trackwiseTimeKeys(trackwiseTimeKeys)),
+
+    ACTION_CHANGE_trackwiseTypes: (trackwiseTypes) => 
+    dispatch(ACTION_CHANGE_trackwiseTypes(trackwiseTypes)),
+
+    ACTION_CHANGE_trackwiseUnits: (trackwiseUnits) => 
+    dispatch(ACTION_CHANGE_trackwiseUnits(trackwiseUnits)),
+
+    ACTION_CHANGE_trackwiseValueKeys: (trackwiseValueKeys) => 
+    dispatch(ACTION_CHANGE_trackwiseValueKeys(trackwiseValueKeys))
+
 }); 
 
-export default connect(null, mapDispatchToProps, null, { context: PeripheryPlotContext })(PeripheryPlotsUpdateStoreFromConfig);
+export default connect(mapStateToProps, mapDispatchToProps, null, { context: PeripheryPlotContext })(PeripheryPlotsUpdateStoreFromConfiguration);
 

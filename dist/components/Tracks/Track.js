@@ -25,6 +25,8 @@ var _reactRedux = require("react-redux");
 
 var _util = require("../../util/util");
 
+var _peripheryPlotContext = _interopRequireDefault(require("../../context/periphery-plot-context"));
+
 var _actions = require("../../actions/actions");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
@@ -62,25 +64,19 @@ var Track =
 function (_React$Component) {
   _inherits(Track, _React$Component);
 
-  function Track() {
-    var _getPrototypeOf2;
-
+  function Track(props) {
     var _this;
 
     _classCallCheck(this, Track);
 
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(Track)).call.apply(_getPrototypeOf2, [this].concat(args)));
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Track).call(this, props)); // initialize a single zoom manager per container 
 
     _defineProperty(_assertThisInitialized(_this), "state", {
       axis: (0, _d3Axis.axisRight)(),
       quantitativeScale: (0, _d3Scale.scaleLinear)(),
       categoricalScale: (0, _d3Scale.scaleBand)(),
       timeScale: (0, _d3Scale.scaleTime)(),
-      zoom: (0, _d3Zoom.zoom)(),
+      zooms: [],
       formatter: (0, _d3TimeFormat.timeFormat)('%B %d, %Y'),
       zoomsInitialized: false,
       proposalId: 0,
@@ -88,7 +84,7 @@ function (_React$Component) {
       lastX: 0
     });
 
-    _defineProperty(_assertThisInitialized(_this), "zoomed", function () {
+    _defineProperty(_assertThisInitialized(_this), "zoomed", function (index) {
       // ignore zoom-by-brush
       if (_d3Selection.event.sourceEvent && _d3Selection.event.sourceEvent.type === "brush") {
         return;
@@ -98,9 +94,10 @@ function (_React$Component) {
       var _this$state = _this.state,
           lastK = _this$state.lastK,
           lastX = _this$state.lastX,
-          proposalId = _this$state.proposalId;
+          proposalId = _this$state.proposalId,
+          zoomRefs = _this$state.zoomRefs;
 
-      var _zoomTransform = (0, _d3Zoom.zoomTransform)((0, _d3Selection.select)(_this.ZOOM_REF).node()),
+      var _zoomTransform = (0, _d3Zoom.zoomTransform)((0, _d3Selection.select)(zoomRefs[index]).node()),
           k = _zoomTransform.k,
           x = _zoomTransform.x;
 
@@ -109,6 +106,7 @@ function (_React$Component) {
       var newProposalId = proposalId + 1;
       var proposal = {
         id: proposalId + 1,
+        index: index,
         type: isPan ? 'pan' : 'zoom',
         shift: isPan ? x - lastX : undefined,
         dl: !isPan ? zoomDir * dZoom : undefined,
@@ -144,9 +142,7 @@ function (_React$Component) {
           x = _mouse2[0],
           y = _mouse2[1];
 
-      (0, _d3Selection.selectAll)('.focus-time-bar').attr('transform', "translate(".concat(x, ",0)")); // True if mouse in left half of container 
-
-      var toLeft = x < focusWidth / 2;
+      (0, _d3Selection.selectAll)('.focus-time-bar').attr('transform', "translate(".concat(x, ",0)"));
       var currentDate = timeScale.domain(timeDomains[numContextsPerSide]).range([0, focusWidth]).invert(x);
       var dateString = formatter(currentDate);
       var containerNode = (0, _d3Selection.select)(_this.FOCUS_REF).node();
@@ -180,21 +176,41 @@ function (_React$Component) {
       (0, _d3Selection.selectAll)('.focus-time-text').attr('display', 'none');
     });
 
+    var numCharts = _this.props.numContextsPerSide * 2 + 1;
+    _this.state.zooms = _lodash["default"].range(0, numCharts).map(function (i) {
+      return (0, _d3Zoom.zoom)();
+    });
+    _this.state.zoomRefs = _lodash["default"].range(0, numCharts).map(function (i) {
+      return null;
+    }); // populate with refs during render 
+
     return _this;
   }
 
   _createClass(Track, [{
     key: "initZoom",
     value: function initZoom() {
-      (0, _d3Selection.select)(this.ZOOM_REF).call(this.state.zoom.on("zoom", this.zoomed));
+      var numContextsPerSide = this.props.numContextsPerSide;
+      var _this$state3 = this.state,
+          zooms = _this$state3.zooms,
+          zoomRefs = _this$state3.zoomRefs;
+      var numCharts = numContextsPerSide * 2 + 1;
+
+      for (var i = 0; i < numCharts; i++) {
+        var zoomCallback = _lodash["default"].partial(this.zoomed, i);
+
+        var zoomTarget = (0, _d3Selection.select)(zoomRefs[i]);
+        var zoomFn = zooms[i];
+        zoomTarget.call(zoomFn.on('zoom', zoomCallback));
+      }
     }
   }, {
     key: "updateAxes",
     value: function updateAxes() {
-      var _this$state3 = this.state,
-          axis = _this$state3.axis,
-          quantitativeScale = _this$state3.quantitativeScale,
-          categoricalScale = _this$state3.categoricalScale;
+      var _this$state4 = this.state,
+          axis = _this$state4.axis,
+          quantitativeScale = _this$state4.quantitativeScale,
+          categoricalScale = _this$state4.categoricalScale;
       var _this$props2 = this.props,
           observations = _this$props2.observations,
           valueKey = _this$props2.valueKey,
@@ -288,7 +304,10 @@ function (_React$Component) {
           applyContextEncodingsUniformly = _this$props3.applyContextEncodingsUniformly,
           type = _this$props3.type,
           formatTrackHeader = _this$props3.formatTrackHeader,
-          msecsPadding = _this$props3.msecsPadding; // utility functions 
+          msecsPadding = _this$props3.msecsPadding;
+      var _this$state5 = this.state,
+          zooms = _this$state5.zooms,
+          zoomRefs = _this$state5.zoomRefs; // utility functions 
 
       var valueInDomain = function valueInDomain(value, domain) {
         return value >= domain[0] && value <= domain[1];
@@ -298,16 +317,23 @@ function (_React$Component) {
         return observations.filter(function (o) {
           return valueInDomain(o[timeKey], domain);
         });
-      }; // partitioned domains 
+      }; // Indices for zoom and ref objects 
+
+
+      var leftIndices = _lodash["default"].range(0, numContextsPerSide);
+
+      var focusIndex = numContextsPerSide;
+
+      var rightIndices = _lodash["default"].range(numContextsPerSide + 1, numContextsPerSide * 2 + 1); // partitioned domains 
 
 
       var leftContextTimeDomains = timeDomains.slice(0, numContextsPerSide);
       var focusTimeDomain = timeDomains[numContextsPerSide];
       var rightContextTimeDomains = timeDomains.slice(numContextsPerSide + 1, timeDomains.length); // partitioned encodings
 
-      var leftContextEncodings = encodings.slice(0, numContextsPerSide);
-      var FocusEncoding = encodings[numContextsPerSide];
-      var rightContextEncodings = encodings.slice(numContextsPerSide + 1, encodings.length); // partitioned observations
+      var leftContextEncodings = applyContextEncodingsUniformly ? [encodings[0]] : encodings.slice(0, numContextsPerSide);
+      var FocusEncoding = encodings[Math.floor(encodings.length / 2)];
+      var rightContextEncodings = applyContextEncodingsUniformly ? [encodings[2]] : encodings.slice(numContextsPerSide + 1, encodings.length); // partitioned observations
 
       var padDomain = _lodash["default"].partial(_util.padDateRange, msecsPadding);
 
@@ -347,7 +373,8 @@ function (_React$Component) {
         style: {
           width: baseWidth,
           paddingLeft: containerPadding,
-          paddingRight: containerPadding
+          paddingRight: containerPadding,
+          boxSizing: 'content-box'
         }
       }, _react["default"].createElement("div", {
         className: 'pplot-track-header-text-container',
@@ -371,6 +398,7 @@ function (_React$Component) {
         var clipId = "left-clip-".concat(i);
         var pplotLeft = Object.assign({}, pplot);
         var observations = leftContextObservations[i];
+        var index = leftIndices[i];
         pplotLeft = Object.assign(pplotLeft, {
           observations: observations,
           timeDomain: timeDomain,
@@ -407,10 +435,21 @@ function (_React$Component) {
             key: "left-".concat(i, "-").concat(j, "-inner"),
             pplot: pplotLeft
           });
+        }), _react["default"].createElement("rect", {
+          ref: function ref(_ref2) {
+            return zoomRefs[index] = _ref2;
+          },
+          className: "zoom",
+          pointerEvents: "all",
+          x: 0,
+          y: trackSvgOffsetTop,
+          width: contextWidth,
+          height: tHeight,
+          fill: "none"
         }));
       }), _react["default"].createElement("svg", {
-        ref: function ref(_ref3) {
-          return _this2.FOCUS_REF = _ref3;
+        ref: function ref(_ref4) {
+          return _this2.FOCUS_REF = _ref4;
         },
         style: {
           width: focusWidth,
@@ -454,8 +493,8 @@ function (_React$Component) {
         height: tHeight - 2,
         stroke: "#515151"
       }), _react["default"].createElement("rect", {
-        ref: function ref(_ref2) {
-          return _this2.ZOOM_REF = _ref2;
+        ref: function ref(_ref3) {
+          return zoomRefs[focusIndex] = _ref3;
         },
         className: "zoom",
         pointerEvents: "all",
@@ -479,6 +518,7 @@ function (_React$Component) {
         var clipId = "right-clip-".concat(i);
         var observations = rightContextObservations[i];
         var pplotRight = Object.assign({}, pplot);
+        var index = rightIndices[i];
         pplotRight = Object.assign(pplot, {
           observations: observations,
           timeDomain: timeDomain,
@@ -514,6 +554,17 @@ function (_React$Component) {
             key: "right-".concat(i, "-").concat(j, "-inner"),
             pplot: pplotRight
           });
+        }), _react["default"].createElement("rect", {
+          ref: function ref(_ref5) {
+            return zoomRefs[index] = _ref5;
+          },
+          className: "zoom",
+          pointerEvents: "all",
+          x: 0,
+          y: trackSvgOffsetTop,
+          width: contextWidth,
+          height: tHeight,
+          fill: "none"
         }));
       }));
     }
@@ -522,25 +573,25 @@ function (_React$Component) {
   return Track;
 }(_react["default"].Component);
 
-var mapStateToProps = function mapStateToProps(_ref4) {
-  var timeDomains = _ref4.timeDomains,
-      timeExtentDomain = _ref4.timeExtentDomain,
-      focusColor = _ref4.focusColor,
-      contextColor = _ref4.contextColor,
-      containerPadding = _ref4.containerPadding,
-      focusWidth = _ref4.focusWidth,
-      contextWidth = _ref4.contextWidth,
-      trackWidth = _ref4.trackWidth,
-      trackHeight = _ref4.trackHeight,
-      trackSvgOffsetTop = _ref4.trackSvgOffsetTop,
-      trackSvgOffsetBottom = _ref4.trackSvgOffsetBottom,
-      axesWidth = _ref4.axesWidth,
-      numContextsPerSide = _ref4.numContextsPerSide,
-      baseWidth = _ref4.baseWidth,
-      dZoom = _ref4.dZoom,
-      applyContextEncodingsUniformly = _ref4.applyContextEncodingsUniformly,
-      formatTrackHeader = _ref4.formatTrackHeader,
-      msecsPadding = _ref4.msecsPadding;
+var mapStateToProps = function mapStateToProps(_ref6) {
+  var timeDomains = _ref6.timeDomains,
+      timeExtentDomain = _ref6.timeExtentDomain,
+      focusColor = _ref6.focusColor,
+      contextColor = _ref6.contextColor,
+      containerPadding = _ref6.containerPadding,
+      focusWidth = _ref6.focusWidth,
+      contextWidth = _ref6.contextWidth,
+      trackWidth = _ref6.trackWidth,
+      trackHeight = _ref6.trackHeight,
+      trackSvgOffsetTop = _ref6.trackSvgOffsetTop,
+      trackSvgOffsetBottom = _ref6.trackSvgOffsetBottom,
+      axesWidth = _ref6.axesWidth,
+      numContextsPerSide = _ref6.numContextsPerSide,
+      baseWidth = _ref6.baseWidth,
+      dZoom = _ref6.dZoom,
+      applyContextEncodingsUniformly = _ref6.applyContextEncodingsUniformly,
+      formatTrackHeader = _ref6.formatTrackHeader,
+      msecsPadding = _ref6.msecsPadding;
   return {
     timeDomains: timeDomains,
     timeExtentDomain: timeExtentDomain,
@@ -571,6 +622,8 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   };
 };
 
-var _default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(Track);
+var _default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps, null, {
+  context: _peripheryPlotContext["default"]
+})(Track);
 
 exports["default"] = _default;

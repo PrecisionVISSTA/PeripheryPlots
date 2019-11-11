@@ -5,6 +5,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 
+var _d3Scale = require("d3-scale");
+
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
@@ -12,7 +14,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 var DEFAULT_state = {
   proposal: {
     id: -1
-  }
+  },
+  controlScale: (0, _d3Scale.scaleTime)()
 };
 
 function computePlotDimensions(numContextsPerSide, contextWidthRatio, baseWidth, containerPadding, axesWidth) {
@@ -179,6 +182,24 @@ var mutations = {
     var msecsPadding = action.msecsPadding;
     return _objectSpread({}, state, {
       msecsPadding: msecsPadding
+    });
+  },
+  'CHANGE_lockOutlineColor': function CHANGE_lockOutlineColor(state, action) {
+    var lockOutlineColor = action.lockOutlineColor;
+    return _objectSpread({}, state, {
+      lockOutlineColor: lockOutlineColor
+    });
+  },
+  'CHANGE_handleOutlineColor': function CHANGE_handleOutlineColor(state, action) {
+    var handleOutlineColor = action.handleOutlineColor;
+    return _objectSpread({}, state, {
+      handleOutlineColor: handleOutlineColor
+    });
+  },
+  'CHANGE_brushOutlineColor': function CHANGE_brushOutlineColor(state, action) {
+    var brushOutlineColor = action.brushOutlineColor;
+    return _objectSpread({}, state, {
+      brushOutlineColor: brushOutlineColor
     });
   }
 };

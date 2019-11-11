@@ -9,12 +9,9 @@ const lineStyle = {
 }; 
 
 const hPadding = 3; 
+const alignerScale = scaleLinear(); 
 
 class ControlToTrackAligner extends React.Component {
-
-    state = {
-        alignerScale: scaleLinear()
-    }
 
     render() {
 
@@ -29,8 +26,6 @@ class ControlToTrackAligner extends React.Component {
             contextWidth, 
             axesWidth
         } = this.props; 
-
-        let { alignerScale } = this.state; 
 
         let [cr0, cr1] = controlScale.range(); 
 
@@ -59,22 +54,22 @@ class ControlToTrackAligner extends React.Component {
 
         return (
             <div style={{ height }}>
-                <svg style={{ width, height, paddingLeft: containerPadding, paddingRight: containerPadding }}>
+                <svg style={{ width, height, paddingLeft: containerPadding, paddingRight: containerPadding, boxSizing: 'content-box' }}>
                     {/* Top lines */}
-                    {topX.map((x,i) => <line x1={x} x2={x} y1={0} y2={ys[i]} {...lineStyle}/>)}
+                    {topX.map((x,i) => <line key={`top-${i}`} x1={x} x2={x} y1={0} y2={ys[i]} {...lineStyle}/>)}
                     {/* Bottom Lines */}
-                    {botX.map((x,i) => <line x1={x} x2={x} y1={ys[i]} y2={height} {...lineStyle}/>)}
+                    {botX.map((x,i) => <line key={`bot-${i}`} x1={x} x2={x} y1={ys[i]} y2={height} {...lineStyle}/>)}
                     {/* Connectors */}
                     {_.range(0, topX.length).map(i => {
                         let top = topX[i]; 
                         let bot = botX[i]; 
-                        return <line x1={top} x2={bot} y1={ys[i]} y2={ys[i]} {...lineStyle}/>
+                        return <line key={`connector-${i}`} x1={top} x2={bot} y1={ys[i]} y2={ys[i]} {...lineStyle}/>
                     })}
                     {/* Downward Pointing Arrows */}
                     {botX.map((x,i) => {
                         let dl = 6; // the length of the line 
                         let dv = dl / Math.sqrt(2); 
-                        return <g>
+                        return <g key={`arrow-${i}`}>
                             {/* line to left */}
                             <line 
                             x1={x - dv} 
@@ -101,22 +96,26 @@ class ControlToTrackAligner extends React.Component {
 const mapStateToProps = ({ 
                             timeDomains, 
                             numContextsPerSide, 
-                            timeExtentDomain, 
                             containerPadding, 
                             axesWidth, 
                             focusWidth, 
                             contextWidth, 
-                            contextWidthRatio
+                            contextWidthRatio, 
+                            controlScale, 
+                            baseWidth, 
+                            verticalAlignerHeight
                         }) => 
                         ({ 
                             timeDomains, 
                             numContextsPerSide, 
-                            timeExtentDomain, 
                             containerPadding,  
                             axesWidth, 
                             focusWidth, 
                             contextWidth, 
-                            contextWidthRatio
+                            contextWidthRatio, 
+                            controlScale, 
+                            width: baseWidth, 
+                            height: verticalAlignerHeight
                         }); 
 
 export default connect(mapStateToProps, null, null, { context: PeripheryPlotContext })(ControlToTrackAligner); 

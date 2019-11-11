@@ -1,8 +1,8 @@
 {
   "branch": "master",
-  "buildNumber": "33869",
-  "checksum": "2fe1c5c",
-  "commit": "a1dbb852c",
+  "buildNumber": "54423",
+  "checksum": "3b849cc",
+  "commit": "5faf377df",
   "environment": "ci",
-  "reactVersion": "16.8.6-canary-a1dbb852c"
+  "reactVersion": "16.10.2-5faf377df"
 }

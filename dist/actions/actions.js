@@ -25,6 +25,9 @@ exports.ACTION_CHANGE_dZoom = ACTION_CHANGE_dZoom;
 exports.ACTION_CHANGE_applyContextEncodingsUniformly = ACTION_CHANGE_applyContextEncodingsUniformly;
 exports.ACTION_CHANGE_formatTrackHeader = ACTION_CHANGE_formatTrackHeader;
 exports.ACTION_CHANGE_msecsPadding = ACTION_CHANGE_msecsPadding;
+exports.ACTION_CHANGE_lockOutlineColor = ACTION_CHANGE_lockOutlineColor;
+exports.ACTION_CHANGE_handleOutlineColor = ACTION_CHANGE_handleOutlineColor;
+exports.ACTION_CHANGE_brushOutlineColor = ACTION_CHANGE_brushOutlineColor;
 
 function ACTION_CHANGE_timeExtentDomain(timeExtentDomain) {
   return {
@@ -219,6 +222,33 @@ function ACTION_CHANGE_msecsPadding(msecsPadding) {
   return {
     type: 'CHANGE_msecsPadding',
     msecsPadding: msecsPadding
+  };
+}
+
+;
+
+function ACTION_CHANGE_lockOutlineColor(lockOutlineColor) {
+  return {
+    type: 'CHANGE_lockOutlineColor',
+    lockOutlineColor: lockOutlineColor
+  };
+}
+
+;
+
+function ACTION_CHANGE_handleOutlineColor(handleOutlineColor) {
+  return {
+    type: 'CHANGE_handleOutlineColor',
+    handleOutlineColor: handleOutlineColor
+  };
+}
+
+;
+
+function ACTION_CHANGE_brushOutlineColor(brushOutlineColor) {
+  return {
+    type: 'CHANGE_brushOutlineColor',
+    brushOutlineColor: brushOutlineColor
   };
 }
 

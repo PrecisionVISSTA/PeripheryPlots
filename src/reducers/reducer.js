@@ -3,7 +3,7 @@ import { scaleTime } from 'd3-scale';
 const DEFAULT_state = {
 
     proposal: { id: -1 }, 
-
+    storeInit: false, 
     controlScale: scaleTime()
     
 };
@@ -139,6 +139,42 @@ const mutations = {
     'CHANGE_brushOutlineColor': (state, action) => {
         let { brushOutlineColor } = action; 
         return { ...state, brushOutlineColor };
+    },
+    'CHANGE_trackwiseEncodings': (state, action) => {
+        let { trackwiseEncodings } = action; 
+        return { ...state, trackwiseEncodings };
+    },
+    'CHANGE_trackwiseAxisTickFormatters': (state, action) => {
+        let { trackwiseAxisTickFormatters } = action; 
+        return { ...state, trackwiseAxisTickFormatters };
+    },
+    'CHANGE_trackwiseNumAxisTicks': (state, action) => {
+        let { trackwiseNumAxisTicks } = action; 
+        return { ...state, trackwiseNumAxisTicks };
+    },
+    'CHANGE_trackwiseUnits': (state, action) => {
+        let { trackwiseUnits } = action; 
+        return { ...state, trackwiseUnits };
+    },
+    'CHANGE_trackwiseTypes': (state, action) => {
+        let { trackwiseTypes } = action; 
+        return { ...state, trackwiseTypes };
+    },
+    'CHANGE_trackwiseValueKeys': (state, action) => {
+        let { trackwiseValueKeys } = action; 
+        return { ...state, trackwiseValueKeys };
+    },
+    'CHANGE_trackwiseTimeKeys': (state, action) => {
+        let { trackwiseTimeKeys } = action; 
+        return { ...state, trackwiseTimeKeys };
+    },
+    'CHANGE_trackwiseObservations': (state, action) => {
+        let { trackwiseObservations } = action; 
+        return { ...state, trackwiseObservations };
+    },
+    'CHANGE_storeInit': (state, action) => {
+        let { storeInit } = action; 
+        return { ...state, storeInit };
     },
     
 };

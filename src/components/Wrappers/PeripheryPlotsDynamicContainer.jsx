@@ -5,10 +5,10 @@ import _ from "lodash";
 import PeripheryPlotContext from "../../context/periphery-plot-context"; 
 import { ACTION_CHANGE_baseWidth } from "../../actions/actions"; 
 
-function PeripheryPlotsContainer(props) {
+function PeripheryPlotsDynamicContainer(props) {
 
     let {   
-        config,  
+        containerBackgroundColor,  
         baseWidth, 
         controlScale 
     } = props;
@@ -20,17 +20,16 @@ function PeripheryPlotsContainer(props) {
         // When we are able to measure dimensions of parent container, update global store 
         if (!isNaN(width)) {
             props.ACTION_CHANGE_baseWidth(width); 
-            controlScale.domain(config.timeExtentDomain)
-                        .range([0, width]); 
+            controlScale.range([0, width]); 
         }
         
     }, [width]); 
 
     let doRender = controlScale.range()[1] > 0 && baseWidth > 0; 
-    let containerBackgroundColor = config.containerBackgroundColor === undefined ? '#fff' : config.containerBackgroundColor; 
 
     return (
         <div 
+        className="pplot"
         ref={ref} 
         style={{ width: '100%', backgroundColor: containerBackgroundColor }}>
             {doRender ? props.children : null}
@@ -39,8 +38,17 @@ function PeripheryPlotsContainer(props) {
 
 }
 
-const mapStateToProps = ({ controlScale, baseWidth }) => ({ controlScale, baseWidth }); 
-
+const mapStateToProps = ({ 
+                            controlScale, 
+                            baseWidth, 
+                            containerBackgroundColor 
+                        }) => 
+                        ({ 
+                            controlScale, 
+                            baseWidth, 
+                            containerBackgroundColor 
+                        });
+    
 const mapDispatchToProps = dispatch => ({
 
     ACTION_CHANGE_baseWidth: (baseWidth) => 
@@ -48,5 +56,5 @@ const mapDispatchToProps = dispatch => ({
 
 }); 
 
-export default connect(mapStateToProps, mapDispatchToProps, null, { context: PeripheryPlotContext })(PeripheryPlotsContainer);
+export default connect(mapStateToProps, mapDispatchToProps, null, { context: PeripheryPlotContext })(PeripheryPlotsDynamicContainer);
 

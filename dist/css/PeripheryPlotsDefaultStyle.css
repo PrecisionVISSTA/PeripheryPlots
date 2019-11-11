@@ -21,3 +21,8 @@
 .pplot-track-axis-text {
     font: italic 7px helvetica;
 }
+
+.pplot .brush .overlay {
+    fill: none; 
+    fill-opacity: 0; 
+}

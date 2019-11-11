@@ -11,6 +11,7 @@ import PeripheryPlots, {
     BarGroup,
     ScatterGroup,
     EventGroup,
+    MovingAverageEnvelopeGroup, 
     QuantitativeTraceGroup,
     NominalTraceGroup,
     AverageLineGroup
@@ -27,32 +28,51 @@ let config = {
     trackwiseUnits: ['celsius', 'inches', 'km / hr', null],
     trackwiseNumAxisTicks: [3, 3, 3, null], 
     trackwiseAxisTickFormatters: [format(",.1f"), null, format(",.1f"), null], 
+    // trackwiseEncodings: [
+    //     [
+    //         [QuantitativeTraceGroup, AverageLineGroup], [LineGroup, AverageLineGroup], [QuantitativeTraceGroup, AverageLineGroup]
+    //     ], 
+    //     [
+    //         [BarGroup, AverageLineGroup], [BarGroup, AverageLineGroup], [BarGroup, AverageLineGroup]
+    //     ], 
+    //     [
+    //         [MovingAverageEnvelopeGroup, ScatterGroup, AverageLineGroup], [MovingAverageEnvelopeGroup, ScatterGroup, AverageLineGroup], [MovingAverageEnvelopeGroup, ScatterGroup, AverageLineGroup]
+    //     ], 
+    //     [
+    //         [NominalTraceGroup], [EventGroup], [NominalTraceGroup]
+    //     ]
+    // ],
     trackwiseEncodings: [
         [
-            [QuantitativeTraceGroup, AverageLineGroup], [LineGroup, AverageLineGroup], [QuantitativeTraceGroup, AverageLineGroup]
+            [LineGroup], [LineGroup], [LineGroup]
         ], 
         [
-            [BarGroup, AverageLineGroup], [BarGroup, AverageLineGroup], [BarGroup, AverageLineGroup]
+            [LineGroup], [LineGroup], [LineGroup]
         ], 
         [
-            [ScatterGroup, AverageLineGroup], [LineGroup, AverageLineGroup], [ScatterGroup, AverageLineGroup]
+            [LineGroup], [LineGroup], [LineGroup]
         ], 
         [
-            [NominalTraceGroup], [EventGroup], [NominalTraceGroup]
+            [EventGroup], [EventGroup], [EventGroup]
         ]
     ],
+
     contextWidthRatio: .15, 
-    numContextsPerSide: 2, 
+    numContextsPerSide: 1, 
     applyContextEncodingsUniformly: true,
     tickInterval: timeMonth.every(3), 
     timeExtentDomain: extent(data.map(d => d.date)),  
+    msecsPadding: 1000 * 86400 * 14, // two weeks
     timeDomains: [
-        ['03/02/2012', '07/02/2012'].map(dateStr => new Date(dateStr)),
+        // ['03/02/2012', '07/02/2012'].map(dateStr => new Date(dateStr)),
         ['07/02/2012', '02/01/2013'].map(dateStr => new Date(dateStr)),
         ['02/02/2013', '02/01/2014'].map(dateStr => new Date(dateStr)),
         ['02/02/2014', '02/01/2015'].map(dateStr => new Date(dateStr)),
-        ['02/01/2015', '06/01/2015'].map(dateStr => new Date(dateStr)) 
+        // ['02/01/2015', '06/01/2015'].map(dateStr => new Date(dateStr)) 
     ], 
+
+    // distributedMode: true, 
+    // fixedWidth: 600,
 
     // lockOutlineColor: '#ff0000', 
     // handleOutlineColor:  '#ff0000', 
@@ -119,13 +139,16 @@ let config = {
 
 ReactDOM.render(
     <React.Fragment>
+        {/* Attached demo */}
         <div>
             <p>A small sample dataset from the {<a href={'https://github.com/vega/vega/blob/master/docs/data/seattle-weather.csv'}>Vega</a>} repository</p>
-            <p>You can control the selected time zones via the control timeline or via zoom / pan interaction on the focus zones of each track.</p>
-            <p>For this demo, the types of visual encodings used are fixed. When using the component in your own applications, you can create custom encodings and change the types of encodings used dynamically.</p>
+            <p>The scale / center of each time "zone" is independently configurable via brushable handles on the control timeline or zoom / pan interactions (scrollwheel / drag) with the corresponding plot. </p>
+            <p>For this demo, the types of visual encodings used are fixed. The PeripheryPlots component comes with a number of default visual encodings and it can be easily extended to support custom encodings. </p>
         </div>
-        <PeripheryPlots config={config}/>
-    </React.Fragment>
+            <div style={{ width: 900 }}>
+                <PeripheryPlots config={config}/>
+            </div>
+         </React.Fragment>
     , 
     document.getElementById('DEMO')
 );
