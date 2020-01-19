@@ -78,20 +78,16 @@ function (_React$Component) {
     key: "computeEnvelope",
     value: function computeEnvelope(observations, timeKey, valueKey) {
       var dates = observations.map(function (d) {
-        return d[timeKey];
-      }).map(function (d) {
-        return d.valueOf();
+        return d[timeKey].valueOf();
       });
       var values = observations.map(function (d) {
         return d[valueKey];
       });
 
-      var _extent$map = (0, _d3Array.extent)(dates).map(function (d) {
-        return d.valueOf();
-      }),
-          _extent$map2 = _slicedToArray(_extent$map, 2),
-          min_ms = _extent$map2[0],
-          max_ms = _extent$map2[1];
+      var _extent = (0, _d3Array.extent)(dates),
+          _extent2 = _slicedToArray(_extent, 2),
+          min_ms = _extent2[0],
+          max_ms = _extent2[1];
 
       var envelope = [];
       var wsstart = min_ms;
@@ -116,10 +112,10 @@ function (_React$Component) {
           var date = ws + WINDOW_SIZE_MS / 2;
 
           if (wvalues.length > 0) {
-            var _extent = (0, _d3Array.extent)(wvalues),
-                _extent2 = _slicedToArray(_extent, 2),
-                lower = _extent2[0],
-                upper = _extent2[1];
+            var _extent3 = (0, _d3Array.extent)(wvalues),
+                _extent4 = _slicedToArray(_extent3, 2),
+                lower = _extent4[0],
+                upper = _extent4[1];
 
             envelope.push({
               date: new Date(date),

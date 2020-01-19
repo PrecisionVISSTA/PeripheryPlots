@@ -35,21 +35,20 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var lineStyle = {
   stroke: "rgb(0, 150, 136)",
   strokeDasharray: "1 1"
 };
 var hPadding = 3;
+var alignerScale = (0, _d3Scale.scaleLinear)();
 
 var ControlToTrackAligner =
 /*#__PURE__*/
@@ -57,23 +56,9 @@ function (_React$Component) {
   _inherits(ControlToTrackAligner, _React$Component);
 
   function ControlToTrackAligner() {
-    var _getPrototypeOf2;
-
-    var _this;
-
     _classCallCheck(this, ControlToTrackAligner);
 
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(ControlToTrackAligner)).call.apply(_getPrototypeOf2, [this].concat(args)));
-
-    _defineProperty(_assertThisInitialized(_this), "state", {
-      alignerScale: (0, _d3Scale.scaleLinear)()
-    });
-
-    return _this;
+    return _possibleConstructorReturn(this, _getPrototypeOf(ControlToTrackAligner).apply(this, arguments));
   }
 
   _createClass(ControlToTrackAligner, [{
@@ -89,7 +74,6 @@ function (_React$Component) {
           focusWidth = _this$props.focusWidth,
           contextWidth = _this$props.contextWidth,
           axesWidth = _this$props.axesWidth;
-      var alignerScale = this.state.alignerScale;
 
       var _controlScale$range = controlScale.range(),
           _controlScale$range2 = _slicedToArray(_controlScale$range, 2),
@@ -143,6 +127,7 @@ function (_React$Component) {
         }
       }, topX.map(function (x, i) {
         return _react["default"].createElement("line", _extends({
+          key: "top-".concat(i),
           x1: x,
           x2: x,
           y1: 0,
@@ -150,6 +135,7 @@ function (_React$Component) {
         }, lineStyle));
       }), botX.map(function (x, i) {
         return _react["default"].createElement("line", _extends({
+          key: "bot-".concat(i),
           x1: x,
           x2: x,
           y1: ys[i],
@@ -159,6 +145,7 @@ function (_React$Component) {
         var top = topX[i];
         var bot = botX[i];
         return _react["default"].createElement("line", _extends({
+          key: "connector-".concat(i),
           x1: top,
           x2: bot,
           y1: ys[i],
@@ -168,7 +155,9 @@ function (_React$Component) {
         var dl = 6; // the length of the line 
 
         var dv = dl / Math.sqrt(2);
-        return _react["default"].createElement("g", null, _react["default"].createElement("line", _extends({
+        return _react["default"].createElement("g", {
+          key: "arrow-".concat(i)
+        }, _react["default"].createElement("line", _extends({
           x1: x - dv,
           x2: x,
           y1: height - 1 - dv,
@@ -189,21 +178,25 @@ function (_React$Component) {
 var mapStateToProps = function mapStateToProps(_ref) {
   var timeDomains = _ref.timeDomains,
       numContextsPerSide = _ref.numContextsPerSide,
-      timeExtentDomain = _ref.timeExtentDomain,
       containerPadding = _ref.containerPadding,
       axesWidth = _ref.axesWidth,
       focusWidth = _ref.focusWidth,
       contextWidth = _ref.contextWidth,
-      contextWidthRatio = _ref.contextWidthRatio;
+      contextWidthRatio = _ref.contextWidthRatio,
+      controlScale = _ref.controlScale,
+      baseWidth = _ref.baseWidth,
+      verticalAlignerHeight = _ref.verticalAlignerHeight;
   return {
     timeDomains: timeDomains,
     numContextsPerSide: numContextsPerSide,
-    timeExtentDomain: timeExtentDomain,
     containerPadding: containerPadding,
     axesWidth: axesWidth,
     focusWidth: focusWidth,
     contextWidth: contextWidth,
-    contextWidthRatio: contextWidthRatio
+    contextWidthRatio: contextWidthRatio,
+    controlScale: controlScale,
+    width: baseWidth,
+    height: verticalAlignerHeight
   };
 };
 

@@ -28,6 +28,17 @@ exports.ACTION_CHANGE_msecsPadding = ACTION_CHANGE_msecsPadding;
 exports.ACTION_CHANGE_lockOutlineColor = ACTION_CHANGE_lockOutlineColor;
 exports.ACTION_CHANGE_handleOutlineColor = ACTION_CHANGE_handleOutlineColor;
 exports.ACTION_CHANGE_brushOutlineColor = ACTION_CHANGE_brushOutlineColor;
+exports.ACTION_CHANGE_trackwiseObservations = ACTION_CHANGE_trackwiseObservations;
+exports.ACTION_CHANGE_trackwiseTimeKeys = ACTION_CHANGE_trackwiseTimeKeys;
+exports.ACTION_CHANGE_trackwiseValueKeys = ACTION_CHANGE_trackwiseValueKeys;
+exports.ACTION_CHANGE_trackwiseTypes = ACTION_CHANGE_trackwiseTypes;
+exports.ACTION_CHANGE_trackwiseUnits = ACTION_CHANGE_trackwiseUnits;
+exports.ACTION_CHANGE_trackwiseNumAxisTicks = ACTION_CHANGE_trackwiseNumAxisTicks;
+exports.ACTION_CHANGE_trackwiseAxisTickFormatters = ACTION_CHANGE_trackwiseAxisTickFormatters;
+exports.ACTION_CHANGE_trackwiseEncodings = ACTION_CHANGE_trackwiseEncodings;
+exports.ACTION_CHANGE_trackwiseValueDomainComputers = ACTION_CHANGE_trackwiseValueDomainComputers;
+exports.ACTION_CHANGE_storeInit = ACTION_CHANGE_storeInit;
+exports.ACTION_CHANGE_lockBounds = ACTION_CHANGE_lockBounds;
 
 function ACTION_CHANGE_timeExtentDomain(timeExtentDomain) {
   return {
@@ -253,3 +264,100 @@ function ACTION_CHANGE_brushOutlineColor(brushOutlineColor) {
 }
 
 ;
+
+function ACTION_CHANGE_trackwiseObservations(trackwiseObservations) {
+  return {
+    type: 'CHANGE_trackwiseObservations',
+    trackwiseObservations: trackwiseObservations
+  };
+}
+
+;
+
+function ACTION_CHANGE_trackwiseTimeKeys(trackwiseTimeKeys) {
+  return {
+    type: 'CHANGE_trackwiseTimeKeys',
+    trackwiseTimeKeys: trackwiseTimeKeys
+  };
+}
+
+;
+
+function ACTION_CHANGE_trackwiseValueKeys(trackwiseValueKeys) {
+  return {
+    type: 'CHANGE_trackwiseValueKeys',
+    trackwiseValueKeys: trackwiseValueKeys
+  };
+}
+
+;
+
+function ACTION_CHANGE_trackwiseTypes(trackwiseTypes) {
+  return {
+    type: 'CHANGE_trackwiseTypes',
+    trackwiseTypes: trackwiseTypes
+  };
+}
+
+;
+
+function ACTION_CHANGE_trackwiseUnits(trackwiseUnits) {
+  return {
+    type: 'CHANGE_trackwiseUnits',
+    trackwiseUnits: trackwiseUnits
+  };
+}
+
+;
+
+function ACTION_CHANGE_trackwiseNumAxisTicks(trackwiseNumAxisTicks) {
+  return {
+    type: 'CHANGE_trackwiseNumAxisTicks',
+    trackwiseNumAxisTicks: trackwiseNumAxisTicks
+  };
+}
+
+;
+
+function ACTION_CHANGE_trackwiseAxisTickFormatters(trackwiseAxisTickFormatters) {
+  return {
+    type: 'CHANGE_trackwiseAxisTickFormatters',
+    trackwiseAxisTickFormatters: trackwiseAxisTickFormatters
+  };
+}
+
+;
+
+function ACTION_CHANGE_trackwiseEncodings(trackwiseEncodings) {
+  return {
+    type: 'CHANGE_trackwiseEncodings',
+    trackwiseEncodings: trackwiseEncodings
+  };
+}
+
+;
+
+function ACTION_CHANGE_trackwiseValueDomainComputers(trackwiseValueDomainComputers) {
+  return {
+    type: 'CHANGE_trackwiseValueDomainComputers',
+    trackwiseValueDomainComputers: trackwiseValueDomainComputers
+  };
+}
+
+;
+
+function ACTION_CHANGE_storeInit(storeInit) {
+  return {
+    type: 'CHANGE_storeInit',
+    storeInit: storeInit
+  };
+}
+
+;
+
+function ACTION_CHANGE_lockBounds(lockBounds) {
+  return {
+    type: 'CHANGE_lockBounds',
+    lockBounds: lockBounds
+  };
+}

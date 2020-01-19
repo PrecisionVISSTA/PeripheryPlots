@@ -172,18 +172,25 @@ const mutations = {
         let { trackwiseObservations } = action; 
         return { ...state, trackwiseObservations };
     },
+    'CHANGE_trackwiseValueDomainComputers': (state, action) => {
+        let { trackwiseValueDomainComputers } = action; 
+        return { ...state, trackwiseValueDomainComputers }; 
+    },
     'CHANGE_storeInit': (state, action) => {
         let { storeInit } = action; 
         return { ...state, storeInit };
     },
-    
+    'CHANGE_lockBounds': (state, action) => {
+        let { lockBounds } = action; 
+        return { ...state, lockBounds }; 
+    }, 
 };
 
 const reducer = (state = DEFAULT_state, action) => {
 
     // We opt for use of a mutator rather than a switch statement 
-    // due to weird javascript restrictions on declaring the same variable
-    // name across different cases. 
+    // due to weird javascript restrictions on declaring the same 
+    // variables with the same name in different cases 
     let mutator = mutations[action.type]; 
     return mutator === undefined ? state : mutator(state, action); 
     

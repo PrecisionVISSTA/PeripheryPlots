@@ -14,7 +14,6 @@ function PeripheryPlotsContainerizedContent(props) {
         PeripheryPlotsTrack
     } = getPeripheryPlotSubComponents(); 
 
-
     // We only render content once the baseWidth has been determined, 
     // either by user specification or the fixed width updater component 
     const content = !storeInit ? null : (

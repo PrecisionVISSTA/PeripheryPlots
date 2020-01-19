@@ -110,8 +110,88 @@ function (_React$Component) {
       timelineAxis: (0, _d3Axis.axisBottom)()
     });
 
-    _defineProperty(_assertThisInitialized(_this), "ingestProposal", function (nextProps) {
-      var proposal = nextProps.proposal;
+    _defineProperty(_assertThisInitialized(_this), "shiftBrushRange", function (msecsDuration) {
+      /*
+      Shift all unlocked brushes in a particular direction 
+      */
+      var d0 = _this.props.timeDomains[0][0]; // date pre-shift
+
+      var d1 = new Date(d0.valueOf() + msecsDuration); // date post-shift
+
+      var _map = [d0, d1].map(_this.props.controlScale),
+          _map2 = _slicedToArray(_map, 2),
+          p0 = _map2[0],
+          p1 = _map2[1]; // pixel locations of pre and post shift dates 
+
+
+      var shift = p0 - p1;
+
+      var currentSelections = _this.getBrushRanges();
+
+      var previousSelections = currentSelections.slice();
+      var newSelections = currentSelections.slice();
+      var targetBrushIndex = 1;
+      newSelections[targetBrushIndex] = previousSelections[targetBrushIndex].map(function (v) {
+        return v + shift;
+      });
+      newSelections = _this.computeAction(targetBrushIndex, newSelections, previousSelections);
+
+      _this.updateAll(newSelections);
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "lockBounds", function () {
+      var leftLockId = _this.state.brushLockIds[0];
+      var rightLockId = _this.state.brushLockIds[_this.state.brushLockIds.length - 1];
+
+      _this.lockClick(leftLockId);
+
+      _this.lockClick(rightLockId);
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "setFocusBrushRange", function (msecsDuration) {
+      /*
+      Unlock boundaries and set focus width to some specified duration 
+      */
+      var isLocked = _this.state.brushLocks[0];
+
+      if (isLocked) {
+        _this.lockBounds();
+      }
+
+      var currentSelections = _this.getBrushRanges();
+
+      var focusR = currentSelections[1];
+
+      var _focusR = _slicedToArray(focusR, 2),
+          focusS = _focusR[0],
+          focusE = _focusR[1];
+
+      var focusMiddle = (focusE + focusS) / 2;
+      var sDate = _this.props.timeDomains[0][0];
+      var eDate = new Date(sDate.valueOf() + msecsDuration);
+
+      var _map3 = [sDate, eDate].map(_this.props.controlScale),
+          _map4 = _slicedToArray(_map3, 2),
+          s = _map4[0],
+          e = _map4[1];
+
+      var newWidth = e - s;
+      var newS = focusMiddle - newWidth / 2;
+      var newE = focusMiddle + newWidth / 2;
+      var lShift = newS - focusS;
+      var rShift = newE - focusE;
+      var lR = currentSelections[0].map(function (v) {
+        return v + lShift;
+      });
+      var cR = [newS, newE];
+      var rR = currentSelections[2].map(function (v) {
+        return v + rShift;
+      });
+
+      _this.updateAll([lR, cR, rR]);
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "ingestProposal", function (proposal) {
       var shift = proposal.shift,
           dl = proposal.dl,
           dr = proposal.dr,
@@ -148,15 +228,6 @@ function (_React$Component) {
       _this.updateAll(newSelections);
     });
 
-    _defineProperty(_assertThisInitialized(_this), "computeBrushAndAxisSvgWidths", function (width, containerPadding) {
-      var brushSvgWidth = width - 2 * containerPadding;
-      var axisSvgWidth = width;
-      return {
-        brushSvgWidth: brushSvgWidth,
-        axisSvgWidth: axisSvgWidth
-      };
-    });
-
     _defineProperty(_assertThisInitialized(_this), "appendTimeline", function () {
       var root = (0, _d3Selection.select)(_this.ROOT);
       var _this$props = _this.props,
@@ -169,16 +240,13 @@ function (_React$Component) {
           timelineScale = _this$state.timelineScale,
           timelineAxis = _this$state.timelineAxis;
 
-      var _this$computeBrushAnd = _this.computeBrushAndAxisSvgWidths(width, containerPadding),
-          axisSvgWidth = _this$computeBrushAnd.axisSvgWidth;
-
       var _controlScale$range = controlScale.range(),
           _controlScale$range2 = _slicedToArray(_controlScale$range, 2),
           cr0 = _controlScale$range2[0],
           cr1 = _controlScale$range2[1];
 
       timelineScale.domain(controlScale.domain()).range([cr0 + containerPadding, cr1 - containerPadding]);
-      var axisSvg = root.append('svg').attr('id', 'axis-svg').attr('height', height).attr('width', axisSvgWidth).attr('pointer-events', 'none').style('position', 'absolute').style('top', containerPadding).style('left', 0).style('backgroundColor', 'rgba(0,0,0,0)'); // Create a timeline 
+      var axisSvg = root.append('svg').attr('id', 'axis-svg').attr('height', height).attr('width', width).attr('pointer-events', 'none').style('position', 'absolute').style('top', containerPadding).style('left', 0).style('backgroundColor', 'rgba(0,0,0,0)'); // Create a timeline 
 
       var axisGenerator = timelineAxis.scale(timelineScale).ticks(tickInterval);
       axisSvg.append("g").attr('class', 'control-axis').call(axisGenerator).selectAll('text').classed('pplot-control-timeline-text', true);
@@ -186,21 +254,42 @@ function (_React$Component) {
 
     _defineProperty(_assertThisInitialized(_this), "_updateBrushSelections", function (newSelections) {
       for (var i = 0; i < _this.state.numBrushes; i++) {
-        // if (!_.isEqual(oldSelections[i], newSelections[i])) {
-        (0, _d3Selection.select)("#".concat(_this.state.brushIds[i])).call(_this.state.brushes[i].move, newSelections[i]); // }
+        (0, _d3Selection.select)("#".concat(_this.state.brushIds[i])).call(_this.state.brushes[i].move, newSelections[i]);
       }
     });
 
     _defineProperty(_assertThisInitialized(_this), "computeActionProperties", function (index) {
       var currentSelections = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       var previousSelections = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
       // Compute a set of properties related to the current action 
+      var round2 = function round2(num) {
+        return Number(num.toFixed(2));
+      }; // round to 2 decimal places 
+
+
+      var round1 = function round1(num) {
+        return Number(num.toFixed(1));
+      };
+
+      var round = function round(num) {
+        return Number(num.toFixed(0));
+      };
+
       currentSelections = currentSelections === null ? _this.getBrushRanges() : currentSelections.slice();
       previousSelections = previousSelections === null ? _this.state.brushRanges.slice() : previousSelections.slice();
       var isFocus = index === _this.state.focusIndex;
-      var preS = previousSelections[index];
+      var preS = previousSelections[index].map(round2);
       var preW = tupdif(preS);
-      var curS = currentSelections[index];
+      var curS = currentSelections[index].map(round2);
+
+      if (preS[0] === curS[0] && preS[1] === curS[1]) {
+        // edge case where no movement occurred 
+        return {
+          'noChange': true,
+          previousSelections: previousSelections
+        };
+      }
 
       var _this$isBrushLocked = _this.isBrushLocked(index),
           _this$isBrushLocked2 = _slicedToArray(_this$isBrushLocked, 2),
@@ -224,16 +313,23 @@ function (_React$Component) {
       var lockedToRight = brushLockBounds[1] !== -1;
       var leftLockBoundS = lockedToLeft ? currentSelections[leftLockIndex] : null;
       var rightLockBoundS = lockedToRight ? currentSelections[rightLockIndex] : null;
-      var leftOverlappedRight = preS[1] === curS[0];
-      var rightOverlappedLeft = preS[0] === curS[1];
+      var sameWidth = round(preW) === round(curWidth);
+      var action = (0, _TimelineControlUtility.computeActionFromSelectionTransition)(preS, curS);
+      var isTranslate = action >= 4;
+      var leftOverlappedRight = preS[1] === curS[0] && !sameWidth && !isTranslate;
+      var rightOverlappedLeft = preS[0] === curS[1] && !sameWidth && !isTranslate;
       var overlapped = leftOverlappedRight || rightOverlappedLeft;
       var isFirst = index === 0;
       var isLast = index === numBrushes - 1;
       var shiftSet = [];
       var numBrushes = _this.state.numBrushes;
-      var action = (0, _TimelineControlUtility.computeActionFromSelectionTransition)(preS, curS);
+
+      if (action === null) {
+        debugger;
+      }
+
       assert(action !== null, 'invalid brush action');
-      return {
+      var properties = {
         isFocus: isFocus,
         action: action,
         currentSelections: currentSelections,
@@ -264,6 +360,7 @@ function (_React$Component) {
         isFirst: isFirst,
         isLast: isLast
       };
+      return properties;
     });
 
     _defineProperty(_assertThisInitialized(_this), "isBrushLeftLocked", function (brushIndex) {
@@ -302,6 +399,8 @@ function (_React$Component) {
     });
 
     _defineProperty(_assertThisInitialized(_this), "updateAll", function (newSelections) {
+      var updateTimeDomains = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
       _this._updateBrushSelections(newSelections);
 
       _this._updateBrushExtras(newSelections);
@@ -310,11 +409,15 @@ function (_React$Component) {
         brushRanges: newSelections
       });
 
-      _this.props.ACTION_CHANGE_timeDomains(newSelections.map(function (s) {
-        return s.map(_this.props.controlScale.invert).map(function (t) {
-          return new Date(t);
+      if (updateTimeDomains) {
+        var newTimeDomains = newSelections.map(function (s) {
+          return s.map(_this.props.controlScale.invert).map(function (t) {
+            return new Date(t);
+          });
         });
-      }));
+
+        _this.props.ACTION_CHANGE_timeDomains(newTimeDomains);
+      }
     });
 
     var _this$props2 = _this.props,
@@ -352,82 +455,46 @@ function (_React$Component) {
       return false;
     }); // Brush height - takes up 75% of vertical space in the container (not including MARGIN)
 
-    _this.state.brushHeight = (_height - (MARGIN.top + MARGIN.bottom)) * .7;
+    _this.state.brushHeight = _height - 2 - LOCK_HEIGHT;
     return _this;
   }
+  /*
+  externally: 
+    * user can set width of focus region 
+    * user can shift all brushes some duration to the left or right 
+  */
+
 
   _createClass(TimelineControl, [{
     key: "shouldComponentUpdate",
     value: function shouldComponentUpdate(nextProps, nextState) {
       // If change occurred in vista track, we will have a new proposal 
       if (nextProps.proposal.id !== this.props.proposal.id) {
-        this.ingestProposal(nextProps);
+        var proposal = nextProps.proposal;
+        this.ingestProposal(proposal);
       } // If container was resized, we need to resize the control axis and brushes 
 
 
-      if (nextProps.width !== this.props.width && nextProps.width > 0) {
-        var controlScale = nextProps.controlScale,
-            containerPadding = nextProps.containerPadding;
+      var resized = nextProps.width !== this.props.width && nextProps.width > 0;
+      var timeDomainsChanged = !_lodash["default"].isEqual(this.props.timeDomains, nextProps.timeDomains);
 
-        var _this$computeBrushAnd2 = this.computeBrushAndAxisSvgWidths(nextProps.width, nextProps.containerPadding),
-            brushSvgWidth = _this$computeBrushAnd2.brushSvgWidth,
-            axisSvgWidth = _this$computeBrushAnd2.axisSvgWidth;
-
+      if (resized || timeDomainsChanged) {
+        var containerPadding = nextProps.containerPadding,
+            width = nextProps.width;
         var timelineScale = nextState.timelineScale,
             timelineAxis = nextState.timelineAxis; // Update the control axis 
 
-        (0, _d3Selection.select)('#axis-svg').attr('width', axisSvgWidth);
+        (0, _d3Selection.select)('#axis-svg').attr('width', width);
+        timelineScale.range([containerPadding, width - containerPadding]);
+        (0, _d3Selection.selectAll)('.control-axis').call(timelineAxis); // Update width of brush contianer 
 
-        var _controlScale$range3 = controlScale.range(),
-            _controlScale$range4 = _slicedToArray(_controlScale$range3, 2),
-            cr0 = _controlScale$range4[0],
-            cr1 = _controlScale$range4[1];
+        (0, _d3Selection.select)('#brush-svg').attr('width', width - containerPadding * 2); // Pixel ranges for each brush 
 
-        timelineScale.range([cr0 + containerPadding, cr1 - containerPadding]);
-        (0, _d3Selection.selectAll)('.control-axis').call(timelineAxis); // Update the brushes 
-
-        (0, _d3Selection.select)('#brush-svg').attr('width', brushSvgWidth); // Pixel ranges for each brush 
-
-        var brushRanges = nextProps.timeDomains.map(function (domain) {
+        var updateTimeDomains = !timeDomainsChanged;
+        this.updateAll(nextProps.timeDomains.map(function (domain) {
           return domain.map(nextProps.controlScale);
-        }); // Update clipping paths for each brush 
-
-        for (var i = 0; i < nextState.numBrushes; i++) {
-          var clipId = nextState.clipIds[i];
-          var _brushSelection = brushRanges[i];
-          (0, _d3Selection.select)("#".concat(clipId)).attr('width', "".concat(_brushSelection[1] - _brushSelection[0])).attr('transform', "translate(".concat(_brushSelection[0], ", 0)"));
-        } // Update the brushes 
-
-
-        for (var _i2 = 0; _i2 < nextState.numBrushes; _i2++) {
-          // move brush 
-          var brushFn = nextState.brushes[_i2];
-          var brushId = nextState.brushIds[_i2];
-          var _brushSelection2 = brushRanges[_i2];
-          var brush = (0, _d3Selection.select)("#".concat(brushId));
-          brush.call(brushFn.move, _brushSelection2); // move handles 
-
-          brush.select('.handle-left').attr('transform', "translate(".concat(_brushSelection2[0], ",0)"));
-          brush.select('.handle-right').attr('transform', "translate(".concat(_brushSelection2[1] - HANDLE_WIDTH, ",0)"));
-        } // Update the locks 
-
-
-        for (var _i3 = 0, li = 0; _i3 < this.state.numBrushes; _i3++) {
-          var _brushSelection3 = brushRanges[_i3];
-
-          if (_i3 === 0) {
-            (0, _d3Selection.select)("#".concat(nextState.brushLockIds[li++])).attr('transform', "translate(".concat(_brushSelection3[0] - LOCK_WIDTH / 2, ", 0)"));
-            (0, _d3Selection.select)("#".concat(nextState.brushLockIds[li++])).attr('transform', "translate(".concat(_brushSelection3[1] - LOCK_WIDTH / 2, ", 0)"));
-          } else {
-            (0, _d3Selection.select)("#".concat(nextState.brushLockIds[li++])).attr('transform', "translate(".concat(_brushSelection3[1] - LOCK_WIDTH / 2, ", 0)"));
-          }
-        } // Update state with newly selected brush ranges
-
-
-        this.setState({
-          brushRanges: brushRanges
-        });
-      } // D3 performs updates in all other cases 
+        }), updateTimeDomains);
+      } // D3 performs all other updates 
 
 
       return false;
@@ -448,15 +515,16 @@ function (_React$Component) {
           lockInactiveColor = _this$props3.lockInactiveColor,
           lockOutlineColor = _this$props3.lockOutlineColor,
           handleOutlineColor = _this$props3.handleOutlineColor,
-          brushOutlineColor = _this$props3.brushOutlineColor;
-      var root = (0, _d3Selection.select)(this.ROOT);
+          brushOutlineColor = _this$props3.brushOutlineColor,
+          lockBounds = _this$props3.lockBounds;
+      var root = (0, _d3Selection.select)(this.ROOT); // Create the svg container for the brushes
 
-      var _this$computeBrushAnd3 = this.computeBrushAndAxisSvgWidths(width, containerPadding),
-          brushSvgWidth = _this$computeBrushAnd3.brushSvgWidth; // Create the svg container for the brushes
+      var svg = root.append('svg').attr('id', 'brush-svg').attr('width', width - containerPadding * 2).attr('height', height); // append dom node for capturing external proposals for shifts 
 
-
-      var svg = root.append('svg').attr('id', 'brush-svg').attr('width', brushSvgWidth).attr('height', height).style('box-sizing', 'content-box') // padding not included in container width 
-      .style('padding-left', containerPadding).style('padding-right', containerPadding).style('padding-top', containerPadding); // Pixel ranges for each brush 
+      var n = root.append("div").attr("id", 'external-proposal');
+      n.on('click.setFocusBrushRange', this.setFocusBrushRange);
+      n.on('click.lockBounds', this.lockBounds);
+      n.on('click.shiftBrushRange', this.shiftBrushRange); // Pixel ranges for each brush 
 
       var brushRanges = this.props.timeDomains.map(function (domain) {
         return domain.map(_this2.props.controlScale);
@@ -464,11 +532,11 @@ function (_React$Component) {
 
       for (var i = 0; i < this.state.numBrushes; i++) {
         var clipId = this.state.clipIds[i];
-        var _brushSelection4 = brushRanges[i];
-        svg.append('clipPath').attr('id', clipId).append('rect').attr('x', 0).attr('y', MARGIN.top).attr('width', tupdif(_brushSelection4)).attr('height', this.state.brushHeight).attr('transform', "translate(".concat(_brushSelection4[0], ", 0)"));
+        var _brushSelection = brushRanges[i];
+        svg.append('clipPath').attr('id', clipId).append('rect').attr('x', 0).attr('y', 0).attr('width', tupdif(_brushSelection)).attr('height', this.state.brushHeight).attr('transform', "translate(".concat(_brushSelection[0], ", 0)"));
       }
 
-      var lockClick = function lockClick(lockId) {
+      this.lockClick = function (lockId) {
         // Determine the lock index of the clicked lock 
         var lockIndex = _this2.state.brushLockIds.indexOf(lockId);
 
@@ -487,40 +555,48 @@ function (_React$Component) {
 
       var addLock = function addLock(x, y, lockId) {
         // Add a lock object at the given x,y position extending downwards
-        svg.append('g').append('rect').attr('id', lockId).attr('x', 0).attr('y', y).attr('stroke', lockOutlineColor).attr('width', LOCK_WIDTH).attr('height', LOCK_HEIGHT).attr('transform', "translate(".concat(x - LOCK_WIDTH / 2, ",0)")).attr('fill', lockInactiveColor).attr('rx', LOCK_HEIGHT / 4).style("cursor", "pointer").on('click', _lodash["default"].partial(lockClick, lockId));
+        svg.append('g').append('rect').attr('id', lockId).attr('x', 0).attr('y', y).attr('stroke', lockOutlineColor).attr('width', LOCK_WIDTH).attr('height', LOCK_HEIGHT).attr('transform', "translate(".concat(x - LOCK_WIDTH / 2, ",0)")).attr('fill', lockInactiveColor).attr('rx', LOCK_HEIGHT / 4).style("cursor", "pointer").on('click', _lodash["default"].partial(_this2.lockClick, lockId));
       }; // Creating a locking mechanism for every bi-directional handle 
 
 
       var dy = 1;
       var lockTopY = this.state.brushHeight + dy; // locks are placed right below bottom of brush 
 
-      for (var _i4 = 0, li = 0; _i4 < this.state.numBrushes; _i4++) {
-        var _brushSelection5 = brushRanges[_i4];
-        var isFirst = _i4 === 0;
+      for (var _i2 = 0, li = 0; _i2 < this.state.numBrushes; _i2++) {
+        var _brushSelection2 = brushRanges[_i2];
+        var isFirst = _i2 === 0;
 
         if (isFirst) {
           // Add a lock to the beginning and end of the current brush 
-          addLock(_brushSelection5[0], lockTopY, this.state.brushLockIds[li++]);
-          addLock(_brushSelection5[1], lockTopY, this.state.brushLockIds[li++]);
+          addLock(_brushSelection2[0], lockTopY, this.state.brushLockIds[li++]);
+          addLock(_brushSelection2[1], lockTopY, this.state.brushLockIds[li++]);
         } else {
           // Add a lock to the end of the current brush 
-          addLock(_brushSelection5[1], lockTopY, this.state.brushLockIds[li++]);
+          addLock(_brushSelection2[1], lockTopY, this.state.brushLockIds[li++]);
         }
+      } // check if outer bounds are initially locked 
+
+
+      if (lockBounds) {
+        var leftLockId = this.state.brushLockIds[0];
+        var rightLockId = this.state.brushLockIds[this.state.brushLockIds.length - 1];
+        this.lockClick(leftLockId);
+        this.lockClick(rightLockId);
       } // Create brushes 
 
 
-      var _loop = function _loop(_i5) {
-        var brushFn = _this2.state.brushes[_i5];
-        var brushId = _this2.state.brushIds[_i5];
-        var clipId = _this2.state.clipIds[_i5];
-        var brushSelection = brushRanges[_i5];
+      var _loop = function _loop(_i3) {
+        var brushFn = _this2.state.brushes[_i3];
+        var brushId = _this2.state.brushIds[_i3];
+        var clipId = _this2.state.clipIds[_i3];
+        var brushSelection = brushRanges[_i3];
 
-        var isFocus = _i5 === parseInt(_this2.state.numBrushes / 2); // Set the width ; height of the brush, height is retained when future transforms (resize / translate) are applied 
+        var isFocus = _i3 === parseInt(_this2.state.numBrushes / 2); // Set the width ; height of the brush, height is retained when future transforms (resize / translate) are applied 
 
 
         brushFn.extent([[-10000, MARGIN.top], [10000, _this2.state.brushHeight]]); // Add a brush to the svg 
 
-        var userBrushed = _lodash["default"].partial(_this2.userBrushed, _i5);
+        var userBrushed = _lodash["default"].partial(_this2.userBrushed, _i3);
 
         var brushG = svg.append("g").attr("id", brushId).attr('class', 'brush').attr('clipPath', "url(#".concat(clipId, ")")).call(brushFn.on("brush", userBrushed)).call(brushFn.move, brushSelection); // Removes white stroke outline from brush. This looks bad if the user uses a custom style 
         // and the background color clashes with the white 
@@ -537,7 +613,7 @@ function (_React$Component) {
           type: "w"
         }, {
           type: "e"
-        }]).enter().append("g").attr('clipPath', "url(#".concat(clipId, ")")).append("rect").attr('clipPath', "url(#".concat(clipId, ")")).attr('stroke', handleOutlineColor).attr('x', 0).attr('y', MARGIN.top + _this2.state.brushHeight / 2 - HANDLE_HEIGHT / 2).attr('width', HANDLE_WIDTH).attr('height', HANDLE_HEIGHT).attr('transform', function (d) {
+        }]).enter().append("g").attr('clipPath', "url(#".concat(clipId, ")")).append("rect").attr('clipPath', "url(#".concat(clipId, ")")).attr('stroke', handleOutlineColor).attr('x', 0).attr('y', _this2.state.brushHeight / 2 - HANDLE_HEIGHT / 2).attr('width', HANDLE_WIDTH).attr('height', HANDLE_HEIGHT).attr('transform', function (d) {
           return d.type === 'w' ? "translate(".concat(brushSelection[0], ",0)") : "translate(".concat(brushSelection[1] - HANDLE_WIDTH, ",0)");
         }).attr('rx', 3).attr("class", function (d) {
           return "handle--custom ".concat(d.type === 'w' ? 'handle-left' : 'handle-right');
@@ -547,8 +623,8 @@ function (_React$Component) {
         brushG.select('.handle--w').style('pointer-events', 'none');
       };
 
-      for (var _i5 = 0; _i5 < this.state.numBrushes; _i5++) {
-        _loop(_i5);
+      for (var _i3 = 0; _i3 < this.state.numBrushes; _i3++) {
+        _loop(_i3);
       }
 
       this.appendTimeline();
@@ -636,14 +712,14 @@ function (_React$Component) {
 
       var rightLockedBrushIndex = -1;
 
-      for (var _i6 = brushIndex + 1; _i6 < this.state.numBrushes; _i6++) {
-        var _this$isBrushLocked5 = this.isBrushLocked(_i6),
+      for (var _i4 = brushIndex + 1; _i4 < this.state.numBrushes; _i4++) {
+        var _this$isBrushLocked5 = this.isBrushLocked(_i4),
             _this$isBrushLocked6 = _slicedToArray(_this$isBrushLocked5, 2),
             leftHandleLocked = _this$isBrushLocked6[0],
             rightHandleLocked = _this$isBrushLocked6[1];
 
         if (leftHandleLocked || rightHandleLocked) {
-          rightLockedBrushIndex = _i6;
+          rightLockedBrushIndex = _i4;
           break;
         }
       }
@@ -656,6 +732,12 @@ function (_React$Component) {
       var currentSelections = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       var previousSelections = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
       var actionProperties = this.computeActionProperties(index, currentSelections, previousSelections);
+      var noChange = actionProperties.noChange;
+
+      if (noChange) {
+        return actionProperties.previousSelections;
+      }
+
       var newSelections;
 
       if (actionProperties.overlapped) {
@@ -698,10 +780,20 @@ function (_React$Component) {
     value: function render() {
       var _this4 = this;
 
+      var _this$props4 = this.props,
+          height = _this$props4.height,
+          containerPadding = _this$props4.containerPadding;
+      var containerStyle = {
+        display: 'block',
+        position: 'relative',
+        paddingLeft: containerPadding,
+        paddingRight: containerPadding,
+        paddingTop: containerPadding,
+        boxSizing: 'content-box',
+        height: height
+      };
       return _react["default"].createElement("div", {
-        style: {
-          position: 'relative'
-        },
+        style: containerStyle,
         ref: function ref(_ref3) {
           return _this4.ROOT = _ref3;
         }
@@ -714,7 +806,6 @@ function (_React$Component) {
 
 var mapStateToProps = function mapStateToProps(_ref4) {
   var timeDomains = _ref4.timeDomains,
-      timeExtentDomain = _ref4.timeExtentDomain,
       focusColor = _ref4.focusColor,
       contextColor = _ref4.contextColor,
       containerPadding = _ref4.containerPadding,
@@ -724,10 +815,13 @@ var mapStateToProps = function mapStateToProps(_ref4) {
       lockInactiveColor = _ref4.lockInactiveColor,
       lockOutlineColor = _ref4.lockOutlineColor,
       handleOutlineColor = _ref4.handleOutlineColor,
-      brushOutlineColor = _ref4.brushOutlineColor;
+      brushOutlineColor = _ref4.brushOutlineColor,
+      controlScale = _ref4.controlScale,
+      baseWidth = _ref4.baseWidth,
+      controlTimelineHeight = _ref4.controlTimelineHeight,
+      lockBounds = _ref4.lockBounds;
   return {
     timeDomains: timeDomains,
-    timeExtentDomain: timeExtentDomain,
     focusColor: focusColor,
     contextColor: contextColor,
     containerPadding: containerPadding,
@@ -737,7 +831,11 @@ var mapStateToProps = function mapStateToProps(_ref4) {
     lockInactiveColor: lockInactiveColor,
     lockOutlineColor: lockOutlineColor,
     handleOutlineColor: handleOutlineColor,
-    brushOutlineColor: brushOutlineColor
+    brushOutlineColor: brushOutlineColor,
+    controlScale: controlScale,
+    width: baseWidth,
+    height: controlTimelineHeight,
+    lockBounds: lockBounds
   };
 };
 
@@ -745,9 +843,6 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
     ACTION_CHANGE_timeDomains: function ACTION_CHANGE_timeDomains(timeDomains) {
       return dispatch((0, _actions.ACTION_CHANGE_timeDomains)(timeDomains));
-    },
-    ACTION_CHANGE_timeExtentDomain: function ACTION_CHANGE_timeExtentDomain(timeExtentDomain) {
-      return dispatch((0, _actions.ACTION_CHANGE_timeExtentDomain)(timeExtentDomain));
     }
   };
 };

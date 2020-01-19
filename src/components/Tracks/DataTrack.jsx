@@ -14,7 +14,8 @@ export function DataTrack(props) {
         trackwiseTypes, 
         trackwiseNumAxisTicks,
         trackwiseAxisTickFormatters, 
-        trackwiseEncodings 
+        trackwiseEncodings, 
+        trackwiseValueDomainComputers
     } = props;
 
     let observations = trackwiseObservations[i]; 
@@ -25,6 +26,7 @@ export function DataTrack(props) {
     let unit = trackwiseUnits[i]; 
     let numAxisTicks = trackwiseNumAxisTicks ? trackwiseNumAxisTicks[i] : null; 
     let axisTickFormatter = trackwiseAxisTickFormatters ? trackwiseAxisTickFormatters[i] : null; 
+    let valueDomainComputer = trackwiseValueDomainComputers ? trackwiseValueDomainComputers[i] : null; 
 
     return (
         <Track
@@ -38,6 +40,7 @@ export function DataTrack(props) {
         encodings={encodings}
         timeKey={timeKey} 
         valueKey={valueKey}
+        valueDomainComputer={valueDomainComputer}
         i={i}/>
     ); 
 
@@ -51,7 +54,8 @@ const mapStateToProps = ({
                             trackwiseTypes, 
                             trackwiseNumAxisTicks,
                             trackwiseAxisTickFormatters, 
-                            trackwiseEncodings 
+                            trackwiseEncodings, 
+                            trackwiseValueDomainComputers
                         }) => 
                         ({ 
                             trackwiseObservations,
@@ -61,7 +65,8 @@ const mapStateToProps = ({
                             trackwiseTypes, 
                             trackwiseNumAxisTicks,
                             trackwiseAxisTickFormatters, 
-                            trackwiseEncodings 
+                            trackwiseEncodings,
+                            trackwiseValueDomainComputers
                         });
 
 export default connect(mapStateToProps, null, null, { context: PeripheryPlotContext })(DataTrack);

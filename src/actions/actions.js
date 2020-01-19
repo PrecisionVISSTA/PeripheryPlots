@@ -230,6 +230,13 @@ export function ACTION_CHANGE_trackwiseEncodings (trackwiseEncodings) {
     }; 
 };
 
+export function ACTION_CHANGE_trackwiseValueDomainComputers (trackwiseValueDomainComputers) {
+    return {
+        type: 'CHANGE_trackwiseValueDomainComputers',
+        trackwiseValueDomainComputers
+    }; 
+};
+
 export function ACTION_CHANGE_storeInit (storeInit) {
     return {
         type: 'CHANGE_storeInit',
@@ -237,3 +244,9 @@ export function ACTION_CHANGE_storeInit (storeInit) {
     }; 
 };
 
+export function ACTION_CHANGE_lockBounds (lockBounds) {
+    return {
+        type: 'CHANGE_lockBounds', 
+        lockBounds
+    }
+}

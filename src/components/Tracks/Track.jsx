@@ -22,7 +22,6 @@ class Track extends React.Component {
         zooms: [], 
         formatter: timeFormat('%B %d, %Y'), 
         zoomsInitialized: false, 
-        proposalId: 0, 
         lastK: 1, 
         lastX: 0
     }
@@ -46,19 +45,36 @@ class Track extends React.Component {
             return;
         }
 
-        let { dZoom } = this.props; 
-        let { lastK, lastX, proposalId, zoomRefs } = this.state; 
-        let { k, x } = zoomTransform(select(zoomRefs[index]).node());
+        let { dZoom, baseWidth, timeDomains, numContextsPerSide, controlScale, focusWidth } = this.props; 
+        let { lastK, lastX, zoomRefs } = this.state; 
+        let focusZone = timeDomains[numContextsPerSide]; 
+        let zoomRef = zoomRefs[index]; 
+        let zoomNode = select(zoomRef).node(); 
+        let transform = zoomTransform(zoomNode);
+        let { k, x } = transform; 
         let isPan = lastK === k;      
         let zoomDir = k > lastK ? -1 : 1; 
-        let newProposalId = proposalId + 1; 
+        let newProposalId = Math.random(); 
+        let shift = undefined; 
+        if (isPan) {
+            let dx = lastX - x; 
+            let f = dx / baseWidth;
+            let [d0,d1] = focusZone; 
+            let temporalWidth =  (d1.valueOf() - d0.valueOf()) * f; 
+            let dleft = d0; 
+            let dright = new Date(d0.valueOf() + temporalWidth); 
+            let pleft = controlScale(dleft); 
+            let pright = controlScale(dright); 
+            let pshift = pright - pleft; 
+            shift = pshift; 
+        } 
         let proposal = { 
-            id: proposalId + 1, 
+            id: newProposalId, 
             index: index, 
             type: isPan ? 'pan' : 'zoom', 
-            shift: isPan ? x - lastX : undefined, 
-            dl: !isPan ? zoomDir * dZoom : undefined, 
-            dr: !isPan ? -zoomDir * dZoom : undefined
+            shift, 
+            dr: !isPan ? zoomDir * dZoom : undefined, 
+            dl: !isPan ? -zoomDir * dZoom : undefined
         }; 
 
         if ((isPan && lastX !== x) || lastK !== k) {
@@ -83,23 +99,20 @@ class Track extends React.Component {
 
     updateAxes() {
         let { axis, quantitativeScale, categoricalScale } = this.state; 
-        let { observations, valueKey, trackHeight, trackSvgOffsetTop, trackSvgOffsetBottom, type, numAxisTicks, axisTickFormatter } = this.props; 
+        let { trackHeight, trackSvgOffsetTop, trackSvgOffsetBottom, type, numAxisTicks, axisTickFormatter } = this.props; 
         
         if (axisTickFormatter) {
             axis.tickFormat(axisTickFormatter); 
         }
 
-        let valueDomain;
         let scale; 
         let applyScaleToAxis; 
         switch (type) {
             case 'discrete': 
-                valueDomain = _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d); 
                 scale = categoricalScale; 
                 applyScaleToAxis = scale => axis.scale(scale);
                 break; 
             case 'continuous': 
-                valueDomain = extent(observations.map(o => o[valueKey])); 
                 scale = quantitativeScale; 
                 applyScaleToAxis = scale => axis.scale(scale.nice()).ticks(numAxisTicks ? numAxisTicks : 4); 
                 break; 
@@ -110,7 +123,7 @@ class Track extends React.Component {
         
         if (type !== 'other') {
             applyScaleToAxis(
-                scale.domain(valueDomain)
+                scale.domain(this.computeValueDomain(this.props))
                      .range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop])
             ); 
             select(this.AXES_REF)
@@ -180,6 +193,27 @@ class Track extends React.Component {
         this.updateAxes(); 
     }
 
+    computeValueDomain(props) {
+        let { observations, valueDomainComputer, valueKey, type } = props; 
+
+        let computeContinuousValueDomain = (observations) => {
+            // returns [0, max value]
+            let [e0,e1] = extent(observations.map(o => o[valueKey])); 
+            return [0, e1]
+        }
+
+        let computeDiscreteValueDomain = (observations) => {
+            // gets all categorical values for discrete domain 
+            return _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d); 
+        }
+
+        let valueDomain =   valueDomainComputer ?   valueDomainComputer(observations) : 
+                            type === 'continuous' ? computeContinuousValueDomain(observations) : 
+                            type === 'discrete' ?   computeDiscreteValueDomain(observations) : 
+                            null; 
+        return valueDomain; 
+    }
+
     render() {
 
         let { 
@@ -203,7 +237,8 @@ class Track extends React.Component {
             type, 
             formatTrackHeader, 
             msecsPadding,
-            encodings
+            encodings, 
+            valueDomainComputer
         } = this.props; 
 
         let { zoomRefs } = this.state; 
@@ -241,18 +276,18 @@ class Track extends React.Component {
         let focusScaleRangeToBox = _.partial(scaleRangeToBox, focusXRange, focusYRange); 
 
         let tHeight = trackHeight - trackSvgOffsetTop - trackSvgOffsetBottom; 
-        let valueDomain = type === 'continuous' ? extent(observations.map(o => o[valueKey])) : 
-                            type === 'discrete' ? _.sortBy(_.uniq(observations.map(o => o[valueKey])), d => d) : 
-                                                  null; 
+
+        let valueDomain = this.computeValueDomain(this.props); 
 
         let getAllObservations = () => observations; 
 
-        // namespace for periphery plot specific properties 
+        // namespace for periphery plot properties 
         let pplot = {
             timeKey,
             valueKey,
             valueDomain, 
-            getAllObservations 
+            getAllObservations, 
+            unit 
         };
         
         return (
@@ -269,6 +304,7 @@ class Track extends React.Component {
 
             {/* Axis */}
             <svg 
+            className="pplot-axis"
             ref={ref => this.AXES_REF = ref} 
             style={{ width: axesWidth, height: trackHeight, float: 'left' }}/>
 
@@ -332,6 +368,7 @@ class Track extends React.Component {
 
             {/* Focus */}
             <svg 
+            className="periphery-plots-focus"
             ref={ref => this.FOCUS_REF = ref}
             style={{ width: focusWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
 
@@ -481,7 +518,8 @@ const mapStateToProps = ({
     dZoom, 
     applyContextEncodingsUniformly, 
     formatTrackHeader, 
-    msecsPadding
+    msecsPadding, 
+    controlScale
 }) => ({ 
     timeDomains, 
     focusColor, 
@@ -499,7 +537,8 @@ const mapStateToProps = ({
     dZoom, 
     applyContextEncodingsUniformly,
     formatTrackHeader, 
-    msecsPadding
+    msecsPadding, 
+    controlScale
 }); 
                         
 const mapDispatchToProps = dispatch => ({

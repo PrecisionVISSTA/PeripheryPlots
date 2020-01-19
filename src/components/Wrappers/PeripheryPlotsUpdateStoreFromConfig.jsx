@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { connect } from "react-redux"; 
 import _ from "lodash"; 
 import PeripheryPlotContext from "../../context/periphery-plot-context"; 
@@ -28,6 +28,7 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_brushOutlineColor, 
             ACTION_CHANGE_lockOutlineColor, 
             ACTION_CHANGE_storeInit, 
+            ACTION_CHANGE_lockBounds, 
 
             ACTION_CHANGE_trackwiseEncodings, 
             ACTION_CHANGE_trackwiseAxisTickFormatters, 
@@ -36,13 +37,16 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_trackwiseTimeKeys,
             ACTION_CHANGE_trackwiseTypes, 
             ACTION_CHANGE_trackwiseUnits,
-            ACTION_CHANGE_trackwiseValueKeys
+            ACTION_CHANGE_trackwiseValueKeys, 
+            ACTION_CHANGE_trackwiseValueDomainComputers,
+            
 
         } from "../../actions/actions"; 
 
 function PeripheryPlotsUpdateStoreFromConfiguration(props) {
 
     const { controlScale, config } = props; 
+    const [prevTimeDomains, setPrevTimeDomains] = useState(config.timeDomains); 
 
     /*
     SINGLE TIME UPDATE FOR ALL CONFIGURATION PROPERTIES 
@@ -73,6 +77,7 @@ function PeripheryPlotsUpdateStoreFromConfiguration(props) {
             "handleOutlineColor",
             "brushOutlineColor",
             "lockOutlineColor",
+            "lockBounds", 
 
             "trackwiseObservations", 
             "trackwiseEncodings", 
@@ -81,21 +86,24 @@ function PeripheryPlotsUpdateStoreFromConfiguration(props) {
             "trackwiseTypes", 
             "trackwiseUnits", 
             "trackwiseNumAxisTicks", 
-            "trackwiseAxisTickFormatters"
+            "trackwiseAxisTickFormatters",
+            "trackwiseValueDomainComputers"
         ]; 
 
         // update for all specified properties 
         for (let prop of properties) {
             let updater = props[`ACTION_CHANGE_${prop}`]; 
             let value = config[prop]; 
-            // if (!updater || !value) {
-            //     console.log(prop, updater, value); 
-            // }
+            if (!updater || !value) {
+                // console.log('updater failed:', prop, updater, value); 
+            }
             updater(value); 
         }
 
         // update domain of control scale 
         controlScale.domain(config.timeExtentDomain); 
+
+        // if running in distributed mode 
 
         // Will trigger rendering of sub-components as store now 
         // holds the initial state of the configuration object that 
@@ -107,14 +115,16 @@ function PeripheryPlotsUpdateStoreFromConfiguration(props) {
     /*
     SINGLE PROPERTY UPDATES FOR DYNAMIC PROPERTIES 
     */ 
+    useEffect(() => {
+        if (!_.isEqual(prevTimeDomains, config.timeDomains)) {
+            props.ACTION_CHANGE_timeDomains(config.timeDomains); 
+            setPrevTimeDomains(config.timeDomains); 
+        }
+    }, [config.timeDomains]); 
 
-    // useEffect(() => {
-    //     props.ACTION_CHANGE_timeDomains(config.timeDomains); 
-    // }, [config.timeDomains]); 
-
-    // useEffect(() => {
-    //     props.ACTION_CHANGE_trackwiseEncodings(config.trackwiseEncodings); 
-    // }, [config.trackwiseEncodings]); 
+    useEffect(() => {
+        props.ACTION_CHANGE_trackwiseEncodings(config.trackwiseEncodings); 
+    }, [config.trackwiseEncodings]); 
 
     // This component does not have a corresponding DOM element 
     return null; 
@@ -197,6 +207,9 @@ const mapDispatchToProps = dispatch => ({
     ACTION_CHANGE_lockOutlineColor: (lockOutlineColor) => 
     dispatch(ACTION_CHANGE_lockOutlineColor(lockOutlineColor)),
 
+    ACTION_CHANGE_lockBounds: (lockBounds) => 
+    dispatch(ACTION_CHANGE_lockBounds(lockBounds)),
+
     ACTION_CHANGE_storeInit: (storeInit) => 
     dispatch(ACTION_CHANGE_storeInit(storeInit)), 
 
@@ -222,7 +235,10 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ACTION_CHANGE_trackwiseUnits(trackwiseUnits)),
 
     ACTION_CHANGE_trackwiseValueKeys: (trackwiseValueKeys) => 
-    dispatch(ACTION_CHANGE_trackwiseValueKeys(trackwiseValueKeys))
+    dispatch(ACTION_CHANGE_trackwiseValueKeys(trackwiseValueKeys)), 
+
+    ACTION_CHANGE_trackwiseValueDomainComputers: (trackwiseValueDomainComputers) => 
+    dispatch(ACTION_CHANGE_trackwiseValueDomainComputers(trackwiseValueDomainComputers))
 
 }); 
 

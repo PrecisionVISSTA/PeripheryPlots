@@ -15,6 +15,7 @@ var DEFAULT_state = {
   proposal: {
     id: -1
   },
+  storeInit: false,
   controlScale: (0, _d3Scale.scaleTime)()
 };
 
@@ -201,6 +202,72 @@ var mutations = {
     return _objectSpread({}, state, {
       brushOutlineColor: brushOutlineColor
     });
+  },
+  'CHANGE_trackwiseEncodings': function CHANGE_trackwiseEncodings(state, action) {
+    var trackwiseEncodings = action.trackwiseEncodings;
+    return _objectSpread({}, state, {
+      trackwiseEncodings: trackwiseEncodings
+    });
+  },
+  'CHANGE_trackwiseAxisTickFormatters': function CHANGE_trackwiseAxisTickFormatters(state, action) {
+    var trackwiseAxisTickFormatters = action.trackwiseAxisTickFormatters;
+    return _objectSpread({}, state, {
+      trackwiseAxisTickFormatters: trackwiseAxisTickFormatters
+    });
+  },
+  'CHANGE_trackwiseNumAxisTicks': function CHANGE_trackwiseNumAxisTicks(state, action) {
+    var trackwiseNumAxisTicks = action.trackwiseNumAxisTicks;
+    return _objectSpread({}, state, {
+      trackwiseNumAxisTicks: trackwiseNumAxisTicks
+    });
+  },
+  'CHANGE_trackwiseUnits': function CHANGE_trackwiseUnits(state, action) {
+    var trackwiseUnits = action.trackwiseUnits;
+    return _objectSpread({}, state, {
+      trackwiseUnits: trackwiseUnits
+    });
+  },
+  'CHANGE_trackwiseTypes': function CHANGE_trackwiseTypes(state, action) {
+    var trackwiseTypes = action.trackwiseTypes;
+    return _objectSpread({}, state, {
+      trackwiseTypes: trackwiseTypes
+    });
+  },
+  'CHANGE_trackwiseValueKeys': function CHANGE_trackwiseValueKeys(state, action) {
+    var trackwiseValueKeys = action.trackwiseValueKeys;
+    return _objectSpread({}, state, {
+      trackwiseValueKeys: trackwiseValueKeys
+    });
+  },
+  'CHANGE_trackwiseTimeKeys': function CHANGE_trackwiseTimeKeys(state, action) {
+    var trackwiseTimeKeys = action.trackwiseTimeKeys;
+    return _objectSpread({}, state, {
+      trackwiseTimeKeys: trackwiseTimeKeys
+    });
+  },
+  'CHANGE_trackwiseObservations': function CHANGE_trackwiseObservations(state, action) {
+    var trackwiseObservations = action.trackwiseObservations;
+    return _objectSpread({}, state, {
+      trackwiseObservations: trackwiseObservations
+    });
+  },
+  'CHANGE_trackwiseValueDomainComputers': function CHANGE_trackwiseValueDomainComputers(state, action) {
+    var trackwiseValueDomainComputers = action.trackwiseValueDomainComputers;
+    return _objectSpread({}, state, {
+      trackwiseValueDomainComputers: trackwiseValueDomainComputers
+    });
+  },
+  'CHANGE_storeInit': function CHANGE_storeInit(state, action) {
+    var storeInit = action.storeInit;
+    return _objectSpread({}, state, {
+      storeInit: storeInit
+    });
+  },
+  'CHANGE_lockBounds': function CHANGE_lockBounds(state, action) {
+    var lockBounds = action.lockBounds;
+    return _objectSpread({}, state, {
+      lockBounds: lockBounds
+    });
   }
 };
 
@@ -208,8 +275,8 @@ var reducer = function reducer() {
   var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_state;
   var action = arguments.length > 1 ? arguments[1] : undefined;
   // We opt for use of a mutator rather than a switch statement 
-  // due to weird javascript restrictions on declaring the same variable
-  // name across different cases. 
+  // due to weird javascript restrictions on declaring the same 
+  // variables with the same name in different cases 
   var mutator = mutations[action.type];
   return mutator === undefined ? state : mutator(state, action);
 };

@@ -11,7 +11,7 @@ function PeripheryPlotsDistributedRenderManager(props) {
     Monitors changes in fixedWidth when distributed rendering is active 
     */
 
-    let { controlScale, fixedWidth } = props;
+    let { controlScale, fixedWidth, storeInit } = props;
 
     useEffect(() => {
 
@@ -21,11 +21,11 @@ function PeripheryPlotsDistributedRenderManager(props) {
     }, [fixedWidth]); 
 
     // Render when width is nonzero 
-    return fixedWidth > 0 ? <div className="pplot">{props.children}</div> : null;  
+    return storeInit ? <div className="pplot">{props.children}</div> : null;  
 
 }
 
-const mapStateToProps = ({ controlScale }) => ({ controlScale }); 
+const mapStateToProps = ({ controlScale, storeInit }) => ({ controlScale, storeInit }); 
 
 const mapDispatchToProps = dispatch => ({
 
@@ -38,7 +38,7 @@ export default connect(mapStateToProps, mapDispatchToProps, null, { context: Per
 
 PeripheryPlotsDistributedRenderManager.propTypes = {
 
-    config: function(props, propName) { 
+    fixedWidth: function(props, propName) { 
         if (!(!isNaN(props[propName]) && props[propName] >= 0)) {
             return new Error('Running in distributed mode but no fixed width');
         };

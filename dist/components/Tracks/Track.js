@@ -79,7 +79,6 @@ function (_React$Component) {
       zooms: [],
       formatter: (0, _d3TimeFormat.timeFormat)('%B %d, %Y'),
       zoomsInitialized: false,
-      proposalId: 0,
       lastK: 1,
       lastX: 0
     });
@@ -94,23 +93,24 @@ function (_React$Component) {
       var _this$state = _this.state,
           lastK = _this$state.lastK,
           lastX = _this$state.lastX,
-          proposalId = _this$state.proposalId,
           zoomRefs = _this$state.zoomRefs;
+      var zoomRef = zoomRefs[index];
+      var zoomNode = (0, _d3Selection.select)(zoomRef).node();
 
-      var _zoomTransform = (0, _d3Zoom.zoomTransform)((0, _d3Selection.select)(zoomRefs[index]).node()),
+      var _zoomTransform = (0, _d3Zoom.zoomTransform)(zoomNode),
           k = _zoomTransform.k,
           x = _zoomTransform.x;
 
       var isPan = lastK === k;
       var zoomDir = k > lastK ? -1 : 1;
-      var newProposalId = proposalId + 1;
+      var newProposalId = Math.random();
       var proposal = {
-        id: proposalId + 1,
+        id: newProposalId,
         index: index,
         type: isPan ? 'pan' : 'zoom',
-        shift: isPan ? x - lastX : undefined,
-        dl: !isPan ? zoomDir * dZoom : undefined,
-        dr: !isPan ? -zoomDir * dZoom : undefined
+        shift: isPan ? lastX - x : undefined,
+        dr: !isPan ? zoomDir * dZoom : undefined,
+        dl: !isPan ? -zoomDir * dZoom : undefined
       };
 
       if (isPan && lastX !== x || lastK !== k) {
@@ -212,8 +212,6 @@ function (_React$Component) {
           quantitativeScale = _this$state4.quantitativeScale,
           categoricalScale = _this$state4.categoricalScale;
       var _this$props2 = this.props,
-          observations = _this$props2.observations,
-          valueKey = _this$props2.valueKey,
           trackHeight = _this$props2.trackHeight,
           trackSvgOffsetTop = _this$props2.trackSvgOffsetTop,
           trackSvgOffsetBottom = _this$props2.trackSvgOffsetBottom,
@@ -225,17 +223,11 @@ function (_React$Component) {
         axis.tickFormat(axisTickFormatter);
       }
 
-      var valueDomain;
       var scale;
       var applyScaleToAxis;
 
       switch (type) {
         case 'discrete':
-          valueDomain = _lodash["default"].sortBy(_lodash["default"].uniq(observations.map(function (o) {
-            return o[valueKey];
-          })), function (d) {
-            return d;
-          });
           scale = categoricalScale;
 
           applyScaleToAxis = function applyScaleToAxis(scale) {
@@ -245,9 +237,6 @@ function (_React$Component) {
           break;
 
         case 'continuous':
-          valueDomain = (0, _d3Array.extent)(observations.map(function (o) {
-            return o[valueKey];
-          }));
           scale = quantitativeScale;
 
           applyScaleToAxis = function applyScaleToAxis(scale) {
@@ -261,7 +250,7 @@ function (_React$Component) {
       }
 
       if (type !== 'other') {
-        applyScaleToAxis(scale.domain(valueDomain).range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop]));
+        applyScaleToAxis(scale.domain(this.computeValueDomain(this.props)).range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop]));
         (0, _d3Selection.select)(this.AXES_REF).call(axis).selectAll('text').classed('pplot-track-axis-text', true);
       }
     }
@@ -279,6 +268,38 @@ function (_React$Component) {
       this.updateAxes();
     }
   }, {
+    key: "computeValueDomain",
+    value: function computeValueDomain(props) {
+      var observations = props.observations,
+          valueDomainComputer = props.valueDomainComputer,
+          valueKey = props.valueKey,
+          type = props.type;
+
+      var computeContinuousValueDomain = function computeContinuousValueDomain(observations) {
+        // returns [0, max value]
+        var _extent = (0, _d3Array.extent)(observations.map(function (o) {
+          return o[valueKey];
+        })),
+            _extent2 = _slicedToArray(_extent, 2),
+            e0 = _extent2[0],
+            e1 = _extent2[1];
+
+        return [0, e1];
+      };
+
+      var computeDiscreteValueDomain = function computeDiscreteValueDomain(observations) {
+        // gets all categorical values for discrete domain 
+        return _lodash["default"].sortBy(_lodash["default"].uniq(observations.map(function (o) {
+          return o[valueKey];
+        })), function (d) {
+          return d;
+        });
+      };
+
+      var valueDomain = valueDomainComputer ? valueDomainComputer(observations) : type === 'continuous' ? computeContinuousValueDomain(observations) : type === 'discrete' ? computeDiscreteValueDomain(observations) : null;
+      return valueDomain;
+    }
+  }, {
     key: "render",
     value: function render() {
       var _this2 = this;
@@ -290,7 +311,6 @@ function (_React$Component) {
           valueKey = _this$props3.valueKey,
           timeDomains = _this$props3.timeDomains,
           numContextsPerSide = _this$props3.numContextsPerSide,
-          encodings = _this$props3.encodings,
           trackHeight = _this$props3.trackHeight,
           trackSvgOffsetTop = _this$props3.trackSvgOffsetTop,
           trackSvgOffsetBottom = _this$props3.trackSvgOffsetBottom,
@@ -304,10 +324,10 @@ function (_React$Component) {
           applyContextEncodingsUniformly = _this$props3.applyContextEncodingsUniformly,
           type = _this$props3.type,
           formatTrackHeader = _this$props3.formatTrackHeader,
-          msecsPadding = _this$props3.msecsPadding;
-      var _this$state5 = this.state,
-          zooms = _this$state5.zooms,
-          zoomRefs = _this$state5.zoomRefs; // utility functions 
+          msecsPadding = _this$props3.msecsPadding,
+          encodings = _this$props3.encodings,
+          valueDomainComputer = _this$props3.valueDomainComputer;
+      var zoomRefs = this.state.zoomRefs; // utility functions 
 
       var valueInDomain = function valueInDomain(value, domain) {
         return value >= domain[0] && value <= domain[1];
@@ -350,24 +370,19 @@ function (_React$Component) {
       var focusScaleRangeToBox = _lodash["default"].partial(_util.scaleRangeToBox, focusXRange, focusYRange);
 
       var tHeight = trackHeight - trackSvgOffsetTop - trackSvgOffsetBottom;
-      var valueDomain = type === 'continuous' ? (0, _d3Array.extent)(observations.map(function (o) {
-        return o[valueKey];
-      })) : type === 'discrete' ? _lodash["default"].sortBy(_lodash["default"].uniq(observations.map(function (o) {
-        return o[valueKey];
-      })), function (d) {
-        return d;
-      }) : null;
+      var valueDomain = this.computeValueDomain(this.props);
 
       var getAllObservations = function getAllObservations() {
         return observations;
-      }; // namespace for periphery plot specific properties 
+      }; // namespace for periphery plot properties 
 
 
       var pplot = {
         timeKey: timeKey,
         valueKey: valueKey,
         valueDomain: valueDomain,
-        getAllObservations: getAllObservations
+        getAllObservations: getAllObservations,
+        unit: unit
       };
       return _react["default"].createElement("div", {
         style: {
@@ -385,6 +400,7 @@ function (_React$Component) {
       }, _react["default"].createElement("p", {
         className: 'pplot-track-header-text'
       }, formatTrackHeader(valueKey, unit))), _react["default"].createElement("svg", {
+        className: "pplot-axis",
         ref: function ref(_ref) {
           return _this2.AXES_REF = _ref;
         },
@@ -448,6 +464,7 @@ function (_React$Component) {
           fill: "none"
         }));
       }), _react["default"].createElement("svg", {
+        className: "periphery-plots-focus",
         ref: function ref(_ref4) {
           return _this2.FOCUS_REF = _ref4;
         },
@@ -573,9 +590,10 @@ function (_React$Component) {
   return Track;
 }(_react["default"].Component);
 
+;
+
 var mapStateToProps = function mapStateToProps(_ref6) {
   var timeDomains = _ref6.timeDomains,
-      timeExtentDomain = _ref6.timeExtentDomain,
       focusColor = _ref6.focusColor,
       contextColor = _ref6.contextColor,
       containerPadding = _ref6.containerPadding,
@@ -594,7 +612,6 @@ var mapStateToProps = function mapStateToProps(_ref6) {
       msecsPadding = _ref6.msecsPadding;
   return {
     timeDomains: timeDomains,
-    timeExtentDomain: timeExtentDomain,
     focusColor: focusColor,
     contextColor: contextColor,
     containerPadding: containerPadding,

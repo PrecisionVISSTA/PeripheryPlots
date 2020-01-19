@@ -51,16 +51,16 @@ Object.defineProperty(exports, "AverageLineGroup", {
     return _AverageLineGroup["default"];
   }
 });
-Object.defineProperty(exports, "getPeripheryPlotsDistributedComponents", {
+Object.defineProperty(exports, "PeripheryPlotContext", {
   enumerable: true,
   get: function get() {
-    return _configurePeripheryPlotsPieces["default"];
+    return _peripheryPlotContext["default"];
   }
 });
-Object.defineProperty(exports, "PeripheryPlotsWrapperHOC", {
+Object.defineProperty(exports, "getPeripheryPlotSubComponents", {
   enumerable: true,
   get: function get() {
-    return _PeripheryPlotsWrapperHOC["default"];
+    return _getPeripheryPlotSubComponents["default"];
   }
 });
 exports["default"] = void 0;
@@ -83,9 +83,9 @@ var _NominalTraceGroup = _interopRequireDefault(require("./encodings/VPE/Nominal
 
 var _AverageLineGroup = _interopRequireDefault(require("./encodings/VPE/AverageLineGroup"));
 
-var _configurePeripheryPlotsPieces = _interopRequireDefault(require("./components/Detached/configurePeripheryPlotsPieces"));
+var _peripheryPlotContext = _interopRequireDefault(require("./context/periphery-plot-context"));
 
-var _PeripheryPlotsWrapperHOC = _interopRequireDefault(require("./components/Wrappers/PeripheryPlotsWrapperHOC"));
+var _getPeripheryPlotSubComponents = _interopRequireDefault(require("./components/Wrappers/getPeripheryPlotSubComponents"));
 
 require("./css/PeripheryPlotsDefaultStyle.css");
 
@@ -98,5 +98,6 @@ This module exports
 
 We also import the default stylings for the app here 
 */
-var _default = _PeripheryPlots["default"];
+var _default = _PeripheryPlots["default"]; // initialize store from a configuration object that is 
+
 exports["default"] = _default;

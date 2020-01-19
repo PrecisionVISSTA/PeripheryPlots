@@ -9,8 +9,8 @@ import QuantitativeTraceGroup from "./encodings/VPE/QuantitativeTraceGroup";
 import NominalTraceGroup from "./encodings/VPE/NominalTraceGroup"; 
 import AverageLineGroup from "./encodings/VPE/AverageLineGroup"; 
 
+import PeripheryPlotContext from "./context/periphery-plot-context"; 
 import getPeripheryPlotSubComponents from "./components/Wrappers/getPeripheryPlotSubComponents"; 
-import PeripheryPlotsWrapperHOC from "./components/Wrappers/PeripheryPlotsWrapperHOC"; 
 
 import "./css/PeripheryPlotsDefaultStyle.css"; 
 
@@ -37,8 +37,10 @@ export {
     AverageLineGroup,
 
     // Distributed Component Rendering 
-    PeripheryPlotsWrapperHOC,
-    getPeripheryPlotSubComponents
+    getPeripheryPlotSubComponents, 
+
+    // Read access to store 
+    PeripheryPlotContext
 
 }; 
 

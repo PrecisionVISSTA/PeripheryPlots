@@ -83,13 +83,73 @@ class TimelineControl extends React.Component {
     this.state.brushLocks = this.state.brushLockIds.map(i => false); 
 
     // Brush height - takes up 75% of vertical space in the container (not including MARGIN)
-    this.state.brushHeight = (height - (MARGIN.top + MARGIN.bottom)) * .7; 
+    this.state.brushHeight = height - 2 - LOCK_HEIGHT; 
     
   }
 
-  ingestProposal = (nextProps) => {
+  /*
+  externally: 
+    * user can set width of focus region 
+    * user can shift all brushes some duration to the left or right 
+  */
 
-    let { proposal } = nextProps; 
+  shiftBrushRange = (msecsDuration) => {
+    /*
+    Shift all unlocked brushes in a particular direction 
+    */
+    let d0 = this.props.timeDomains[0][0];              // date pre-shift
+    let d1 = new Date(d0.valueOf() + msecsDuration);    // date post-shift
+    let [p0,p1] = [d0,d1].map(this.props.controlScale); // pixel locations of pre and post shift dates 
+    let shift = p0 - p1; 
+    let currentSelections           = this.getBrushRanges(); 
+    let previousSelections          = currentSelections.slice();
+    let newSelections               = currentSelections.slice(); 
+    let targetBrushIndex            = 1; 
+    newSelections[targetBrushIndex] = previousSelections[targetBrushIndex].map(v => v + shift); 
+    newSelections                   = this.computeAction(targetBrushIndex, newSelections, previousSelections); 
+    this.updateAll(newSelections); 
+
+  }
+
+  lockBounds = () => {
+    let leftLockId = this.state.brushLockIds[0]; 
+    let rightLockId = this.state.brushLockIds[this.state.brushLockIds.length-1];
+    this.lockClick(leftLockId); 
+    this.lockClick(rightLockId);
+  }
+
+  setFocusBrushRange = (msecsDuration) => {
+    /*
+    Unlock boundaries and set focus width to some specified duration 
+    */ 
+
+    let isLocked = this.state.brushLocks[0]; 
+    if (isLocked) {
+      this.lockBounds(); 
+    }
+
+    let currentSelections = this.getBrushRanges();
+    let focusR = currentSelections[1];  
+    let [focusS, focusE] = focusR; 
+    let focusMiddle = (focusE + focusS) / 2; 
+    let sDate = this.props.timeDomains[0][0]; 
+    let eDate = new Date(sDate.valueOf() + msecsDuration); 
+    let [s, e] = [sDate, eDate].map(this.props.controlScale); 
+    let newWidth = e - s; 
+    let newS = focusMiddle - newWidth/2; 
+    let newE = focusMiddle + newWidth/2; 
+    let lShift = newS - focusS; 
+    let rShift = newE - focusE;
+    let lR = currentSelections[0].map(v => v + lShift); 
+    let cR = [newS, newE]; 
+    let rR = currentSelections[2].map(v => v + rShift); 
+    
+    this.updateAll([lR, cR, rR]); 
+    
+  }
+
+  ingestProposal = (proposal) => {
+
     let { shift, dl, dr, index } = proposal; 
     let currentSelections = this.getBrushRanges(); 
     let previousSelections1, previousSelections2, 
@@ -110,97 +170,56 @@ class TimelineControl extends React.Component {
         previousSelections1 = currentSelections.slice(); 
         newSelections1 = currentSelections.slice(); 
         newSelections1[index] = [previousSelections1[index][0] + dl, 
-                                      previousSelections1[index][1]]; 
+                                 previousSelections1[index][1]]; 
         
         // grow/shrink right 
         previousSelections2 = this.computeAction(index, newSelections1, previousSelections1); 
         newSelections2 = previousSelections2.slice(); 
         newSelections2[index] = [previousSelections2[index][0], 
-                                      previousSelections2[index][1] + dr]; 
+                                 previousSelections2[index][1] + dr]; 
 
         newSelections = this.computeAction(index, newSelections2, previousSelections2);
         break; 
     }
 
     this.updateAll(newSelections); 
+
   }
 
   shouldComponentUpdate(nextProps, nextState) {
 
     // If change occurred in vista track, we will have a new proposal 
     if (nextProps.proposal.id !== this.props.proposal.id) {
-      this.ingestProposal(nextProps); 
+      let { proposal } = nextProps; 
+      this.ingestProposal(proposal); 
     }
 
     // If container was resized, we need to resize the control axis and brushes 
-    if (nextProps.width !== this.props.width && nextProps.width > 0) {
+    let resized = nextProps.width !== this.props.width && nextProps.width > 0; 
+    let timeDomainsChanged = !_.isEqual(this.props.timeDomains, nextProps.timeDomains); 
 
-      let { controlScale, containerPadding } = nextProps; 
-      let { brushSvgWidth, axisSvgWidth } = this.computeBrushAndAxisSvgWidths(nextProps.width, nextProps.containerPadding); 
+    if (resized || timeDomainsChanged) {
+
+      let { containerPadding, width } = nextProps; 
       let { timelineScale, timelineAxis } = nextState; 
 
       // Update the control axis 
-      select('#axis-svg').attr('width', axisSvgWidth); 
-      let [cr0, cr1] = controlScale.range(); 
-      timelineScale.range([cr0 + containerPadding, cr1 - containerPadding]);
+      select('#axis-svg').attr('width', width); 
+      timelineScale.range([containerPadding, width-containerPadding]);
       selectAll('.control-axis').call(timelineAxis); 
 
-      // Update the brushes 
-      select('#brush-svg').attr('width', brushSvgWidth); 
+      // Update width of brush contianer 
+      select('#brush-svg').attr('width', width-containerPadding*2); 
       
       // Pixel ranges for each brush 
-      let brushRanges = nextProps.timeDomains.map(domain => domain.map(nextProps.controlScale)); 
-
-      // Update clipping paths for each brush 
-      for (let i = 0; i < nextState.numBrushes; i++) {
-        let clipId = nextState.clipIds[i]; 
-        let brushSelection = brushRanges[i]; 
-        select(`#${clipId}`)
-          .attr('width', `${brushSelection[1] - brushSelection[0]}`)
-          .attr('transform', `translate(${brushSelection[0]}, 0)`);
-      }
-
-      // Update the brushes 
-      for (let i = 0; i < nextState.numBrushes; i++) {
-        
-        // move brush 
-        let brushFn = nextState.brushes[i]; 
-        let brushId = nextState.brushIds[i]; 
-        let brushSelection = brushRanges[i]; 
-        let brush = select(`#${brushId}`); 
-        brush.call(brushFn.move, brushSelection); 
-
-        // move handles 
-        brush.select('.handle-left').attr('transform', `translate(${brushSelection[0]},0)`); 
-        brush.select('.handle-right').attr('transform', `translate(${brushSelection[1] - HANDLE_WIDTH},0)`); 
-      } 
-
-      // Update the locks 
-      for (let i = 0, li = 0; i < this.state.numBrushes; i++) {
-        let brushSelection = brushRanges[i]; 
-        if (i === 0) {
-          select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[0] - LOCK_WIDTH / 2}, 0)`); 
-          select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[1]- LOCK_WIDTH / 2}, 0)`); 
-        }
-        else {
-          select(`#${nextState.brushLockIds[li++]}`).attr('transform', `translate(${brushSelection[1]- LOCK_WIDTH / 2}, 0)`);  
-        }
-      }
-
-      // Update state with newly selected brush ranges
-      this.setState({ brushRanges });
+      let updateTimeDomains = !timeDomainsChanged; 
+      this.updateAll(nextProps.timeDomains.map(domain => domain.map(nextProps.controlScale)), updateTimeDomains); 
 
     }
 
-    // D3 performs updates in all other cases 
+    // D3 performs all other updates 
     return false;
 
-  }
-
-  computeBrushAndAxisSvgWidths = (width, containerPadding) => {
-    let brushSvgWidth = width - (2 * containerPadding); 
-    let axisSvgWidth = width; 
-    return { brushSvgWidth, axisSvgWidth }; 
   }
 
   componentDidMount() {
@@ -216,23 +235,24 @@ class TimelineControl extends React.Component {
       lockInactiveColor, 
       lockOutlineColor, 
       handleOutlineColor, 
-      brushOutlineColor
+      brushOutlineColor, 
+      lockBounds
     
     } = this.props; 
     
     let root = select(this.ROOT); 
-
-    let { brushSvgWidth } = this.computeBrushAndAxisSvgWidths(width, containerPadding); 
     
     // Create the svg container for the brushes
     let svg = root.append('svg')
                   .attr('id', 'brush-svg')
-                  .attr('width', brushSvgWidth)
+                  .attr('width', width-containerPadding*2)
                   .attr('height', height)
-                  .style('box-sizing', 'content-box') // padding not included in container width 
-                  .style('padding-left', containerPadding)
-                  .style('padding-right', containerPadding)
-                  .style('padding-top', containerPadding)
+
+    // append dom node for capturing external proposals for shifts 
+    let n = root.append("div").attr("id", 'external-proposal')
+    n.on('click.setFocusBrushRange', this.setFocusBrushRange); 
+    n.on('click.lockBounds', this.lockBounds);
+    n.on('click.shiftBrushRange', this.shiftBrushRange);
 
     // Pixel ranges for each brush 
     let brushRanges = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 
@@ -247,14 +267,14 @@ class TimelineControl extends React.Component {
           .attr('id', clipId)
             .append('rect')
             .attr('x', 0)
-            .attr('y', MARGIN.top)
+            .attr('y', 0)
             .attr('width', tupdif(brushSelection))
             .attr('height', this.state.brushHeight)
             .attr('transform', `translate(${brushSelection[0]}, 0)`);
 
     }
 
-    let lockClick = (lockId) => {
+    this.lockClick = (lockId) => {
 
         // Determine the lock index of the clicked lock 
         let lockIndex = this.state.brushLockIds.indexOf(lockId); 
@@ -285,7 +305,7 @@ class TimelineControl extends React.Component {
             .attr('fill', lockInactiveColor)
             .attr('rx', LOCK_HEIGHT / 4)
             .style("cursor", "pointer")
-            .on('click', _.partial(lockClick, lockId)); 
+            .on('click', _.partial(this.lockClick, lockId)); 
             
     }
 
@@ -304,6 +324,14 @@ class TimelineControl extends React.Component {
         // Add a lock to the end of the current brush 
         addLock(brushSelection[1], lockTopY, this.state.brushLockIds[li++]);  
       }
+    }
+
+    // check if outer bounds are initially locked 
+    if (lockBounds) {
+      let leftLockId = this.state.brushLockIds[0]; 
+      let rightLockId = this.state.brushLockIds[this.state.brushLockIds.length-1]; 
+      this.lockClick(leftLockId); 
+      this.lockClick(rightLockId); 
     }
 
     // Create brushes 
@@ -355,7 +383,7 @@ class TimelineControl extends React.Component {
                 .attr('clipPath', `url(#${clipId})`)
                 .attr('stroke', handleOutlineColor)
                 .attr('x', 0)
-                .attr('y', MARGIN.top + this.state.brushHeight / 2 - HANDLE_HEIGHT / 2)
+                .attr('y', this.state.brushHeight / 2 - HANDLE_HEIGHT / 2)
                 .attr('width', HANDLE_WIDTH)
                 .attr('height', HANDLE_HEIGHT)
                 .attr('transform', (d) => (d.type === 'w') ? `translate(${brushSelection[0]},0)` : 
@@ -381,7 +409,6 @@ class TimelineControl extends React.Component {
     let root = select(this.ROOT); 
     let { controlScale, containerPadding, height, width, tickInterval } = this.props; 
     let { timelineScale, timelineAxis } = this.state; 
-    let { axisSvgWidth } = this.computeBrushAndAxisSvgWidths(width, containerPadding); 
 
     let [cr0, cr1] = controlScale.range(); 
     timelineScale.domain(controlScale.domain())
@@ -390,7 +417,7 @@ class TimelineControl extends React.Component {
     let axisSvg = root.append('svg')
                         .attr('id', 'axis-svg')
                         .attr('height', height)
-                        .attr('width', axisSvgWidth)
+                        .attr('width', width)
                         .attr('pointer-events', 'none')
                         .style('position', 'absolute') 
                         .style('top', containerPadding)
@@ -410,10 +437,8 @@ class TimelineControl extends React.Component {
 
   _updateBrushSelections = (newSelections) => {
     for (let i = 0; i < this.state.numBrushes; i++) {
-      // if (!_.isEqual(oldSelections[i], newSelections[i])) {
         select(`#${this.state.brushIds[i]}`)
           .call(this.state.brushes[i].move, newSelections[i]); 
-      // }
     }
   }
 
@@ -489,13 +514,22 @@ class TimelineControl extends React.Component {
   computeActionProperties = (index, currentSelections=null, previousSelections=null) => {
     // Compute a set of properties related to the current action 
 
+
+    let round2 = (num) => Number(num.toFixed(2)); // round to 2 decimal places 
+    let round1 = (num) => Number(num.toFixed(1)); 
+    let round = (num) => Number(num.toFixed(0)); 
+
     currentSelections = currentSelections === null ? this.getBrushRanges() : currentSelections.slice(); 
     previousSelections = previousSelections === null ? this.state.brushRanges.slice() : previousSelections.slice(); 
 
     let isFocus = index === this.state.focusIndex;  
-    let preS = previousSelections[index]; 
+    let preS = previousSelections[index].map(round2); 
     let preW = tupdif(preS); 
-    let curS = currentSelections[index]; 
+    let curS = currentSelections[index].map(round2); 
+    if (preS[0] === curS[0] && preS[1] === curS[1]) {
+      // edge case where no movement occurred 
+      return { 'noChange': true, previousSelections }; 
+    }
     let [leftHandleLocked, rightHandleLocked] = this.isBrushLocked(index); 
     let isLocked = leftHandleLocked || rightHandleLocked; 
     let leftIndexRange = [0, index];
@@ -509,16 +543,23 @@ class TimelineControl extends React.Component {
     let lockedToRight = brushLockBounds[1] !== -1; 
     let leftLockBoundS = lockedToLeft ? currentSelections[leftLockIndex] : null; 
     let rightLockBoundS = lockedToRight ? currentSelections[rightLockIndex] : null; 
-    let leftOverlappedRight = preS[1] === curS[0]; 
-    let rightOverlappedLeft = preS[0] === curS[1]; 
+    let sameWidth = round(preW) === round(curWidth); 
+    let action = computeActionFromSelectionTransition(preS, curS); 
+    let isTranslate = action >= 4; 
+    let leftOverlappedRight = preS[1] === curS[0] && !sameWidth && !isTranslate; 
+    let rightOverlappedLeft = preS[0] === curS[1] && !sameWidth && !isTranslate; 
     let overlapped = leftOverlappedRight || rightOverlappedLeft; 
     let isFirst = index === 0; 
     let isLast = index === numBrushes - 1; 
     let shiftSet = []; 
     let { numBrushes } = this.state; 
-    let action = computeActionFromSelectionTransition(preS, curS); 
+
+    if (action === null) {
+      debugger;  
+    }
+
     assert(action !== null, 'invalid brush action');
-    return { 
+    let properties = { 
       isFocus,
       action, 
       currentSelections, 
@@ -549,6 +590,8 @@ class TimelineControl extends React.Component {
       isFirst, 
       isLast
     }; 
+
+    return properties; 
   }
 
   isBrushLeftLocked = (brushIndex) => this.state.brushLocks[brushIndex] 
@@ -581,6 +624,10 @@ class TimelineControl extends React.Component {
   computeAction(index, currentSelections=null, previousSelections=null) {
 
       let actionProperties = this.computeActionProperties(index, currentSelections, previousSelections); 
+      let { noChange } = actionProperties; 
+      if (noChange) {
+        return actionProperties.previousSelections; 
+      } 
       let newSelections; 
       if (actionProperties.overlapped) {
         newSelections = actionProperties.previousSelections; 
@@ -597,15 +644,28 @@ class TimelineControl extends React.Component {
       return newSelections
   }
 
-  updateAll = (newSelections) => {
+  updateAll = (newSelections, updateTimeDomains=true) => {
     this._updateBrushSelections(newSelections); 
     this._updateBrushExtras(newSelections);
     this.setState({ brushRanges: newSelections }); 
-    this.props.ACTION_CHANGE_timeDomains(newSelections.map(s => s.map(this.props.controlScale.invert).map(t => new Date(t)))); 
+    if (updateTimeDomains) {
+      let newTimeDomains = newSelections.map(s => s.map(this.props.controlScale.invert).map(t => new Date(t))); 
+      this.props.ACTION_CHANGE_timeDomains(newTimeDomains); 
+    }
   }
 
   render() {  
-    return <div style={{ position: 'relative' }} ref={ref => this.ROOT = ref}/>
+    let { height, containerPadding } = this.props; 
+    const containerStyle = {
+      display: 'block', 
+      position: 'relative', 
+      paddingLeft: containerPadding, 
+      paddingRight: containerPadding, 
+      paddingTop: containerPadding, 
+      boxSizing: 'content-box', 
+      height: height
+    }
+    return <div style={containerStyle} ref={ref => this.ROOT = ref}/>
   }
 
 }
@@ -624,7 +684,8 @@ const mapStateToProps = ({
                           brushOutlineColor, 
                           controlScale,
                           baseWidth,
-                          controlTimelineHeight
+                          controlTimelineHeight, 
+                          lockBounds
                         }) => 
                         ({ 
                           timeDomains, 
@@ -640,7 +701,8 @@ const mapStateToProps = ({
                           brushOutlineColor, 
                           controlScale, 
                           width: baseWidth, 
-                          height: controlTimelineHeight
+                          height: controlTimelineHeight, 
+                          lockBounds 
                         });
                         
 const mapDispatchToProps = dispatch => ({
