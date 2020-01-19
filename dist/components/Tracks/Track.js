@@ -89,26 +89,50 @@ function (_React$Component) {
         return;
       }
 
-      var dZoom = _this.props.dZoom;
+      var _this$props = _this.props,
+          dZoom = _this$props.dZoom,
+          baseWidth = _this$props.baseWidth,
+          timeDomains = _this$props.timeDomains,
+          numContextsPerSide = _this$props.numContextsPerSide,
+          controlScale = _this$props.controlScale,
+          focusWidth = _this$props.focusWidth;
       var _this$state = _this.state,
           lastK = _this$state.lastK,
           lastX = _this$state.lastX,
           zoomRefs = _this$state.zoomRefs;
+      var focusZone = timeDomains[numContextsPerSide];
       var zoomRef = zoomRefs[index];
       var zoomNode = (0, _d3Selection.select)(zoomRef).node();
-
-      var _zoomTransform = (0, _d3Zoom.zoomTransform)(zoomNode),
-          k = _zoomTransform.k,
-          x = _zoomTransform.x;
-
+      var transform = (0, _d3Zoom.zoomTransform)(zoomNode);
+      var k = transform.k,
+          x = transform.x;
       var isPan = lastK === k;
       var zoomDir = k > lastK ? -1 : 1;
       var newProposalId = Math.random();
+      var shift = undefined;
+
+      if (isPan) {
+        var dx = lastX - x;
+        var f = dx / baseWidth;
+
+        var _focusZone = _slicedToArray(focusZone, 2),
+            d0 = _focusZone[0],
+            d1 = _focusZone[1];
+
+        var temporalWidth = (d1.valueOf() - d0.valueOf()) * f;
+        var dleft = d0;
+        var dright = new Date(d0.valueOf() + temporalWidth);
+        var pleft = controlScale(dleft);
+        var pright = controlScale(dright);
+        var pshift = pright - pleft;
+        shift = pshift;
+      }
+
       var proposal = {
         id: newProposalId,
         index: index,
         type: isPan ? 'pan' : 'zoom',
-        shift: isPan ? lastX - x : undefined,
+        shift: shift,
         dr: !isPan ? zoomDir * dZoom : undefined,
         dl: !isPan ? -zoomDir * dZoom : undefined
       };
@@ -127,12 +151,12 @@ function (_React$Component) {
     });
 
     _defineProperty(_assertThisInitialized(_this), "updateTooltip", function () {
-      var _this$props = _this.props,
-          focusWidth = _this$props.focusWidth,
-          numContextsPerSide = _this$props.numContextsPerSide,
-          contextWidth = _this$props.contextWidth,
-          trackWidth = _this$props.trackWidth,
-          timeDomains = _this$props.timeDomains;
+      var _this$props2 = _this.props,
+          focusWidth = _this$props2.focusWidth,
+          numContextsPerSide = _this$props2.numContextsPerSide,
+          contextWidth = _this$props2.contextWidth,
+          trackWidth = _this$props2.trackWidth,
+          timeDomains = _this$props2.timeDomains;
       var _this$state2 = _this.state,
           formatter = _this$state2.formatter,
           timeScale = _this$state2.timeScale;
@@ -211,13 +235,13 @@ function (_React$Component) {
           axis = _this$state4.axis,
           quantitativeScale = _this$state4.quantitativeScale,
           categoricalScale = _this$state4.categoricalScale;
-      var _this$props2 = this.props,
-          trackHeight = _this$props2.trackHeight,
-          trackSvgOffsetTop = _this$props2.trackSvgOffsetTop,
-          trackSvgOffsetBottom = _this$props2.trackSvgOffsetBottom,
-          type = _this$props2.type,
-          numAxisTicks = _this$props2.numAxisTicks,
-          axisTickFormatter = _this$props2.axisTickFormatter;
+      var _this$props3 = this.props,
+          trackHeight = _this$props3.trackHeight,
+          trackSvgOffsetTop = _this$props3.trackSvgOffsetTop,
+          trackSvgOffsetBottom = _this$props3.trackSvgOffsetBottom,
+          type = _this$props3.type,
+          numAxisTicks = _this$props3.numAxisTicks,
+          axisTickFormatter = _this$props3.axisTickFormatter;
 
       if (axisTickFormatter) {
         axis.tickFormat(axisTickFormatter);
@@ -304,29 +328,29 @@ function (_React$Component) {
     value: function render() {
       var _this2 = this;
 
-      var _this$props3 = this.props,
-          unit = _this$props3.unit,
-          observations = _this$props3.observations,
-          timeKey = _this$props3.timeKey,
-          valueKey = _this$props3.valueKey,
-          timeDomains = _this$props3.timeDomains,
-          numContextsPerSide = _this$props3.numContextsPerSide,
-          trackHeight = _this$props3.trackHeight,
-          trackSvgOffsetTop = _this$props3.trackSvgOffsetTop,
-          trackSvgOffsetBottom = _this$props3.trackSvgOffsetBottom,
-          axesWidth = _this$props3.axesWidth,
-          focusColor = _this$props3.focusColor,
-          contextColor = _this$props3.contextColor,
-          containerPadding = _this$props3.containerPadding,
-          focusWidth = _this$props3.focusWidth,
-          contextWidth = _this$props3.contextWidth,
-          baseWidth = _this$props3.baseWidth,
-          applyContextEncodingsUniformly = _this$props3.applyContextEncodingsUniformly,
-          type = _this$props3.type,
-          formatTrackHeader = _this$props3.formatTrackHeader,
-          msecsPadding = _this$props3.msecsPadding,
-          encodings = _this$props3.encodings,
-          valueDomainComputer = _this$props3.valueDomainComputer;
+      var _this$props4 = this.props,
+          unit = _this$props4.unit,
+          observations = _this$props4.observations,
+          timeKey = _this$props4.timeKey,
+          valueKey = _this$props4.valueKey,
+          timeDomains = _this$props4.timeDomains,
+          numContextsPerSide = _this$props4.numContextsPerSide,
+          trackHeight = _this$props4.trackHeight,
+          trackSvgOffsetTop = _this$props4.trackSvgOffsetTop,
+          trackSvgOffsetBottom = _this$props4.trackSvgOffsetBottom,
+          axesWidth = _this$props4.axesWidth,
+          focusColor = _this$props4.focusColor,
+          contextColor = _this$props4.contextColor,
+          containerPadding = _this$props4.containerPadding,
+          focusWidth = _this$props4.focusWidth,
+          contextWidth = _this$props4.contextWidth,
+          baseWidth = _this$props4.baseWidth,
+          applyContextEncodingsUniformly = _this$props4.applyContextEncodingsUniformly,
+          type = _this$props4.type,
+          formatTrackHeader = _this$props4.formatTrackHeader,
+          msecsPadding = _this$props4.msecsPadding,
+          encodings = _this$props4.encodings,
+          valueDomainComputer = _this$props4.valueDomainComputer;
       var zoomRefs = this.state.zoomRefs; // utility functions 
 
       var valueInDomain = function valueInDomain(value, domain) {
@@ -490,6 +514,13 @@ function (_React$Component) {
         height: tHeight,
         stroke: focusColor,
         fill: "none"
+      }), _react["default"].createElement("rect", {
+        className: "focus-time-bar",
+        x: 0,
+        y: trackSvgOffsetTop + 1,
+        width: .1,
+        height: tHeight - 2,
+        stroke: "#515151"
       }), FocusEncoding.map(function (LayeredEncoding, j) {
         return _react["default"].createElement(LayeredEncoding, {
           key: "focus-".concat(j),
@@ -502,13 +533,6 @@ function (_React$Component) {
             isFocus: true
           })
         });
-      }), _react["default"].createElement("rect", {
-        className: "focus-time-bar",
-        x: 0,
-        y: trackSvgOffsetTop + 1,
-        width: .1,
-        height: tHeight - 2,
-        stroke: "#515151"
       }), _react["default"].createElement("rect", {
         ref: function ref(_ref3) {
           return zoomRefs[focusIndex] = _ref3;
@@ -609,7 +633,8 @@ var mapStateToProps = function mapStateToProps(_ref6) {
       dZoom = _ref6.dZoom,
       applyContextEncodingsUniformly = _ref6.applyContextEncodingsUniformly,
       formatTrackHeader = _ref6.formatTrackHeader,
-      msecsPadding = _ref6.msecsPadding;
+      msecsPadding = _ref6.msecsPadding,
+      controlScale = _ref6.controlScale;
   return {
     timeDomains: timeDomains,
     focusColor: focusColor,
@@ -627,7 +652,8 @@ var mapStateToProps = function mapStateToProps(_ref6) {
     dZoom: dZoom,
     applyContextEncodingsUniformly: applyContextEncodingsUniformly,
     formatTrackHeader: formatTrackHeader,
-    msecsPadding: msecsPadding
+    msecsPadding: msecsPadding,
+    controlScale: controlScale
   };
 };
 

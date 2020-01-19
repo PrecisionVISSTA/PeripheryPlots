@@ -395,13 +395,6 @@ class Track extends React.Component {
                     stroke={focusColor} 
                     fill='none'/>
 
-                    {/* Focus visualization(s) */}
-                    {FocusEncoding.map((LayeredEncoding,j) => 
-                        <LayeredEncoding
-                        key={`focus-${j}`}
-                        pplot={Object.assign(Object.assign({}, pplot), { observations: focusObservations, timeDomain: focusTimeDomain, xRange: focusXRange, yRange: focusYRange, scaleRangeToBox: focusScaleRangeToBox, isFocus: true })}/>
-                    )}
-
                     {/* Current time point hover bar */}
                     <rect
                     className="focus-time-bar"
@@ -410,6 +403,13 @@ class Track extends React.Component {
                     width={.1}
                     height={tHeight - 2}
                     stroke="#515151"/>
+
+                    {/* Focus visualization(s) */}
+                    {FocusEncoding.map((LayeredEncoding,j) => 
+                        <LayeredEncoding
+                        key={`focus-${j}`}
+                        pplot={Object.assign(Object.assign({}, pplot), { observations: focusObservations, timeDomain: focusTimeDomain, xRange: focusXRange, yRange: focusYRange, scaleRangeToBox: focusScaleRangeToBox, isFocus: true })}/>
+                    )}
 
                     {/* zoom target */}
                     <rect 
