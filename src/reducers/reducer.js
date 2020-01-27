@@ -176,6 +176,10 @@ const mutations = {
         let { trackwiseValueDomainComputers } = action; 
         return { ...state, trackwiseValueDomainComputers }; 
     },
+    'CHANGE_trackwiseAxes': (state, action) => {
+        let { trackwiseAxes } = action; 
+        return { ...state, trackwiseAxes }; 
+    },
     'CHANGE_storeInit': (state, action) => {
         let { storeInit } = action; 
         return { ...state, storeInit };

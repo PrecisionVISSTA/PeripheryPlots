@@ -237,6 +237,13 @@ export function ACTION_CHANGE_trackwiseValueDomainComputers (trackwiseValueDomai
     }; 
 };
 
+export function ACTION_CHANGE_trackwiseAxes (trackwiseAxes) {
+    return {
+        type: 'CHANGE_trackwiseAxes',
+        trackwiseAxes
+    }; 
+};
+
 export function ACTION_CHANGE_storeInit (storeInit) {
     return {
         type: 'CHANGE_storeInit',

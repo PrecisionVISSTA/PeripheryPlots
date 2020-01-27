@@ -195,7 +195,8 @@ function (_React$Component) {
       var shift = proposal.shift,
           dl = proposal.dl,
           dr = proposal.dr,
-          index = proposal.index;
+          index = proposal.index,
+          id = proposal.id;
 
       var currentSelections = _this.getBrushRanges();
 
@@ -468,13 +469,7 @@ function (_React$Component) {
   _createClass(TimelineControl, [{
     key: "shouldComponentUpdate",
     value: function shouldComponentUpdate(nextProps, nextState) {
-      // If change occurred in vista track, we will have a new proposal 
-      if (nextProps.proposal.id !== this.props.proposal.id) {
-        var proposal = nextProps.proposal;
-        this.ingestProposal(proposal);
-      } // If container was resized, we need to resize the control axis and brushes 
-
-
+      // If container was resized, we need to resize the control axis and brushes 
       var resized = nextProps.width !== this.props.width && nextProps.width > 0;
       var timeDomainsChanged = !_lodash["default"].isEqual(this.props.timeDomains, nextProps.timeDomains);
 
@@ -524,7 +519,8 @@ function (_React$Component) {
       var n = root.append("div").attr("id", 'external-proposal');
       n.on('click.setFocusBrushRange', this.setFocusBrushRange);
       n.on('click.lockBounds', this.lockBounds);
-      n.on('click.shiftBrushRange', this.shiftBrushRange); // Pixel ranges for each brush 
+      n.on('click.shiftBrushRange', this.shiftBrushRange);
+      n.on('zoom.trackZoom', this.ingestProposal); // Pixel ranges for each brush 
 
       var brushRanges = this.props.timeDomains.map(function (domain) {
         return domain.map(_this2.props.controlScale);

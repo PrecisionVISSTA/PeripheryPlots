@@ -37,6 +37,7 @@ exports.ACTION_CHANGE_trackwiseNumAxisTicks = ACTION_CHANGE_trackwiseNumAxisTick
 exports.ACTION_CHANGE_trackwiseAxisTickFormatters = ACTION_CHANGE_trackwiseAxisTickFormatters;
 exports.ACTION_CHANGE_trackwiseEncodings = ACTION_CHANGE_trackwiseEncodings;
 exports.ACTION_CHANGE_trackwiseValueDomainComputers = ACTION_CHANGE_trackwiseValueDomainComputers;
+exports.ACTION_CHANGE_trackwiseAxes = ACTION_CHANGE_trackwiseAxes;
 exports.ACTION_CHANGE_storeInit = ACTION_CHANGE_storeInit;
 exports.ACTION_CHANGE_lockBounds = ACTION_CHANGE_lockBounds;
 
@@ -341,6 +342,15 @@ function ACTION_CHANGE_trackwiseValueDomainComputers(trackwiseValueDomainCompute
   return {
     type: 'CHANGE_trackwiseValueDomainComputers',
     trackwiseValueDomainComputers: trackwiseValueDomainComputers
+  };
+}
+
+;
+
+function ACTION_CHANGE_trackwiseAxes(trackwiseAxes) {
+  return {
+    type: 'CHANGE_trackwiseAxes',
+    trackwiseAxes: trackwiseAxes
   };
 }
 

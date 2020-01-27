@@ -1,6 +1,6 @@
 {
   "name": "periphery-plots",
-  "version": "1.0.21",
+  "version": "1.0.23",
   "author": "Bryce Morrow bam4564@live.unc.edu",
   "description": "A React component for multivariate time series analysis",
   "repository": "https://github.com/PrecisionVISSTA/PeripheryPlots",

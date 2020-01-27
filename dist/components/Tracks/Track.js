@@ -77,89 +77,111 @@ function (_React$Component) {
       categoricalScale: (0, _d3Scale.scaleBand)(),
       timeScale: (0, _d3Scale.scaleTime)(),
       zooms: [],
-      formatter: (0, _d3TimeFormat.timeFormat)('%B %d, %Y'),
-      zoomsInitialized: false,
-      lastK: 1,
-      lastX: 0
+      formatter: (0, _d3TimeFormat.timeFormat)('%B %d, %Y')
     });
 
-    _defineProperty(_assertThisInitialized(_this), "zoomed", function (index) {
-      // ignore zoom-by-brush
-      if (_d3Selection.event.sourceEvent && _d3Selection.event.sourceEvent.type === "brush") {
-        return;
-      }
+    _defineProperty(_assertThisInitialized(_this), "createZoomCallback", function () {
+      var lastX = null;
+      var lastK = null;
 
-      var _this$props = _this.props,
-          dZoom = _this$props.dZoom,
-          baseWidth = _this$props.baseWidth,
-          timeDomains = _this$props.timeDomains,
-          numContextsPerSide = _this$props.numContextsPerSide,
-          controlScale = _this$props.controlScale,
-          focusWidth = _this$props.focusWidth;
-      var _this$state = _this.state,
-          lastK = _this$state.lastK,
-          lastX = _this$state.lastX,
-          zoomRefs = _this$state.zoomRefs;
-      var focusZone = timeDomains[numContextsPerSide];
-      var zoomRef = zoomRefs[index];
-      var zoomNode = (0, _d3Selection.select)(zoomRef).node();
-      var transform = (0, _d3Zoom.zoomTransform)(zoomNode);
-      var k = transform.k,
-          x = transform.x;
-      var isPan = lastK === k;
-      var zoomDir = k > lastK ? -1 : 1;
-      var newProposalId = Math.random();
-      var shift = undefined;
+      var zoomed = function zoomed(index) {
+        // ignore zoom-by-brush
+        if (_d3Selection.event.sourceEvent && _d3Selection.event.sourceEvent.type === "brush") {
+          return;
+        }
 
-      if (isPan) {
-        var dx = lastX - x;
-        var f = dx / baseWidth;
+        var _zoomTransform = (0, _d3Zoom.zoomTransform)((0, _d3Selection.select)(_this.state.zoomRefs[index]).node()),
+            k = _zoomTransform.k,
+            x = _zoomTransform.x;
 
-        var _focusZone = _slicedToArray(focusZone, 2),
-            d0 = _focusZone[0],
-            d1 = _focusZone[1];
+        ;
 
-        var temporalWidth = (d1.valueOf() - d0.valueOf()) * f;
-        var dleft = d0;
-        var dright = new Date(d0.valueOf() + temporalWidth);
-        var pleft = controlScale(dleft);
-        var pright = controlScale(dright);
-        var pshift = pright - pleft;
-        shift = pshift;
-      }
+        if (lastX === null || lastK === null) {
+          lastK = k;
+          lastX = x;
+        } else {
+          var _this$props = _this.props,
+              focusWidth = _this$props.focusWidth,
+              timeDomains = _this$props.timeDomains,
+              numContextsPerSide = _this$props.numContextsPerSide,
+              controlScale = _this$props.controlScale;
+          var focusZone = timeDomains[numContextsPerSide];
+          var isPan = lastK === k;
+          var newProposalId = Math.random();
+          var shift = undefined;
+          var dl = undefined;
+          var dr = undefined;
 
-      var proposal = {
-        id: newProposalId,
-        index: index,
-        type: isPan ? 'pan' : 'zoom',
-        shift: shift,
-        dr: !isPan ? zoomDir * dZoom : undefined,
-        dl: !isPan ? -zoomDir * dZoom : undefined
+          if (isPan) {
+            var dx = lastX - x;
+
+            var _focusZone = _slicedToArray(focusZone, 2),
+                d0 = _focusZone[0],
+                d1 = _focusZone[1];
+
+            var tdx = (d1.valueOf() - d0.valueOf()) * (dx / focusWidth);
+            var pleft = controlScale(d0);
+            var pright = controlScale(new Date(d0.valueOf() + tdx));
+            shift = pright - pleft;
+          } else {
+            var zf = k / lastK;
+
+            var _focusZone2 = _slicedToArray(focusZone, 2),
+                _d2 = _focusZone2[0],
+                _d3 = _focusZone2[1];
+
+            var _tdx = _d3.valueOf() - _d2.valueOf();
+
+            var dnew = new Date(_d2.valueOf() + _tdx * zf);
+
+            var _pleft = controlScale(_d3);
+
+            var _pright = controlScale(dnew);
+
+            var dzoom = Math.abs(_pright - _pleft);
+
+            if (zf < 1) {
+              // shrink 
+              dl = dzoom;
+              dr = -dzoom;
+            } else {
+              // grow
+              dl = -dzoom;
+              dr = dzoom;
+            }
+          }
+
+          var proposal = {
+            id: newProposalId,
+            index: index,
+            type: isPan ? 'pan' : 'zoom',
+            shift: shift,
+            dl: dl,
+            dr: dr
+          };
+
+          if (isPan && lastX !== x || !isPan && lastK !== k) {
+            (0, _d3Selection.select)('#external-proposal').on('zoom.trackZoom')(proposal);
+
+            _this.updateTooltip();
+          }
+
+          lastX = x;
+          lastK = k;
+        }
       };
 
-      if (isPan && lastX !== x || lastK !== k) {
-        _this.setState({
-          lastK: k,
-          lastX: x,
-          proposalId: newProposalId
-        });
-
-        _this.props.ACTION_CHANGE_proposal(proposal);
-      }
-
-      _this.updateTooltip();
+      return zoomed;
     });
 
     _defineProperty(_assertThisInitialized(_this), "updateTooltip", function () {
       var _this$props2 = _this.props,
           focusWidth = _this$props2.focusWidth,
           numContextsPerSide = _this$props2.numContextsPerSide,
-          contextWidth = _this$props2.contextWidth,
-          trackWidth = _this$props2.trackWidth,
           timeDomains = _this$props2.timeDomains;
-      var _this$state2 = _this.state,
-          formatter = _this$state2.formatter,
-          timeScale = _this$state2.timeScale;
+      var _this$state = _this.state,
+          formatter = _this$state.formatter,
+          timeScale = _this$state.timeScale;
 
       var _mouse = (0, _d3Selection.mouse)(_this.FOCUS_REF),
           _mouse2 = _slicedToArray(_mouse, 2),
@@ -200,6 +222,20 @@ function (_React$Component) {
       (0, _d3Selection.selectAll)('.focus-time-text').attr('display', 'none');
     });
 
+    _defineProperty(_assertThisInitialized(_this), "mousemove", function () {
+      _this.updateTooltip();
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "mouseleave", function () {
+      _this.removeZooms();
+
+      _this.removeTooltip();
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "mouseenter", function () {
+      _this.initZoom();
+    });
+
     var numCharts = _this.props.numContextsPerSide * 2 + 1;
     _this.state.zooms = _lodash["default"].range(0, numCharts).map(function (i) {
       return (0, _d3Zoom.zoom)();
@@ -215,17 +251,32 @@ function (_React$Component) {
     key: "initZoom",
     value: function initZoom() {
       var numContextsPerSide = this.props.numContextsPerSide;
+      var _this$state2 = this.state,
+          zooms = _this$state2.zooms,
+          zoomRefs = _this$state2.zoomRefs;
+      var numCharts = numContextsPerSide * 2 + 1;
+
+      for (var i = 0; i < numCharts; i++) {
+        var zoomCallback = _lodash["default"].partial(this.createZoomCallback(), i);
+
+        var zoomTarget = (0, _d3Selection.select)(zoomRefs[i]);
+        var zoomFn = zooms[i];
+        zoomTarget.call(zoomFn.on('zoom', zoomCallback));
+      }
+    }
+  }, {
+    key: "removeZooms",
+    value: function removeZooms() {
+      var numContextsPerSide = this.props.numContextsPerSide;
       var _this$state3 = this.state,
           zooms = _this$state3.zooms,
           zoomRefs = _this$state3.zoomRefs;
       var numCharts = numContextsPerSide * 2 + 1;
 
       for (var i = 0; i < numCharts; i++) {
-        var zoomCallback = _lodash["default"].partial(this.zoomed, i);
-
         var zoomTarget = (0, _d3Selection.select)(zoomRefs[i]);
         var zoomFn = zooms[i];
-        zoomTarget.call(zoomFn.on('zoom', zoomCallback));
+        zoomTarget.call(zoomFn.on('zoom', null));
       }
     }
   }, {
@@ -241,7 +292,8 @@ function (_React$Component) {
           trackSvgOffsetBottom = _this$props3.trackSvgOffsetBottom,
           type = _this$props3.type,
           numAxisTicks = _this$props3.numAxisTicks,
-          axisTickFormatter = _this$props3.axisTickFormatter;
+          axisTickFormatter = _this$props3.axisTickFormatter,
+          valueDomainComputer = _this$props3.valueDomainComputer;
 
       if (axisTickFormatter) {
         axis.tickFormat(axisTickFormatter);
@@ -270,21 +322,26 @@ function (_React$Component) {
           break;
 
         case 'other':
+          scale = categoricalScale;
+
+          applyScaleToAxis = function applyScaleToAxis(scale) {
+            return axis.scale(scale);
+          };
+
           break;
       }
 
-      if (type !== 'other') {
-        applyScaleToAxis(scale.domain(this.computeValueDomain(this.props)).range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop]));
-        (0, _d3Selection.select)(this.AXES_REF).call(axis).selectAll('text').classed('pplot-track-axis-text', true);
-      }
+      var valueDomain = valueDomainComputer ? valueDomainComputer() : this.computeValueDomain(this.props);
+      applyScaleToAxis(scale.domain(valueDomain).range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop]));
+      (0, _d3Selection.select)(this.AXES_REF).call(axis).selectAll('text').classed('pplot-track-axis-text', true);
     }
   }, {
     key: "componentDidMount",
     value: function componentDidMount() {
       this.updateAxes();
-      this.initZoom();
-      (0, _d3Selection.select)(this.FOCUS_REF).on('mousemove', this.updateTooltip);
-      (0, _d3Selection.select)(this.FOCUS_REF).on('mouseleave', this.removeTooltip);
+      (0, _d3Selection.select)(this.FOCUS_REF).on('mouseenter', this.mouseenter);
+      (0, _d3Selection.select)(this.FOCUS_REF).on('mousemove', this.mousemove);
+      (0, _d3Selection.select)(this.FOCUS_REF).on('mouseleave', this.mouseleave);
     }
   }, {
     key: "componentDidUpdate",

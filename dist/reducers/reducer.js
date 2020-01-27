@@ -257,6 +257,12 @@ var mutations = {
       trackwiseValueDomainComputers: trackwiseValueDomainComputers
     });
   },
+  'CHANGE_trackwiseAxes': function CHANGE_trackwiseAxes(state, action) {
+    var trackwiseAxes = action.trackwiseAxes;
+    return _objectSpread({}, state, {
+      trackwiseAxes: trackwiseAxes
+    });
+  },
   'CHANGE_storeInit': function CHANGE_storeInit(state, action) {
     var storeInit = action.storeInit;
     return _objectSpread({}, state, {

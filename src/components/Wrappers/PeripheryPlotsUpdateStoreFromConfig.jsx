@@ -39,7 +39,6 @@ import {    ACTION_CHANGE_timeDomains,
             ACTION_CHANGE_trackwiseUnits,
             ACTION_CHANGE_trackwiseValueKeys, 
             ACTION_CHANGE_trackwiseValueDomainComputers,
-            
 
         } from "../../actions/actions"; 
 
@@ -87,7 +86,8 @@ function PeripheryPlotsUpdateStoreFromConfiguration(props) {
             "trackwiseUnits", 
             "trackwiseNumAxisTicks", 
             "trackwiseAxisTickFormatters",
-            "trackwiseValueDomainComputers"
+            "trackwiseValueDomainComputers", 
+
         ]; 
 
         // update for all specified properties 
@@ -102,8 +102,6 @@ function PeripheryPlotsUpdateStoreFromConfiguration(props) {
 
         // update domain of control scale 
         controlScale.domain(config.timeExtentDomain); 
-
-        // if running in distributed mode 
 
         // Will trigger rendering of sub-components as store now 
         // holds the initial state of the configuration object that 

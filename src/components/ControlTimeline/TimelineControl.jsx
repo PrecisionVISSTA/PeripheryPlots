@@ -150,7 +150,7 @@ class TimelineControl extends React.Component {
 
   ingestProposal = (proposal) => {
 
-    let { shift, dl, dr, index } = proposal; 
+    let { shift, dl, dr, index, id } = proposal; 
     let currentSelections = this.getBrushRanges(); 
     let previousSelections1, previousSelections2, 
         newSelections1, newSelections2, 
@@ -187,12 +187,6 @@ class TimelineControl extends React.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-
-    // If change occurred in vista track, we will have a new proposal 
-    if (nextProps.proposal.id !== this.props.proposal.id) {
-      let { proposal } = nextProps; 
-      this.ingestProposal(proposal); 
-    }
 
     // If container was resized, we need to resize the control axis and brushes 
     let resized = nextProps.width !== this.props.width && nextProps.width > 0; 
@@ -253,6 +247,7 @@ class TimelineControl extends React.Component {
     n.on('click.setFocusBrushRange', this.setFocusBrushRange); 
     n.on('click.lockBounds', this.lockBounds);
     n.on('click.shiftBrushRange', this.shiftBrushRange);
+    n.on('zoom.trackZoom', this.ingestProposal); 
 
     // Pixel ranges for each brush 
     let brushRanges = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 

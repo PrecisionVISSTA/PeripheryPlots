@@ -20,10 +20,7 @@ class Track extends React.Component {
         categoricalScale: scaleBand(), 
         timeScale: scaleTime(), 
         zooms: [], 
-        formatter: timeFormat('%B %d, %Y'), 
-        zoomsInitialized: false, 
-        lastK: 1, 
-        lastX: 0
+        formatter: timeFormat('%B %d, %Y')
     }
 
     constructor(props) {
@@ -38,51 +35,79 @@ class Track extends React.Component {
 
     } 
 
-    zoomed = (index) => {
+    createZoomCallback = () => {
+
+        let lastX = null; 
+        let lastK = null; 
+
+        let zoomed = (index) => {
         
-        // ignore zoom-by-brush
-        if (currentEvent.sourceEvent && currentEvent.sourceEvent.type === "brush") {
-            return;
+            // ignore zoom-by-brush
+            if (currentEvent.sourceEvent && currentEvent.sourceEvent.type === "brush") {
+                return;
+            }
+    
+            let { k, x } = zoomTransform(select(this.state.zoomRefs[index]).node());; 
+
+            if (lastX === null || lastK === null) {
+                lastK = k; 
+                lastX = x; 
+            } else {
+                let { focusWidth, timeDomains, numContextsPerSide, controlScale } = this.props; 
+                let focusZone = timeDomains[numContextsPerSide]; 
+                let isPan = lastK === k;      
+                let newProposalId = Math.random(); 
+                let shift = undefined; 
+                let dl = undefined; 
+                let dr = undefined; 
+                if (isPan) {
+                    let dx = lastX - x; 
+                    let [d0,d1] = focusZone; 
+                    let tdx = (d1.valueOf() - d0.valueOf()) * (dx / focusWidth); 
+                    let pleft = controlScale(d0); 
+                    let pright = controlScale(new Date(d0.valueOf() + tdx)); 
+                    shift = pright - pleft; 
+                } else {
+                    let zf = k / lastK; 
+                    let [d0,d1] = focusZone; 
+                    let tdx = d1.valueOf() - d0.valueOf(); 
+                    let dnew = new Date(d0.valueOf() + (tdx * zf)); 
+                    let pleft = controlScale(d1);
+                    let pright = controlScale(dnew);
+                    let dzoom = Math.abs(pright - pleft); 
+                    if (zf < 1) {
+                        // shrink 
+                        dl = dzoom; 
+                        dr = -dzoom; 
+                    } else {
+                        // grow
+                        dl = -dzoom; 
+                        dr = dzoom;  
+                    }
+                }
+                let proposal = { 
+                    id: newProposalId, 
+                    index: index, 
+                    type: isPan ? 'pan' : 'zoom', 
+                    shift, 
+                    dl, 
+                    dr
+                }; 
+                
+                if ((isPan && lastX !== x) || (!isPan && lastK !== k)) {
+                    select('#external-proposal').on('zoom.trackZoom')(proposal); 
+                    this.updateTooltip();
+                }
+                lastX = x; 
+                lastK = k; 
+                
+                
+            }
+
         }
 
-        let { dZoom, baseWidth, timeDomains, numContextsPerSide, controlScale, focusWidth } = this.props; 
-        let { lastK, lastX, zoomRefs } = this.state; 
-        let focusZone = timeDomains[numContextsPerSide]; 
-        let zoomRef = zoomRefs[index]; 
-        let zoomNode = select(zoomRef).node(); 
-        let transform = zoomTransform(zoomNode);
-        let { k, x } = transform; 
-        let isPan = lastK === k;      
-        let zoomDir = k > lastK ? -1 : 1; 
-        let newProposalId = Math.random(); 
-        let shift = undefined; 
-        if (isPan) {
-            let dx = lastX - x; 
-            let f = dx / baseWidth;
-            let [d0,d1] = focusZone; 
-            let temporalWidth =  (d1.valueOf() - d0.valueOf()) * f; 
-            let dleft = d0; 
-            let dright = new Date(d0.valueOf() + temporalWidth); 
-            let pleft = controlScale(dleft); 
-            let pright = controlScale(dright); 
-            let pshift = pright - pleft; 
-            shift = pshift; 
-        } 
-        let proposal = { 
-            id: newProposalId, 
-            index: index, 
-            type: isPan ? 'pan' : 'zoom', 
-            shift, 
-            dr: !isPan ? zoomDir * dZoom : undefined, 
-            dl: !isPan ? -zoomDir * dZoom : undefined
-        }; 
+        return zoomed; 
 
-        if ((isPan && lastX !== x) || lastK !== k) {
-            this.setState({ lastK: k, lastX: x, proposalId: newProposalId });
-            this.props.ACTION_CHANGE_proposal(proposal);
-        }
-        
-        this.updateTooltip();
     }
 
     initZoom() {
@@ -90,52 +115,66 @@ class Track extends React.Component {
         let { zooms, zoomRefs } = this.state; 
         let numCharts = numContextsPerSide * 2 + 1; 
         for (let i = 0; i < numCharts; i++) {
-            let zoomCallback = _.partial(this.zoomed, i); 
+            let zoomCallback = _.partial(this.createZoomCallback(), i); 
             let zoomTarget = select(zoomRefs[i]); 
             let zoomFn = zooms[i]; 
             zoomTarget.call(zoomFn.on('zoom', zoomCallback)); 
         }
     }
 
+    removeZooms() {
+        let { numContextsPerSide } = this.props;
+        let { zooms, zoomRefs } = this.state; 
+        let numCharts = numContextsPerSide * 2 + 1; 
+        for (let i = 0; i < numCharts; i++) {
+            let zoomTarget = select(zoomRefs[i]); 
+            let zoomFn = zooms[i]; 
+            zoomTarget.call(zoomFn.on('zoom', null)); 
+        }
+    }
+
     updateAxes() {
+
         let { axis, quantitativeScale, categoricalScale } = this.state; 
-        let { trackHeight, trackSvgOffsetTop, trackSvgOffsetBottom, type, numAxisTicks, axisTickFormatter } = this.props; 
-        
-        if (axisTickFormatter) {
-            axis.tickFormat(axisTickFormatter); 
-        }
+        let { trackHeight, trackSvgOffsetTop, trackSvgOffsetBottom, type, numAxisTicks, axisTickFormatter, valueDomainComputer } = this.props; 
 
-        let scale; 
-        let applyScaleToAxis; 
-        switch (type) {
-            case 'discrete': 
-                scale = categoricalScale; 
-                applyScaleToAxis = scale => axis.scale(scale);
-                break; 
-            case 'continuous': 
-                scale = quantitativeScale; 
-                applyScaleToAxis = scale => axis.scale(scale.nice()).ticks(numAxisTicks ? numAxisTicks : 4); 
-                break; 
-            case 'other': 
-                break; 
+            if (axisTickFormatter) {
+                axis.tickFormat(axisTickFormatter); 
+            }
+            let scale; 
+            let applyScaleToAxis; 
+            switch (type) {
+                case 'discrete': 
+                    scale = categoricalScale; 
+                    applyScaleToAxis = scale => axis.scale(scale);
+                    break; 
+                case 'continuous': 
+                    scale = quantitativeScale; 
+                    applyScaleToAxis = scale => axis.scale(scale.nice()).ticks(numAxisTicks ? numAxisTicks : 4); 
+                    break; 
+                case 'other': 
+                    scale = categoricalScale; 
+                    applyScaleToAxis = scale => axis.scale(scale);
+                    break; 
+    
+            }
 
-        }
-        
-        if (type !== 'other') {
+            let valueDomain = valueDomainComputer ? valueDomainComputer() : this.computeValueDomain(this.props); 
+            
             applyScaleToAxis(
-                scale.domain(this.computeValueDomain(this.props))
-                     .range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop])
+                scale.domain(valueDomain)
+                        .range([trackHeight - trackSvgOffsetBottom - 1, trackSvgOffsetTop])
             ); 
             select(this.AXES_REF)
                 .call(axis)
                     .selectAll('text').classed('pplot-track-axis-text', true);
-        }
-         
+
+
     }
 
     updateTooltip = () => {
 
-        let { focusWidth, numContextsPerSide, contextWidth, trackWidth, timeDomains } = this.props;
+        let { focusWidth, numContextsPerSide, timeDomains } = this.props;
         let { formatter, timeScale } = this.state;  
 
         let [x,y] = mouse(this.FOCUS_REF); 
@@ -179,13 +218,26 @@ class Track extends React.Component {
             .attr('display', 'none') 
     }
 
+    mousemove = () => {
+        this.updateTooltip(); 
+    }
+
+    mouseleave = () => {
+        this.removeZooms(); 
+        this.removeTooltip();
+    }
+
+    mouseenter = () => {
+        this.initZoom(); 
+    }
+
     componentDidMount() {
 
         this.updateAxes(); 
-        this.initZoom(); 
 
-        select(this.FOCUS_REF).on('mousemove', this.updateTooltip); 
-        select(this.FOCUS_REF).on('mouseleave', this.removeTooltip); 
+        select(this.FOCUS_REF).on('mouseenter', this.mouseenter); 
+        select(this.FOCUS_REF).on('mousemove', this.mousemove); 
+        select(this.FOCUS_REF).on('mouseleave', this.mouseleave); 
 
     }
 
