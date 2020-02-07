@@ -74,7 +74,7 @@ var performShifts = function performShifts(selections, shiftIndices, shift) {
 exports.performShifts = performShifts;
 
 var computeActionFromSelectionTransition = function computeActionFromSelectionTransition(preS, curS) {
-  return preS[0] < curS[0] && preS[1] === curS[1] ? _TimelineControlConfiguration.BRUSH_ACTIONS.RESIZE_SHRINK_LEFT : preS[0] > curS[0] && preS[1] === curS[1] ? _TimelineControlConfiguration.BRUSH_ACTIONS.RESIZE_GROW_LEFT : preS[1] > curS[1] && preS[0] === curS[0] ? _TimelineControlConfiguration.BRUSH_ACTIONS.RESIZE_SHRINK_RIGHT : preS[1] < curS[1] && preS[0] === curS[0] ? _TimelineControlConfiguration.BRUSH_ACTIONS.RESIZE_GROW_RIGHT : preS[0] > curS[0] && preS[1] > curS[1] ? _TimelineControlConfiguration.BRUSH_ACTIONS.TRANSLATE_LEFT : preS[0] < curS[0] && preS[1] < curS[1] ? _TimelineControlConfiguration.BRUSH_ACTIONS.TRANSLATE_RIGHT : null;
+  return preS[0] < curS[0] && preS[1] === curS[1] || preS[1] === curS[0] ? _TimelineControlConfiguration.BRUSH_ACTIONS.RESIZE_SHRINK_LEFT : preS[0] > curS[0] && preS[1] === curS[1] ? _TimelineControlConfiguration.BRUSH_ACTIONS.RESIZE_GROW_LEFT : preS[1] > curS[1] && preS[0] === curS[0] || preS[0] === preS[1] ? _TimelineControlConfiguration.BRUSH_ACTIONS.RESIZE_SHRINK_RIGHT : preS[1] < curS[1] && preS[0] === curS[0] ? _TimelineControlConfiguration.BRUSH_ACTIONS.RESIZE_GROW_RIGHT : preS[0] > curS[0] && preS[1] > curS[1] ? _TimelineControlConfiguration.BRUSH_ACTIONS.TRANSLATE_LEFT : preS[0] < curS[0] && preS[1] < curS[1] ? _TimelineControlConfiguration.BRUSH_ACTIONS.TRANSLATE_RIGHT : null;
 };
 
 exports.computeActionFromSelectionTransition = computeActionFromSelectionTransition;

@@ -257,11 +257,24 @@ function (_React$Component) {
       var numCharts = numContextsPerSide * 2 + 1;
 
       for (var i = 0; i < numCharts; i++) {
+        console.log('initing');
+
         var zoomCallback = _lodash["default"].partial(this.createZoomCallback(), i);
 
         var zoomTarget = (0, _d3Selection.select)(zoomRefs[i]);
         var zoomFn = zooms[i];
-        zoomTarget.call(zoomFn.on('zoom', zoomCallback));
+        zoomTarget.call(zoomFn.on('zoom', zoomCallback)).on('wheel.zoom', null);
+
+        if (i === numContextsPerSide) {
+          var node = zoomTarget.node();
+          console.log('adding');
+          node.addEventListener('dragstart', function () {
+            return console.log("start");
+          });
+          node.addEventListener('dragend', function () {
+            return console.log("end");
+          });
+        }
       }
     }
   }, {

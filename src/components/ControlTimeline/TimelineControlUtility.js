@@ -35,12 +35,15 @@ export const performShifts = (selections, shiftIndices, shift) => (
 ); 
   
 export const computeActionFromSelectionTransition = (preS, curS) => {
-  return  (preS[0] < curS[0] && preS[1] === curS[1]) ? BRUSH_ACTIONS.RESIZE_SHRINK_LEFT : 
-          (preS[0] > curS[0] && preS[1] === curS[1]) ? BRUSH_ACTIONS.RESIZE_GROW_LEFT :
-          (preS[1] > curS[1] && preS[0] === curS[0]) ? BRUSH_ACTIONS.RESIZE_SHRINK_RIGHT : 
-          (preS[1] < curS[1] && preS[0] === curS[0]) ? BRUSH_ACTIONS.RESIZE_GROW_RIGHT :           
-          (preS[0] > curS[0] && preS[1] > curS[1]) ?   BRUSH_ACTIONS.TRANSLATE_LEFT : 
-          (preS[0] < curS[0] && preS[1] < curS[1]) ?   BRUSH_ACTIONS.TRANSLATE_RIGHT : 
+
+
+
+  return  (preS[0] < curS[0] && preS[1] === curS[1] || (preS[1] === curS[0])) ? BRUSH_ACTIONS.RESIZE_SHRINK_LEFT : 
+          (preS[0] > curS[0] && preS[1] === curS[1]) ?                          BRUSH_ACTIONS.RESIZE_GROW_LEFT :
+          (preS[1] > curS[1] && preS[0] === curS[0] || (preS[0] === preS[1])) ? BRUSH_ACTIONS.RESIZE_SHRINK_RIGHT : 
+          (preS[1] < curS[1] && preS[0] === curS[0]) ?                          BRUSH_ACTIONS.RESIZE_GROW_RIGHT :           
+          (preS[0] > curS[0] && preS[1] > curS[1]) ?                            BRUSH_ACTIONS.TRANSLATE_LEFT : 
+          (preS[0] < curS[0] && preS[1] < curS[1]) ?                            BRUSH_ACTIONS.TRANSLATE_RIGHT : 
           null;
 }
   

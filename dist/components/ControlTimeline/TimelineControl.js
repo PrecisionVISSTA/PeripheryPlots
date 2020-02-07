@@ -314,11 +314,9 @@ function (_React$Component) {
       var lockedToRight = brushLockBounds[1] !== -1;
       var leftLockBoundS = lockedToLeft ? currentSelections[leftLockIndex] : null;
       var rightLockBoundS = lockedToRight ? currentSelections[rightLockIndex] : null;
-      var sameWidth = round(preW) === round(curWidth);
       var action = (0, _TimelineControlUtility.computeActionFromSelectionTransition)(preS, curS);
-      var isTranslate = action >= 4;
-      var leftOverlappedRight = preS[1] === curS[0] && !sameWidth && !isTranslate;
-      var rightOverlappedLeft = preS[0] === curS[1] && !sameWidth && !isTranslate;
+      var leftOverlappedRight = preS[1] === curS[0];
+      var rightOverlappedLeft = preS[0] === curS[1];
       var overlapped = leftOverlappedRight || rightOverlappedLeft;
       var isFirst = index === 0;
       var isLast = index === numBrushes - 1;

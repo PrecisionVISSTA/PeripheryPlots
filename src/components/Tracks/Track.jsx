@@ -101,7 +101,6 @@ class Track extends React.Component {
                 lastX = x; 
                 lastK = k; 
                 
-                
             }
 
         }
@@ -118,7 +117,7 @@ class Track extends React.Component {
             let zoomCallback = _.partial(this.createZoomCallback(), i); 
             let zoomTarget = select(zoomRefs[i]); 
             let zoomFn = zooms[i]; 
-            zoomTarget.call(zoomFn.on('zoom', zoomCallback)); 
+            zoomTarget.call(zoomFn.on('zoom', zoomCallback)).on('wheel.zoom', null); 
         }
     }
 
@@ -358,7 +357,7 @@ class Track extends React.Component {
             <svg 
             className="pplot-axis"
             ref={ref => this.AXES_REF = ref} 
-            style={{ width: axesWidth, height: trackHeight, float: 'left' }}/>
+            style={{ width: axesWidth, height: trackHeight, float: 'left', background: '#fff' }}/>
 
             {/* Left Contexts */}
             {leftContextTimeDomains.map((timeDomain, i) => {
@@ -374,7 +373,7 @@ class Track extends React.Component {
                     <svg 
                     key={`left-${i}`}
                     clipPath={`url(#${clipId})`}
-                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
+                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left', background: '#fff'  }}>
 
                         {/* Clipping */}
                         <defs>
@@ -407,7 +406,7 @@ class Track extends React.Component {
                         <rect 
                         ref={ref => zoomRefs[index] = ref}
                         className={`zoom`}
-                        pointerEvents="all"
+                        pointerEvents="none"
                         x={0} 
                         y={trackSvgOffsetTop} 
                         width={contextWidth} 
@@ -422,7 +421,7 @@ class Track extends React.Component {
             <svg 
             className="periphery-plots-focus"
             ref={ref => this.FOCUS_REF = ref}
-            style={{ width: focusWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
+            style={{ width: focusWidth, height: trackHeight, display: 'inline-block', float: 'left', background: '#fff'  }}>
 
                 {/* Clipping */}
                 <defs>
@@ -504,7 +503,7 @@ class Track extends React.Component {
                     <svg 
                     key={`right-${i}`}
                     clipPath={`url(#${clipId})`}
-                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
+                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left', background: '#fff'  }}>
                         
                         {/* Clipping */}
                         <defs>
@@ -537,7 +536,7 @@ class Track extends React.Component {
                         <rect 
                         ref={ref => zoomRefs[index] = ref}
                         className={`zoom`}
-                        pointerEvents="all"
+                        pointerEvents="none"
                         x={0} 
                         y={trackSvgOffsetTop} 
                         width={contextWidth} 

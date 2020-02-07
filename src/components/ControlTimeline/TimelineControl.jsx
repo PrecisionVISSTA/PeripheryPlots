@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { select, selectAll, event as d3event } from 'd3-selection'; 
 import { scaleTime } from 'd3-scale'; 
 import { axisBottom } from 'd3-axis'; 
+import { zoom, zoomTransform } from "d3-zoom"; 
 import { brushX, brushSelection } from 'd3-brush'; 
 import { transition } from 'd3-transition'; 
 import { easeLinear } from 'd3-ease'; 
@@ -39,6 +40,7 @@ function assert(condition, errMsg) {
 class TimelineControl extends React.Component {
 
   state = {
+    zoom: zoom(),    // a zoom object
     brushes: [],        //collection of d3 brush objects 
     brushIds: [],       // Collection of brush ids for selection 
     brushLocks: [],     // Collection of booleans to indicate whether or not a brush is locked 
@@ -185,6 +187,87 @@ class TimelineControl extends React.Component {
     this.updateAll(newSelections); 
 
   }
+
+  createZoomCallback = () => {
+
+    let lastX = null; 
+    let lastK = null; 
+
+    let zoomed = () => {
+
+        // ignore zoom-by-brush
+        if (d3event.sourceEvent && d3event.sourceEvent.type === "brush") {
+            return;
+        }
+
+        let { k, x } = zoomTransform(this.getZoomSelection().node());
+
+        // only process zooms 
+        if (lastK && lastK === k) {
+          return; 
+        }
+
+        if (lastX === null || lastK === null) {
+            lastK = k; 
+            lastX = x; 
+        } else {
+            let newProposalId = Math.random(); 
+            let zf = k / lastK; 
+            let index = Math.floor(this.state.brushIds.length / 2); 
+            let bid = this.state.brushIds[index]; 
+            let [s0,s1] = brushSelection(select(`#${bid}`).node()); 
+            let width = s1 - s0; 
+            let newWidth = width * zf; 
+            let dWidth = Math.abs(newWidth - width); 
+            let dWidth2 = dWidth / 2; 
+            let dl = undefined; 
+            let dr = undefined; 
+            if (newWidth > width) {
+              // grow to left and right
+              dl = -dWidth2; 
+              dr = dWidth2;
+            } else {
+              dl = dWidth2; 
+              dr = -dWidth2; 
+            }
+
+            let proposal = { 
+                id: newProposalId, 
+                index, 
+                type: 'zoom', 
+                shift: undefined, 
+                dl, 
+                dr
+            }; 
+
+            if (lastK !== k) {
+                this.ingestProposal(proposal); 
+            }
+
+            lastX = x; 
+            lastK = k; 
+            
+        }
+
+    }
+
+    return zoomed; 
+
+}
+
+  initZoom() {
+    // attach zoom panel to focus zone 
+    let { zoom } = this.state; 
+    let s = this.getZoomSelection(); 
+    let zoomCallback = this.createZoomCallback(); 
+    s.call(zoom.on('zoom', zoomCallback));
+
+  }
+
+  getZoomSelection() {
+    return select(`#${this.state.brushIds[Math.floor(this.state.brushIds.length / 2)]}`); 
+  }
+
 
   shouldComponentUpdate(nextProps, nextState) {
 
@@ -397,6 +480,8 @@ class TimelineControl extends React.Component {
 
     this.appendTimeline(); 
 
+    this.initZoom(); 
+
   }
 
   appendTimeline = () => {
@@ -538,11 +623,11 @@ class TimelineControl extends React.Component {
     let lockedToRight = brushLockBounds[1] !== -1; 
     let leftLockBoundS = lockedToLeft ? currentSelections[leftLockIndex] : null; 
     let rightLockBoundS = lockedToRight ? currentSelections[rightLockIndex] : null; 
-    let sameWidth = round(preW) === round(curWidth); 
     let action = computeActionFromSelectionTransition(preS, curS); 
-    let isTranslate = action >= 4; 
-    let leftOverlappedRight = preS[1] === curS[0] && !sameWidth && !isTranslate; 
-    let rightOverlappedLeft = preS[0] === curS[1] && !sameWidth && !isTranslate; 
+
+    let leftOverlappedRight = preS[1] === curS[0]; 
+    let rightOverlappedLeft = preS[0] === curS[1];
+
     let overlapped = leftOverlappedRight || rightOverlappedLeft; 
     let isFirst = index === 0; 
     let isLast = index === numBrushes - 1; 
