@@ -1,6 +1,6 @@
 {
   "name": "periphery-plots",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "author": "Bryce Morrow bam4564@live.unc.edu",
   "description": "A React component for multivariate time series analysis",
   "repository": "https://github.com/PrecisionVISSTA/PeripheryPlots",
@@ -64,7 +64,6 @@
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "style-loader": "^1.0.0",
-    "terser-webpack-plugin": "^1.4.1",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.30.0",
     "webpack-cli": "^3.3.2",

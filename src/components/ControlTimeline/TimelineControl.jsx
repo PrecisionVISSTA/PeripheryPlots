@@ -299,6 +299,10 @@ class TimelineControl extends React.Component {
 
   }
 
+  getTimeDomains = () => {
+    return this.getBrushRanges().map(this.props.controlScale.invert); 
+  }
+
   componentDidMount() {
     // Code to create the d3 element, using the root container 
     let { 
@@ -326,11 +330,12 @@ class TimelineControl extends React.Component {
                   .attr('height', height)
 
     // append dom node for capturing external proposals for shifts 
-    let n = root.append("div").attr("id", 'external-proposal')
+    let n = root.append("div").attr("id", 'external-proposal'); 
     n.on('click.setFocusBrushRange', this.setFocusBrushRange); 
     n.on('click.lockBounds', this.lockBounds);
     n.on('click.shiftBrushRange', this.shiftBrushRange);
     n.on('zoom.trackZoom', this.ingestProposal); 
+    n.on('click.getTimeDomains', this.getTimeDomains); 
 
     // Pixel ranges for each brush 
     let brushRanges = this.props.timeDomains.map(domain => domain.map(this.props.controlScale)); 

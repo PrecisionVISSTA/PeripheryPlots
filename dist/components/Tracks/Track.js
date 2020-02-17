@@ -257,24 +257,11 @@ function (_React$Component) {
       var numCharts = numContextsPerSide * 2 + 1;
 
       for (var i = 0; i < numCharts; i++) {
-        console.log('initing');
-
         var zoomCallback = _lodash["default"].partial(this.createZoomCallback(), i);
 
         var zoomTarget = (0, _d3Selection.select)(zoomRefs[i]);
         var zoomFn = zooms[i];
         zoomTarget.call(zoomFn.on('zoom', zoomCallback)).on('wheel.zoom', null);
-
-        if (i === numContextsPerSide) {
-          var node = zoomTarget.node();
-          console.log('adding');
-          node.addEventListener('dragstart', function () {
-            return console.log("start");
-          });
-          node.addEventListener('dragend', function () {
-            return console.log("end");
-          });
-        }
       }
     }
   }, {
@@ -478,6 +465,7 @@ function (_React$Component) {
         getAllObservations: getAllObservations,
         unit: unit
       };
+      var backgroundColor = '#fff';
       return _react["default"].createElement("div", {
         style: {
           width: baseWidth,
@@ -538,6 +526,12 @@ function (_React$Component) {
           y: trackSvgOffsetTop,
           width: contextWidth,
           height: tHeight,
+          fill: backgroundColor
+        }), _react["default"].createElement("rect", {
+          x: 0,
+          y: trackSvgOffsetTop,
+          width: contextWidth,
+          height: tHeight,
           stroke: contextColor,
           fill: "none"
         }), LeftContextEncoding.map(function (LayeredEncoding, j) {
@@ -550,7 +544,7 @@ function (_React$Component) {
             return zoomRefs[index] = _ref2;
           },
           className: "zoom",
-          pointerEvents: "all",
+          pointerEvents: "none",
           x: 0,
           y: trackSvgOffsetTop,
           width: contextWidth,
@@ -575,7 +569,13 @@ function (_React$Component) {
         y: trackSvgOffsetTop,
         width: focusWidth,
         height: tHeight
-      }))), _react["default"].createElement("g", {
+      }))), _react["default"].createElement("rect", {
+        x: 0,
+        y: trackSvgOffsetTop,
+        width: focusWidth,
+        height: tHeight,
+        fill: backgroundColor
+      }), _react["default"].createElement("g", {
         clipPath: "url(#focus-clip)"
       }, _react["default"].createElement("rect", {
         x: 0,
@@ -658,6 +658,12 @@ function (_React$Component) {
           y: trackSvgOffsetTop,
           width: contextWidth,
           height: tHeight,
+          fill: backgroundColor
+        }), _react["default"].createElement("rect", {
+          x: 0,
+          y: trackSvgOffsetTop,
+          width: contextWidth,
+          height: tHeight,
           stroke: contextColor,
           fill: "none"
         }), RightContextEncoding.map(function (LayeredEncoding, j) {
@@ -670,7 +676,7 @@ function (_React$Component) {
             return zoomRefs[index] = _ref5;
           },
           className: "zoom",
-          pointerEvents: "all",
+          pointerEvents: "none",
           x: 0,
           y: trackSvgOffsetTop,
           width: contextWidth,

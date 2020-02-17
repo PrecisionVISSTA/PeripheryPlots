@@ -15,6 +15,8 @@ var _d3Scale = require("d3-scale");
 
 var _d3Axis = require("d3-axis");
 
+var _d3Zoom = require("d3-zoom");
+
 var _d3Brush = require("d3-brush");
 
 var _d3Transition = require("d3-transition");
@@ -92,6 +94,8 @@ function (_React$Component) {
     _this = _possibleConstructorReturn(this, _getPrototypeOf(TimelineControl).call(this, props));
 
     _defineProperty(_assertThisInitialized(_this), "state", {
+      zoom: (0, _d3Zoom.zoom)(),
+      // a zoom object
       brushes: [],
       //collection of d3 brush objects 
       brushIds: [],
@@ -227,6 +231,76 @@ function (_React$Component) {
       }
 
       _this.updateAll(newSelections);
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "createZoomCallback", function () {
+      var lastX = null;
+      var lastK = null;
+
+      var zoomed = function zoomed() {
+        // ignore zoom-by-brush
+        if (_d3Selection.event.sourceEvent && _d3Selection.event.sourceEvent.type === "brush") {
+          return;
+        }
+
+        var _zoomTransform = (0, _d3Zoom.zoomTransform)(_this.getZoomSelection().node()),
+            k = _zoomTransform.k,
+            x = _zoomTransform.x; // only process zooms 
+
+
+        if (lastK && lastK === k) {
+          return;
+        }
+
+        if (lastX === null || lastK === null) {
+          lastK = k;
+          lastX = x;
+        } else {
+          var newProposalId = Math.random();
+          var zf = k / lastK;
+          var index = Math.floor(_this.state.brushIds.length / 2);
+          var bid = _this.state.brushIds[index];
+
+          var _brushSelection = (0, _d3Brush.brushSelection)((0, _d3Selection.select)("#".concat(bid)).node()),
+              _brushSelection2 = _slicedToArray(_brushSelection, 2),
+              s0 = _brushSelection2[0],
+              s1 = _brushSelection2[1];
+
+          var width = s1 - s0;
+          var newWidth = width * zf;
+          var dWidth = Math.abs(newWidth - width);
+          var dWidth2 = dWidth / 2;
+          var dl = undefined;
+          var dr = undefined;
+
+          if (newWidth > width) {
+            // grow to left and right
+            dl = -dWidth2;
+            dr = dWidth2;
+          } else {
+            dl = dWidth2;
+            dr = -dWidth2;
+          }
+
+          var proposal = {
+            id: newProposalId,
+            index: index,
+            type: 'zoom',
+            shift: undefined,
+            dl: dl,
+            dr: dr
+          };
+
+          if (lastK !== k) {
+            _this.ingestProposal(proposal);
+          }
+
+          lastX = x;
+          lastK = k;
+        }
+      };
+
+      return zoomed;
     });
 
     _defineProperty(_assertThisInitialized(_this), "appendTimeline", function () {
@@ -465,6 +539,20 @@ function (_React$Component) {
 
 
   _createClass(TimelineControl, [{
+    key: "initZoom",
+    value: function initZoom() {
+      // attach zoom panel to focus zone 
+      var zoom = this.state.zoom;
+      var s = this.getZoomSelection();
+      var zoomCallback = this.createZoomCallback();
+      s.call(zoom.on('zoom', zoomCallback));
+    }
+  }, {
+    key: "getZoomSelection",
+    value: function getZoomSelection() {
+      return (0, _d3Selection.select)("#".concat(this.state.brushIds[Math.floor(this.state.brushIds.length / 2)]));
+    }
+  }, {
     key: "shouldComponentUpdate",
     value: function shouldComponentUpdate(nextProps, nextState) {
       // If container was resized, we need to resize the control axis and brushes 
@@ -526,8 +614,8 @@ function (_React$Component) {
 
       for (var i = 0; i < this.state.numBrushes; i++) {
         var clipId = this.state.clipIds[i];
-        var _brushSelection = brushRanges[i];
-        svg.append('clipPath').attr('id', clipId).append('rect').attr('x', 0).attr('y', 0).attr('width', tupdif(_brushSelection)).attr('height', this.state.brushHeight).attr('transform', "translate(".concat(_brushSelection[0], ", 0)"));
+        var _brushSelection3 = brushRanges[i];
+        svg.append('clipPath').attr('id', clipId).append('rect').attr('x', 0).attr('y', 0).attr('width', tupdif(_brushSelection3)).attr('height', this.state.brushHeight).attr('transform', "translate(".concat(_brushSelection3[0], ", 0)"));
       }
 
       this.lockClick = function (lockId) {
@@ -557,16 +645,16 @@ function (_React$Component) {
       var lockTopY = this.state.brushHeight + dy; // locks are placed right below bottom of brush 
 
       for (var _i2 = 0, li = 0; _i2 < this.state.numBrushes; _i2++) {
-        var _brushSelection2 = brushRanges[_i2];
+        var _brushSelection4 = brushRanges[_i2];
         var isFirst = _i2 === 0;
 
         if (isFirst) {
           // Add a lock to the beginning and end of the current brush 
-          addLock(_brushSelection2[0], lockTopY, this.state.brushLockIds[li++]);
-          addLock(_brushSelection2[1], lockTopY, this.state.brushLockIds[li++]);
+          addLock(_brushSelection4[0], lockTopY, this.state.brushLockIds[li++]);
+          addLock(_brushSelection4[1], lockTopY, this.state.brushLockIds[li++]);
         } else {
           // Add a lock to the end of the current brush 
-          addLock(_brushSelection2[1], lockTopY, this.state.brushLockIds[li++]);
+          addLock(_brushSelection4[1], lockTopY, this.state.brushLockIds[li++]);
         }
       } // check if outer bounds are initially locked 
 
@@ -622,6 +710,7 @@ function (_React$Component) {
       }
 
       this.appendTimeline();
+      this.initZoom();
     }
   }, {
     key: "_updateBrushExtras",

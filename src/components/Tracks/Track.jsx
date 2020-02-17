@@ -340,6 +340,8 @@ class Track extends React.Component {
             getAllObservations, 
             unit 
         };
+
+        let backgroundColor = '#fff'; 
         
         return (
         <div style={{ width: baseWidth, paddingLeft: containerPadding, paddingRight: containerPadding, boxSizing: 'content-box' }}>
@@ -357,7 +359,7 @@ class Track extends React.Component {
             <svg 
             className="pplot-axis"
             ref={ref => this.AXES_REF = ref} 
-            style={{ width: axesWidth, height: trackHeight, float: 'left', background: '#fff' }}/>
+            style={{ width: axesWidth, height: trackHeight, float: 'left' }}/>
 
             {/* Left Contexts */}
             {leftContextTimeDomains.map((timeDomain, i) => {
@@ -373,7 +375,7 @@ class Track extends React.Component {
                     <svg 
                     key={`left-${i}`}
                     clipPath={`url(#${clipId})`}
-                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left', background: '#fff'  }}>
+                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
 
                         {/* Clipping */}
                         <defs>
@@ -385,6 +387,14 @@ class Track extends React.Component {
                                 height={tHeight}/>
                             </clipPath>
                         </defs>
+
+                        {/* Background color */}
+                        <rect 
+                        x={0} 
+                        y={trackSvgOffsetTop} 
+                        width={contextWidth} 
+                        height={tHeight}
+                        fill={backgroundColor}/>
 
                         {/* Border */}
                         <rect 
@@ -421,7 +431,7 @@ class Track extends React.Component {
             <svg 
             className="periphery-plots-focus"
             ref={ref => this.FOCUS_REF = ref}
-            style={{ width: focusWidth, height: trackHeight, display: 'inline-block', float: 'left', background: '#fff'  }}>
+            style={{ width: focusWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
 
                 {/* Clipping */}
                 <defs>
@@ -433,6 +443,14 @@ class Track extends React.Component {
                         height={tHeight}/>
                     </clipPath>
                 </defs>
+
+                {/* Background */}
+                <rect 
+                x={0} 
+                y={trackSvgOffsetTop} 
+                width={focusWidth} 
+                height={tHeight}
+                fill={backgroundColor}/>
 
                 {/* Apply clipping to all elements within visualization space */}
                 <g clipPath={`url(#focus-clip)`}>
@@ -503,7 +521,7 @@ class Track extends React.Component {
                     <svg 
                     key={`right-${i}`}
                     clipPath={`url(#${clipId})`}
-                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left', background: '#fff'  }}>
+                    style={{ width: contextWidth, height: trackHeight, display: 'inline-block', float: 'left'  }}>
                         
                         {/* Clipping */}
                         <defs>
@@ -515,6 +533,14 @@ class Track extends React.Component {
                                 height={tHeight}/>
                             </clipPath>
                         </defs>
+
+                        {/* Background */}
+                        <rect 
+                        x={0} 
+                        y={trackSvgOffsetTop} 
+                        width={contextWidth} 
+                        height={tHeight}
+                        fill={backgroundColor}/>
                         
                         {/* Border */}
                         <rect 
